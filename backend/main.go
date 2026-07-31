@@ -26,6 +26,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize repository: %v", err)
 	}
+	defer repo.Close()
 
 	// 3. 初始化 Service
 	svc := service.NewCalculatorService(repo)
@@ -43,4 +44,3 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 }
-

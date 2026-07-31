@@ -247,8 +247,14 @@ func (s *CalculatorService) FixDominateMap(cePool []model.CraftEssence, included
 }
 
 func (s *CalculatorService) GetCombination(num int, includeCe []int, excludeCe []int, serverType string) [][]model.CraftEssence {
-	if num <= 0 {
+	if num < 0 {
 		return [][]model.CraftEssence{}
+	}
+	if num == 0 {
+		if len(includeCe) > 0 {
+			return [][]model.CraftEssence{}
+		}
+		return [][]model.CraftEssence{{}}
 	}
 	includeSet := map[int]bool{}
 	excludeSet := map[int]bool{}
@@ -351,11 +357,14 @@ func (s *CalculatorService) getEventBonus(svt *model.Servant, serverType string,
 }
 
 func (s *CalculatorService) getEventMultiplier(svt *model.Servant, serverType string, selectedEvents map[int]bool) float64 {
-	multiplier := 1.0
+	// 累乘逻辑，可能要fallback
+	// multiplier := 1.0
+	multiplier := 0.0
 	if list, ok := svt.EventExtraBonuses[serverType]; ok {
 		for _, b := range list {
 			if selectedEvents[b.Id] {
-				multiplier *= float64(b.Bonus) / 100.0
+				// multiplier *= float64(b.Bonus) / 100.0
+				multiplier += float64(b.Bonus) / 100.0
 			}
 		}
 	}
@@ -573,7 +582,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 
 								// convert independent multiplier to additive percentage
 								multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-								if multiplier != 1.0 {
+								if multiplier > 0 {
 									totalPercent += math.Round((multiplier - 1.0) * 100.0)
 								}
 							}
@@ -602,7 +611,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 
 									// convert independent multiplier to additive percentage
 									multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-									if multiplier != 1.0 {
+									if multiplier > 0 {
 										totalPercent += math.Round((multiplier - 1.0) * 100.0)
 									}
 								}
@@ -610,7 +619,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 								// if enableEventBonus {
 								// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
 								// }
-								if b > bestBonus {
+								if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
 									bestBonus = b
 									bestDiffKey = key
 									bestCost = detail.Cost
@@ -638,7 +647,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 
 								// convert independent multiplier to additive percentage
 								multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-								if multiplier != 1.0 {
+								if multiplier > 0 {
 									totalPercent += math.Round((multiplier - 1.0) * 100.0)
 								}
 							}
@@ -646,7 +655,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 							// if enableEventBonus {
 							// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
 							// }
-							if b > bestBonus {
+							if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
 								bestBonus = b
 								bestDiffKey = key
 								bestCost = detail.Cost
@@ -846,8 +855,13 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 
 	for i := 0; i < limit; i++ {
 		team := sortedTeams[i]
+		svtIds := make([]int, len(team.Servants))
+		for k, s := range team.Servants {
+			svtIds[k] = s.Id
+		}
+
 		response := model.TeamResponse{
-			Servants:             team.Servants,
+			Servants:             svtIds,
 			DiffChoice:           team.DiffChoice,
 			TotalCost:            team.TotalCost,
 			TotalBond:            team.TotalBond,
@@ -868,7 +882,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 				}
 			}
 			response.CraftEssences[j] = model.TeamResultCE{
-				CraftEssence: ce,
+				Id:           ce.Id,
 				Contribution: totalContribution,
 			}
 		}
@@ -891,7 +905,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 				}
 			}
 			response.SupportCraftEssences[j] = model.TeamResultCE{
-				CraftEssence: ce,
+				Id:           ce.Id,
 				Contribution: totalContribution,
 			}
 		}

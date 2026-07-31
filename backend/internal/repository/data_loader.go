@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fgo-calc-backend/internal/model"
 	"os"
@@ -14,16 +15,31 @@ type Repository struct {
 	traits        map[int]string
 	ceEffects     map[int]map[int]map[string]model.CeEffect
 	dominateMap   map[int]int
+
+	db      *sql.DB
+	dataDir string
 }
 
 func NewRepository(dataDir string) (*Repository, error) {
-	repo := &Repository{}
+	repo := &Repository{
+		dataDir: dataDir,
+	}
 	if err := repo.loadData(dataDir); err != nil {
+		return nil, err
+	}
+	if err := repo.initUserStore(); err != nil {
 		return nil, err
 	}
 	repo.precompute()
 	repo.clearInternalData()
 	return repo, nil
+}
+
+func (r *Repository) Close() error {
+	if r.db == nil {
+		return nil
+	}
+	return r.db.Close()
 }
 
 func (r *Repository) clearInternalData() {
@@ -164,4 +180,3 @@ func (r *Repository) GetCeEffects() map[int]map[int]map[string]model.CeEffect {
 func (r *Repository) GetDominateMap() map[int]int {
 	return r.dominateMap
 }
-

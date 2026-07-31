@@ -219,6 +219,21 @@
         ]
     },
     {
+        "id": 9408590,
+        "name": "献给幸福的新娘",
+        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94085900.png",
+        "cost": 12,
+        "filters": [
+            [
+                [
+                    300,
+                    2
+                ],
+                20
+            ]
+        ]
+    },
+    {
         "id": 9408990,
         "name": "迦勒底之人",
         "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94089900.png",
@@ -249,22 +264,6 @@
             [
                 [
                     203
-                ],
-                20
-            ]
-        ],
-        "server": "JP"
-    },
-    {
-        "id": 9408590,
-        "name": "献给幸福的新娘",
-        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94085900.png",
-        "cost": 12,
-        "filters": [
-            [
-                [
-                    300,
-                    2
                 ],
                 20
             ]
@@ -306,6 +305,21 @@
             [
                 [
                     302
+                ],
+                20
+            ]
+        ],
+        "server": "JP"
+    },
+    {
+        "id": 9409320,
+        "name": "流转的剑圣",
+        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94093200.png",
+        "cost": 12,
+        "filters": [
+            [
+                [
+                    100
                 ],
                 20
             ]

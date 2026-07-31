@@ -1,0 +1,385 @@
+{
+  "runsPerCase": 3,
+  "cases": [
+    {
+      "id": "case-01-zero-ce",
+      "comparison": "mismatch",
+      "stableAcrossRuns": true,
+      "testDurationMs": [
+        2,
+        1,
+        1
+      ],
+      "testMedianDurationMs": 1,
+      "testWallMs": [
+        9.44,
+        2.078,
+        2.033
+      ],
+      "testMedianWallMs": 2.078,
+      "productionDurationMs": 1,
+      "productionWallMs": 11.316
+    },
+    {
+      "id": "case-02-low-ce",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        55,
+        48,
+        53
+      ],
+      "testMedianDurationMs": 53,
+      "testWallMs": [
+        55.909,
+        48.922,
+        54.457
+      ],
+      "testMedianWallMs": 54.457,
+      "productionDurationMs": 48,
+      "productionWallMs": 49.174
+    },
+    {
+      "id": "case-03-no-support",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        77,
+        91,
+        84
+      ],
+      "testMedianDurationMs": 84,
+      "testWallMs": [
+        77.901,
+        92.159,
+        85.404
+      ],
+      "testMedianWallMs": 85.404,
+      "productionDurationMs": 83,
+      "productionWallMs": 84.207
+    },
+    {
+      "id": "case-04-double-support",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        43653,
+        46119,
+        43772
+      ],
+      "testMedianDurationMs": 43772,
+      "testWallMs": [
+        43653.957,
+        46120.979,
+        43773.323
+      ],
+      "testMedianWallMs": 43773.323,
+      "productionDurationMs": 46467,
+      "productionWallMs": 46468.759
+    },
+    {
+      "id": "case-05-jp-server",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        7184,
+        7348,
+        7807
+      ],
+      "testMedianDurationMs": 7348,
+      "testWallMs": [
+        7185.289,
+        7349.052,
+        7807.918
+      ],
+      "testMedianWallMs": 7349.052,
+      "productionDurationMs": 7784,
+      "productionWallMs": 7786.119
+    },
+    {
+      "id": "case-06-event-bonus",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        561,
+        584,
+        576
+      ],
+      "testMedianDurationMs": 576,
+      "testWallMs": [
+        562.129,
+        585.057,
+        576.948
+      ],
+      "testMedianWallMs": 576.948,
+      "productionDurationMs": 636,
+      "productionWallMs": 637.397
+    },
+    {
+      "id": "case-07-multiple-events",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        310,
+        311,
+        294
+      ],
+      "testMedianDurationMs": 310,
+      "testWallMs": [
+        310.956,
+        312.295,
+        295.04
+      ],
+      "testMedianWallMs": 310.956,
+      "productionDurationMs": 264,
+      "productionWallMs": 265.599
+    },
+    {
+      "id": "case-08-trait-filter",
+      "comparison": "exact",
+      "stableAcrossRuns": true,
+      "testDurationMs": [
+        237,
+        247,
+        245
+      ],
+      "testMedianDurationMs": 245,
+      "testWallMs": [
+        238.494,
+        248.373,
+        246.313
+      ],
+      "testMedianWallMs": 246.313,
+      "productionDurationMs": 227,
+      "productionWallMs": 230.698
+    },
+    {
+      "id": "case-09-five-locked-servants",
+      "comparison": "exact",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        39,
+        49,
+        50
+      ],
+      "testMedianDurationMs": 49,
+      "testWallMs": [
+        39.969,
+        50.338,
+        51.412
+      ],
+      "testMedianWallMs": 50.338,
+      "productionDurationMs": 58,
+      "productionWallMs": 59.074
+    },
+    {
+      "id": "case-10-locked-ce",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        73,
+        66,
+        79
+      ],
+      "testMedianDurationMs": 73,
+      "testWallMs": [
+        73.959,
+        67.283,
+        80.073
+      ],
+      "testMedianWallMs": 73.959,
+      "productionDurationMs": 68,
+      "productionWallMs": 69.226
+    },
+    {
+      "id": "case-11-locked-support",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": true,
+      "testDurationMs": [
+        72,
+        74,
+        91
+      ],
+      "testMedianDurationMs": 74,
+      "testWallMs": [
+        73.595,
+        75.529,
+        92.535
+      ],
+      "testMedianWallMs": 75.529,
+      "productionDurationMs": 72,
+      "productionWallMs": 73.019
+    },
+    {
+      "id": "case-12-excluded-support",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        16,
+        21,
+        17
+      ],
+      "testMedianDurationMs": 17,
+      "testWallMs": [
+        17.075,
+        22.228,
+        17.924
+      ],
+      "testMedianWallMs": 17.924,
+      "productionDurationMs": 20,
+      "productionWallMs": 21.455
+    },
+    {
+      "id": "case-13-large-exclusion",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        78,
+        74,
+        70
+      ],
+      "testMedianDurationMs": 74,
+      "testWallMs": [
+        78.808,
+        75.445,
+        71.348
+      ],
+      "testMedianWallMs": 75.445,
+      "productionDurationMs": 61,
+      "productionWallMs": 62.68
+    },
+    {
+      "id": "case-14-unrestricted-pool",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        569,
+        563,
+        889
+      ],
+      "testMedianDurationMs": 569,
+      "testWallMs": [
+        570.547,
+        564.051,
+        890.469
+      ],
+      "testMedianWallMs": 570.547,
+      "productionDurationMs": 576,
+      "productionWallMs": 577.351
+    },
+    {
+      "id": "case-15-low-base-bond",
+      "comparison": "same-optimum",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        7707,
+        8011,
+        12844
+      ],
+      "testMedianDurationMs": 8011,
+      "testWallMs": [
+        7707.997,
+        8012.553,
+        12845.392
+      ],
+      "testMedianWallMs": 8012.553,
+      "productionDurationMs": 7513,
+      "productionWallMs": 7514.637
+    },
+    {
+      "id": "case-16-high-base-bond",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        12887,
+        7594,
+        7728
+      ],
+      "testMedianDurationMs": 7728,
+      "testWallMs": [
+        12888.182,
+        7595.569,
+        7728.901
+      ],
+      "testMedianWallMs": 7728.901,
+      "productionDurationMs": 7609,
+      "productionWallMs": 7610.55
+    },
+    {
+      "id": "case-17-low-cost",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        68,
+        64,
+        64
+      ],
+      "testMedianDurationMs": 64,
+      "testWallMs": [
+        68.777,
+        65.558,
+        65.599
+      ],
+      "testMedianWallMs": 65.599,
+      "productionDurationMs": 52,
+      "productionWallMs": 53.804
+    },
+    {
+      "id": "case-18-high-cost",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        7088,
+        7161,
+        7283
+      ],
+      "testMedianDurationMs": 7161,
+      "testWallMs": [
+        7088.81,
+        7162.558,
+        7284.609
+      ],
+      "testMedianWallMs": 7162.558,
+      "productionDurationMs": 7578,
+      "productionWallMs": 7579.464
+    },
+    {
+      "id": "case-19-three-servants",
+      "comparison": "exact",
+      "stableAcrossRuns": true,
+      "testDurationMs": [
+        5,
+        4,
+        4
+      ],
+      "testMedianDurationMs": 4,
+      "testWallMs": [
+        5.649,
+        5.228,
+        5.034
+      ],
+      "testMedianWallMs": 5.228,
+      "productionDurationMs": 6,
+      "productionWallMs": 6.812
+    },
+    {
+      "id": "case-20-six-ce",
+      "comparison": "equivalent-scores",
+      "stableAcrossRuns": false,
+      "testDurationMs": [
+        804,
+        756,
+        942
+      ],
+      "testMedianDurationMs": 804,
+      "testWallMs": [
+        804.979,
+        756.918,
+        943.286
+      ],
+      "testMedianWallMs": 804.979,
+      "productionDurationMs": 665,
+      "productionWallMs": 666.287
+    }
+  ]
+}

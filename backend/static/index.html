@@ -424,6 +424,13 @@
     <main class="container">
         <h1><i data-lucide="calculator"></i> FGO 最优羁绊组队求解器 v2.0</h1>
 
+        <div id="user-status-bar" style="display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <span id="user-welcome" style="display: none; font-size: 0.9rem;">User: <strong id="current-username" style="color: var(--pico-primary);"></strong></span>
+            <button id="btn-login-modal" class="outline secondary" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; width: auto; margin-bottom: 0;" onclick="document.getElementById('login-modal').showModal()">账号登录 / 注册</button>
+            <button id="btn-history" class="outline secondary" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; width: auto; margin-bottom: 0; display: none;" onclick="openHistoryModal()"><i data-lucide="history" style="width: 14px; margin-right: 4px; vertical-align: middle;"></i>历史记录</button>
+            <button id="btn-logout" class="outline secondary" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; width: auto; margin-bottom: 0; display: none;" onclick="logout()">退出登录</button>
+        </div>
+
         <article class="card-section">
             <details>
                 <summary><i data-lucide="info" style="width: 18px; vertical-align: middle; margin-right: 4px;"></i> 使用提示 (Hint)</summary>
@@ -654,7 +661,48 @@
         </article>
     </dialog>
 
+    <dialog id="login-modal">
+        <article style="max-width: 400px;">
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('login-modal').close()"></a>
+                <span>账号登录 / 注册</span>
+            </header>
+            <form onsubmit="event.preventDefault(); handleLogin();" style="margin-bottom: 0;">
+                <label for="login-username">用户名 (必填)
+                    <input type="text" id="login-username" name="username" required autocomplete="username">
+                </label>
+                
+                <label for="login-password">密码 (选填)
+                    <input type="password" id="login-password" name="password" autocomplete="current-password">
+                </label>
+                
+                <small style="display: block; margin-bottom: 1rem; color: var(--pico-muted-color);">如果账号不存在，将自动注册。密码为可选，建议设置以防被他人覆盖。</small>
+                
+                <footer style="margin-top: 1rem; text-align: right;">
+                    <button type="button" class="secondary" onclick="document.getElementById('login-modal').close()" style="width: auto; margin-right: 0.5rem;">取消</button>
+                    <button type="submit" id="btn-submit-login" style="width: auto;">登录 / 注册</button>
+                </footer>
+            </form>
+        </article>
+    </dialog>
+
+    <dialog id="history-modal">
+        <article style="max-width: 600px; width: 90%;">
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="document.getElementById('history-modal').close()"></a>
+                <span>历史记录 (最近10条)</span>
+            </header>
+            <div id="history-list-container" style="max-height: 50vh; overflow-y: auto;">
+                <p style="text-align: center; color: var(--pico-muted-color);">加载中...</p>
+            </div>
+            <footer style="margin-top: 1rem; text-align: right;">
+                <button class="secondary" onclick="document.getElementById('history-modal').close()" style="width: auto;">关闭</button>
+            </footer>
+        </article>
+    </dialog>
+
     <script>
+        let CURRENT_USER = null;
         let ALL_DATA = { servants: [], craftEssences: [], traits: {} };
         let SELECTIONS = {
             includeSvt: new Map(),
@@ -667,6 +715,109 @@
             selectedEvents: new Set()
         };
         let currentModal = { type: '', list: '' };
+
+        function updateAuthUI() {
+            const welcome = document.getElementById('user-welcome');
+            const usernameSpan = document.getElementById('current-username');
+            const btnLogin = document.getElementById('btn-login-modal');
+            const btnLogout = document.getElementById('btn-logout');
+            const btnHistory = document.getElementById('btn-history');
+            
+            if (CURRENT_USER) {
+                usernameSpan.textContent = CURRENT_USER;
+                welcome.style.display = 'inline';
+                btnLogout.style.display = 'inline-block';
+                if (btnHistory) btnHistory.style.display = 'inline-block';
+                btnLogin.style.display = 'none';
+            } else {
+                welcome.style.display = 'none';
+                btnLogout.style.display = 'none';
+                if (btnHistory) btnHistory.style.display = 'none';
+                btnLogin.style.display = 'inline-block';
+            }
+        }
+
+        async function handleLogin() {
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value;
+            if (!user) return;
+            
+            const btn = document.getElementById('btn-submit-login');
+            btn.setAttribute('aria-busy', 'true');
+            btn.textContent = '请稍候...';
+            
+            try {
+                let res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username: user, password: pass})
+                });
+                
+                let data = await res.json();
+                if (!res.ok) {
+                    if (data.error === "user not found") {
+                        res = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({username: user, password: pass})
+                        });
+                        data = await res.json();
+                        if (!res.ok) throw new Error(data.error);
+                        
+                        alert('注册成功并登录！');
+                        data.state = localStorage.getItem(STORAGE_KEY) || "";
+                    } else {
+                        throw new Error(data.error);
+                    }
+                } else {
+                    alert('登录成功！');
+                }
+                
+                CURRENT_USER = data.username || user;
+                document.getElementById('login-modal').close();
+                updateAuthUI();
+                
+                if (data.state) {
+                    localStorage.setItem(STORAGE_KEY, data.state);
+                    loadState();
+                    renderEventSelection();
+                    renderMainClassFilters();
+                    renderExcludeSvtClassFilters();
+                } else {
+                    syncState();
+                }
+            } catch (err) {
+                alert('登录失败: ' + err.message);
+            } finally {
+                btn.removeAttribute('aria-busy');
+                btn.textContent = '登录 / 注册';
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout', { method: 'POST' });
+            } catch(e) {}
+            CURRENT_USER = null;
+            updateAuthUI();
+            alert('已退出登录，您现在作为无身份访客。');
+        }
+
+        async function syncState() {
+            if (!CURRENT_USER) return;
+            const state = localStorage.getItem(STORAGE_KEY);
+            if (!state) return;
+            
+            try {
+                await fetch('/api/state', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({state: state})
+                });
+            } catch(e) {
+                console.error("Failed to sync state to server:", e);
+            }
+        }
 
         const STAR_TRAITS = {
             0: 400, 1: 401, 2: 402, 3: 403, 4: 404, 5: 405
@@ -845,32 +996,34 @@
             return true;
         }
 
-        function pruneInvalidSupportLocks() {
+        function isCeVisibleOnServer(ce) {
+            if (!ce) return false;
+            const server = document.getElementById('server-select').value;
+            return ce.server !== 'JP' || server === 'JP';
+        }
+
+        function pruneInvalidSelectionsByServer() {
             let changed = false;
-            for (const id of Array.from(SELECTIONS.supportLockCe)) {
-                const ce = ALL_DATA.craftEssences.find(item => item.id === id);
-                if (!isSupportCandidateCe(ce)) {
-                    SELECTIONS.supportLockCe.delete(id);
-                    changed = true;
+            const server = document.getElementById('server-select').value;
+
+            for (const setKey of ['supportLockCe', 'excludeSupportCe', 'includeCe', 'excludeCe']) {
+                for (const id of Array.from(SELECTIONS[setKey])) {
+                    const ce = ALL_DATA.craftEssences.find(item => item.id === id);
+                    if (!ce || (ce.server === 'JP' && server !== 'JP')) {
+                        SELECTIONS[setKey].delete(id);
+                        changed = true;
+                    }
                 }
             }
+
             if (changed) {
+                renderSelectionList('ce', 'include');
+                renderSelectionList('ce', 'exclude');
                 renderSelectionList('ce', 'supportLock');
-            }
-            
-            let excludeChanged = false;
-            for (const id of Array.from(SELECTIONS.excludeSupportCe)) {
-                const ce = ALL_DATA.craftEssences.find(item => item.id === id);
-                if (!isSupportCandidateCe(ce)) {
-                    SELECTIONS.excludeSupportCe.delete(id);
-                    excludeChanged = true;
-                }
-            }
-            if (excludeChanged) {
                 renderSelectionList('ce', 'excludeSupport');
             }
-            
-            return changed || excludeChanged;
+
+            return changed;
         }
 
         function getSelectionKey(type, list) {
@@ -920,6 +1073,12 @@
                 }
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            if (CURRENT_USER) {
+                clearTimeout(window.syncTimeout);
+                window.syncTimeout = setTimeout(() => {
+                    syncState();
+                }, 1000);
+            }
         }
 
         function loadState() {
@@ -977,6 +1136,15 @@
 
         // --- 数据加载与初始化 ---
         window.onload = async () => {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    CURRENT_USER = data.username;
+                }
+            } catch(e) {}
+            
+            updateAuthUI();
             lucide.createIcons();
             initCollapseToggles();
             renderExcludeSvtClassFilters();
@@ -989,7 +1157,7 @@
                         if (id === 'server-select') {
                             SELECTIONS.selectedEvents.clear();
                             renderEventSelection(true);
-                            if (pruneInvalidSupportLocks()) {
+                            if (pruneInvalidSelectionsByServer()) {
                                 saveState();
                             }
                         } else if (id === 'enable-event-bonus') {
@@ -1021,7 +1189,7 @@
                // 加载持久化状态
                loadState();
                refreshSupportLockLimitText();
-               const lockChanged = pruneInvalidSupportLocks() || enforceSupportLockLimit();
+               const lockChanged = pruneInvalidSelectionsByServer() || enforceSupportLockLimit();
                if (lockChanged) {
                    saveState();
                }
@@ -1385,8 +1553,12 @@
                             const hasClass = detail.traits.some(t => FILTER_STATE.classes.has(t));
                             if (!hasClass) return false;
                         }
-                    } else if (currentModal.list === 'supportLock' || currentModal.list === 'excludeSupport') {
-                        if (!isSupportCandidateCe(item)) return false;
+                    } else {
+                        const server = document.getElementById('server-select').value;
+                        if (item.server === 'JP' && server !== 'JP') return false;
+                        if (currentModal.list === 'supportLock' || currentModal.list === 'excludeSupport') {
+                            if (!isSupportCandidateCe(item)) return false;
+                        }
                     }
                     return true;
                 })
@@ -1540,6 +1712,9 @@
                     throw new Error(results.error || `Server error: ${response.statusText}`);
                 }
                 renderResults(results.teams, results.duration);
+                if (CURRENT_USER) {
+                    postHistory(results.teams);
+                }
             } catch (error) {
                 console.error('Calculation failed:', error);
                 alert(`计算失败: ${error.message}`);
@@ -1632,7 +1807,9 @@
                     wrapper.className = 'result-item-wrapper';
 
                     if (i < team.Servants.length) {
-                        const svt = team.Servants[i];
+                        const svtId = team.Servants[i];
+                        const svt = ALL_DATA.servants.find(s => s.id === svtId);
+                        if (!svt) continue;
                         const diffKey = team.DiffChoice[i];
                         const detail = svt.diff[diffKey];
                         var name;
@@ -1679,12 +1856,14 @@
                     wrapper.className = 'result-item-wrapper';
 
                     if (i < team.CraftEssences.length) {
-                        const ce = team.CraftEssences[i];
+                        const ceInfo = team.CraftEssences[i];
+                        const ce = ALL_DATA.craftEssences.find(c => c.id === ceInfo.id);
+                        if (!ce) continue;
                         const div = createAvatar(ce.id, ce.name, ce.img, null, null, true);
 
                         const contributionSpan = document.createElement('div');
                         contributionSpan.className = 'contribution';
-                        contributionSpan.textContent = `羁绊 +${ce.contribution}`;
+                        contributionSpan.textContent = `羁绊 +${ceInfo.contribution}`;
                         div.appendChild(contributionSpan);
 
                         wrapper.appendChild(div);
@@ -1716,15 +1895,18 @@
                     supportGrid.className = 'team-grid';
                     teamDiv.appendChild(supportGrid);
 
-                    team.SupportCraftEssences.forEach(ce => {
+                    team.SupportCraftEssences.forEach(ceInfo => {
                         const wrapper = document.createElement('div');
                         wrapper.className = 'result-item-wrapper';
+
+                        const ce = ALL_DATA.craftEssences.find(c => c.id === ceInfo.id);
+                        if (!ce) return;
 
                          const div = createAvatar(ce.id, ce.name, ce.img, null, null, true);
 
                         const contributionSpan = document.createElement('div');
                         contributionSpan.className = 'contribution';
-                        contributionSpan.textContent = `羁绊 +${ce.contribution}`;
+                        contributionSpan.textContent = `羁绊 +${ceInfo.contribution}`;
                         div.appendChild(contributionSpan);
                         
                         wrapper.appendChild(div);
@@ -1768,6 +1950,92 @@
             }
             renderSelectionList(type, list);
             saveState();
+        }
+
+        async function postHistory(teams) {
+            const state = localStorage.getItem(STORAGE_KEY);
+            if (!state) return;
+            try {
+                await fetch('/api/history', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        state: state,
+                        result: JSON.stringify(teams)
+                    })
+                });
+            } catch (e) {
+                console.error("Failed to post history", e);
+            }
+        }
+
+        async function openHistoryModal() {
+            const container = document.getElementById('history-list-container');
+            container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">加载中...</p>';
+            document.getElementById('history-modal').showModal();
+
+            try {
+                const res = await fetch(`/api/history`);
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                container.innerHTML = '';
+                if (!data.history || data.history.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">暂无历史记录。</p>';
+                    return;
+                }
+
+                data.history.forEach((item, index) => {
+                    const date = new Date(item.timestamp).toLocaleString();
+                    const btn = document.createElement('button');
+                    btn.className = 'outline secondary';
+                    btn.style.width = '100%';
+                    btn.style.textAlign = 'left';
+                    btn.style.marginBottom = '0.5rem';
+                    btn.style.display = 'flex';
+                    btn.style.flexDirection = 'column';
+                    btn.style.gap = '0.2rem';
+                    
+                    // let resultStr = "";
+                    // try {
+                    //     const parsed = JSON.parse(item.result);
+                    //     if (parsed && parsed.length > 0) {
+                    //         resultStr = `(找到 ${parsed.length} 个方案)`;
+                    //     } else {
+                    //         resultStr = `(未找到方案)`;
+                    //     }
+                    // } catch(e) {}
+
+                    btn.innerHTML = `
+                        <div style="font-weight: bold;"><i data-lucide="clock" style="width: 14px; margin-right: 8px; vertical-align: middle;"></i>${date}</div>
+                    `;
+                    
+                    btn.onclick = () => restoreHistory(item);
+                    container.appendChild(btn);
+                });
+                lucide.createIcons();
+            } catch(err) {
+                container.innerHTML = `<p style="text-align: center; color: var(--pico-form-element-invalid-border-color);">加载失败: ${err.message}</p>`;
+            }
+        }
+
+        function restoreHistory(item) {
+            if (item.state) {
+                localStorage.setItem(STORAGE_KEY, item.state);
+                loadState();
+                renderEventSelection();
+                renderMainClassFilters();
+                renderExcludeSvtClassFilters();
+                saveState();
+            }
+            if (item.result) {
+                try {
+                    const teams = JSON.parse(item.result);
+                    renderResults(teams);
+                } catch(e) {}
+            }
+            document.getElementById('history-modal').close();
+            window.scrollTo({ top: document.getElementById('results-container').offsetTop - 50, behavior: 'smooth' });
         }
 
         // --- 辅助函数 ---

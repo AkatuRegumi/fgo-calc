@@ -4,6 +4,7 @@ import (
 	"fgo-calc-backend/internal/config"
 	"fgo-calc-backend/internal/repository"
 	"fgo-calc-backend/internal/service"
+	"fgo-calc-backend/internal/util"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -32,6 +33,19 @@ func (h *Handler) Register(r *gin.Engine) {
 		api.GET("/data", h.GetData)
 		api.POST("/filtertraits", h.FilterTraits)
 		api.POST("/calculate", h.Calculate)
+		api.POST("/register", h.RegisterUser)
+		api.POST("/login", h.LoginUser)
+		api.POST("/logout", h.LogoutUser)
+
+		auth := api.Group("/")
+		auth.Use(h.AuthMiddleware())
+		{
+			auth.GET("/me", h.GetMe)
+			auth.POST("/state", h.SaveState)
+			auth.GET("/state", h.GetState)
+			auth.POST("/history", h.AddHistory)
+			auth.GET("/history", h.GetHistory)
+		}
 	}
 
 	r.GET("/test", func(c *gin.Context) {
@@ -133,4 +147,139 @@ func mapStr2Int(data []string) []int {
 		}
 	}
 	return result
+}
+
+func (h *Handler) RegisterUser(c *gin.Context) {
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	if req.Username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username cannot be empty"})
+		return
+	}
+	if err := h.repo.RegisterUser(req.Username, req.Password); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := util.GenerateToken(req.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	c.SetCookie("token", token, 3600*24*30, "/", "", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "success", "username": req.Username})
+}
+
+func (h *Handler) LoginUser(c *gin.Context) {
+	var req struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	user, err := h.repo.LoginUser(req.Username, req.Password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := util.GenerateToken(user.Username)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to generate token"})
+		return
+	}
+
+	c.SetCookie("token", token, 3600*24*30, "/", "", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "success", "state": user.State, "username": user.Username})
+}
+
+func (h *Handler) SaveState(c *gin.Context) {
+	username := c.GetString("username")
+	var req struct {
+		State string `json:"state"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	if err := h.repo.SaveUserState(username, req.State); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (h *Handler) GetState(c *gin.Context) {
+	username := c.GetString("username")
+	state, err := h.repo.GetUserState(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"state": state})
+}
+
+func (h *Handler) AddHistory(c *gin.Context) {
+	username := c.GetString("username")
+	var req struct {
+		State  string `json:"state"`
+		Result string `json:"result"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	if err := h.repo.AddHistory(username, req.State, req.Result); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (h *Handler) GetHistory(c *gin.Context) {
+	username := c.GetString("username")
+	history, err := h.repo.GetHistory(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"history": history})
+}
+
+func (h *Handler) AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		tokenString, err := c.Cookie("token")
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+
+		username, err := util.ParseToken(tokenString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			return
+		}
+
+		c.Set("username", username)
+		c.Next()
+	}
+}
+
+func (h *Handler) GetMe(c *gin.Context) {
+	username := c.GetString("username")
+	c.JSON(http.StatusOK, gin.H{"username": username})
+}
+
+func (h *Handler) LogoutUser(c *gin.Context) {
+	c.SetCookie("token", "", -1, "/", "", false, true)
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }

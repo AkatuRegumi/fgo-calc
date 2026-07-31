@@ -5,3 +5,7 @@ config.dev.json
 config.prod.json
 deploy.sh
 fgo-calc-backend
+users.json
+users.db
+users.db-shm
+users.db-wal

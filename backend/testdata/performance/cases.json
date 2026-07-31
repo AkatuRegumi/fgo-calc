@@ -1,0 +1,5997 @@
+{
+  "cases": [
+    {
+      "id": "case-01-zero-ce",
+      "features": {
+        "cost": 55,
+        "svt": 5,
+        "ce": 0,
+        "support": 0,
+        "bond": 800,
+        "server": "CN",
+        "event": true,
+        "events": 1,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "55"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "0"
+        ],
+        [
+          "supportlimit",
+          "0"
+        ],
+        [
+          "basebond",
+          "800"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ],
+        [
+          "selected_events",
+          "71555"
+        ]
+      ],
+      "expectedTeams": [],
+      "productionDurationMs": 1,
+      "productionWallMs": 11.316
+    },
+    {
+      "id": "case-02-low-ce",
+      "features": {
+        "cost": 61,
+        "svt": 3,
+        "ce": 3,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 1,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "61"
+        ],
+        [
+          "svtlimit",
+          "3"
+        ],
+        [
+          "celimit",
+          "3"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "selected_events",
+          "71544"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            501200,
+            702700,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 60,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            306000,
+            106700,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 60,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            306000,
+            106700,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 60,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            306000,
+            106700,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 60,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            501200,
+            702700,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 60,
+          "TotalBond": 5400
+        }
+      ],
+      "productionDurationMs": 48,
+      "productionWallMs": 49.174
+    },
+    {
+      "id": "case-03-no-support",
+      "features": {
+        "cost": 130,
+        "svt": 6,
+        "ce": 6,
+        "support": 0,
+        "bond": 3164,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 17,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 1,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "130"
+        ],
+        [
+          "svtlimit",
+          "6"
+        ],
+        [
+          "celimit",
+          "6"
+        ],
+        [
+          "supportlimit",
+          "0"
+        ],
+        [
+          "basebond",
+          "3164"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "allowtraits",
+          "100"
+        ],
+        [
+          "allowtraits",
+          "102"
+        ],
+        [
+          "allowtraits",
+          "101"
+        ],
+        [
+          "allowtraits",
+          "103"
+        ],
+        [
+          "allowtraits",
+          "104"
+        ],
+        [
+          "allowtraits",
+          "105"
+        ],
+        [
+          "allowtraits",
+          "106"
+        ],
+        [
+          "allowtraits",
+          "108"
+        ],
+        [
+          "allowtraits",
+          "110"
+        ],
+        [
+          "allowtraits",
+          "115"
+        ],
+        [
+          "allowtraits",
+          "107"
+        ],
+        [
+          "allowtraits",
+          "109"
+        ],
+        [
+          "allowtraits",
+          "117"
+        ],
+        [
+          "allowtraits",
+          "120"
+        ],
+        [
+          "allowtraits",
+          "132"
+        ],
+        [
+          "allowtraits",
+          "129"
+        ],
+        [
+          "allowtraits",
+          "124"
+        ],
+        [
+          "includece",
+          "9408590"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            303900,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 3792
+            },
+            {
+              "id": 9407740,
+              "contribution": 3160
+            },
+            {
+              "id": 9407850,
+              "contribution": 3792
+            },
+            {
+              "id": 9408390,
+              "contribution": 3160
+            },
+            {
+              "id": 9401970,
+              "contribution": 1896
+            },
+            {
+              "id": 9400980,
+              "contribution": 300
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 129,
+          "TotalBond": 35101
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            600900,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 3792
+            },
+            {
+              "id": 9407740,
+              "contribution": 3160
+            },
+            {
+              "id": 9407850,
+              "contribution": 3160
+            },
+            {
+              "id": 9408390,
+              "contribution": 3792
+            },
+            {
+              "id": 9401970,
+              "contribution": 1896
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 127,
+          "TotalBond": 34801
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            303900,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 3792
+            },
+            {
+              "id": 9407740,
+              "contribution": 3160
+            },
+            {
+              "id": 9407850,
+              "contribution": 3792
+            },
+            {
+              "id": 9408390,
+              "contribution": 3160
+            },
+            {
+              "id": 9401970,
+              "contribution": 1896
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 124,
+          "TotalBond": 34801
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 3792
+            },
+            {
+              "id": 9407740,
+              "contribution": 3792
+            },
+            {
+              "id": 9407850,
+              "contribution": 3792
+            },
+            {
+              "id": 9408390,
+              "contribution": 2528
+            },
+            {
+              "id": 9401970,
+              "contribution": 1896
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 128,
+          "TotalBond": 34800
+        },
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            303900,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 3792
+            },
+            {
+              "id": 9407740,
+              "contribution": 3160
+            },
+            {
+              "id": 9407850,
+              "contribution": 3792
+            },
+            {
+              "id": 9408390,
+              "contribution": 1896
+            },
+            {
+              "id": 9401970,
+              "contribution": 1896
+            },
+            {
+              "id": 9403520,
+              "contribution": 948
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 128,
+          "TotalBond": 34485
+        }
+      ],
+      "productionDurationMs": 83,
+      "productionWallMs": 84.207
+    },
+    {
+      "id": "case-04-double-support",
+      "features": {
+        "cost": 116,
+        "svt": 5,
+        "ce": 5,
+        "support": 2,
+        "bond": 1000,
+        "server": "JP",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "116"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "2"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 11300
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "800130"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 11300
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            501200,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 11300
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            501200,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 11300
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 11250
+        }
+      ],
+      "productionDurationMs": 46467,
+      "productionWallMs": 46468.759
+    },
+    {
+      "id": "case-05-jp-server",
+      "features": {
+        "cost": 114,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 915,
+        "server": "JP",
+        "event": true,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "114"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "915"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 915
+            },
+            {
+              "id": 9407850,
+              "contribution": 915
+            },
+            {
+              "id": 9408390,
+              "contribution": 915
+            },
+            {
+              "id": 9408590,
+              "contribution": 915
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 915
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9400
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 915
+            },
+            {
+              "id": 9407850,
+              "contribution": 915
+            },
+            {
+              "id": 9408390,
+              "contribution": 915
+            },
+            {
+              "id": 9408590,
+              "contribution": 915
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 915
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9400
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 915
+            },
+            {
+              "id": 9407850,
+              "contribution": 915
+            },
+            {
+              "id": 9408390,
+              "contribution": 915
+            },
+            {
+              "id": 9408590,
+              "contribution": 915
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 915
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9400
+        },
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "800130"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 915
+            },
+            {
+              "id": 9407850,
+              "contribution": 915
+            },
+            {
+              "id": 9408390,
+              "contribution": 549
+            },
+            {
+              "id": 9408590,
+              "contribution": 915
+            },
+            {
+              "id": 9401970,
+              "contribution": 455
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 915
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 9239
+        },
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 915
+            },
+            {
+              "id": 9407850,
+              "contribution": 915
+            },
+            {
+              "id": 9408390,
+              "contribution": 549
+            },
+            {
+              "id": 9408590,
+              "contribution": 915
+            },
+            {
+              "id": 9401970,
+              "contribution": 455
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 915
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 9239
+        }
+      ],
+      "productionDurationMs": 7784,
+      "productionWallMs": 7786.119
+    },
+    {
+      "id": "case-06-event-bonus",
+      "features": {
+        "cost": 113,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": true,
+        "events": 1,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "113"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ],
+        [
+          "selected_events",
+          "80534"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            501200,
+            702700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "702730",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10100
+        },
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10100
+        }
+      ],
+      "productionDurationMs": 636,
+      "productionWallMs": 637.397
+    },
+    {
+      "id": "case-07-multiple-events",
+      "features": {
+        "cost": 124,
+        "svt": 5,
+        "ce": 6,
+        "support": 2,
+        "bond": 4748,
+        "server": "CN",
+        "event": true,
+        "events": 4,
+        "traits": 1,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 2,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "124"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "6"
+        ],
+        [
+          "supportlimit",
+          "2"
+        ],
+        [
+          "basebond",
+          "4748"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ],
+        [
+          "selected_events",
+          "80534"
+        ],
+        [
+          "selected_events",
+          "71539"
+        ],
+        [
+          "selected_events",
+          "71544"
+        ],
+        [
+          "selected_events",
+          "71545"
+        ],
+        [
+          "allowtraits",
+          "100"
+        ],
+        [
+          "excludece",
+          "9308100"
+        ],
+        [
+          "excludece",
+          "9400980"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            106200,
+            106500,
+            106700,
+            103900,
+            100300
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 124,
+          "TotalBond": 47480
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            102900,
+            105200
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 123,
+          "TotalBond": 47480
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            102900,
+            103600
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 119,
+          "TotalBond": 47480
+        },
+        {
+          "Servants": [
+            106200,
+            106700,
+            103700,
+            103900,
+            100300
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 949
+            },
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 124,
+          "TotalBond": 47240
+        },
+        {
+          "Servants": [
+            106200,
+            106500,
+            106700,
+            103900,
+            100300
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 949
+            },
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 124,
+          "TotalBond": 47240
+        }
+      ],
+      "productionDurationMs": 264,
+      "productionWallMs": 265.599
+    },
+    {
+      "id": "case-08-trait-filter",
+      "features": {
+        "cost": 113,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": true,
+        "events": 0,
+        "traits": 1,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "113"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ],
+        [
+          "allowtraits",
+          "101"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            306000,
+            306300,
+            303000,
+            303800,
+            303900
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 9500
+        },
+        {
+          "Servants": [
+            306000,
+            306300,
+            303000,
+            303800,
+            303900
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 9500
+        },
+        {
+          "Servants": [
+            306000,
+            306300,
+            303000,
+            303800,
+            304000
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9450
+        },
+        {
+          "Servants": [
+            306000,
+            306300,
+            303000,
+            303800,
+            304000
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9450
+        },
+        {
+          "Servants": [
+            306000,
+            306300,
+            302900,
+            303000,
+            303300
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 9350
+        }
+      ],
+      "productionDurationMs": 227,
+      "productionWallMs": 230.698
+    },
+    {
+      "id": "case-09-five-locked-servants",
+      "features": {
+        "cost": 115,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 5,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "115"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "includesvt",
+          "2300900"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "includesvt",
+          "2300500"
+        ],
+        [
+          "includesvtdiff",
+          "asc1"
+        ],
+        [
+          "includesvt",
+          "705000"
+        ],
+        [
+          "includesvtdiff",
+          "asc3"
+        ],
+        [
+          "includesvt",
+          "304900"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "includesvt",
+          "201300"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            705000,
+            304900,
+            2300500,
+            201300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            },
+            {
+              "id": 9404360,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 114,
+          "TotalBond": 7250
+        },
+        {
+          "Servants": [
+            2300900,
+            705000,
+            304900,
+            2300500,
+            201300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 107,
+          "TotalBond": 7250
+        },
+        {
+          "Servants": [
+            2300900,
+            705000,
+            304900,
+            2300500,
+            201300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 200
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 114,
+          "TotalBond": 7200
+        },
+        {
+          "Servants": [
+            2300900,
+            705000,
+            304900,
+            2300500,
+            201300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 200
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 114,
+          "TotalBond": 7200
+        },
+        {
+          "Servants": [
+            2300900,
+            705000,
+            304900,
+            2300500,
+            201300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 200
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 114,
+          "TotalBond": 7200
+        }
+      ],
+      "productionDurationMs": 58,
+      "productionWallMs": 59.074
+    },
+    {
+      "id": "case-10-locked-ce",
+      "features": {
+        "cost": 115,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 2,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "115"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "includece",
+          "9407850"
+        ],
+        [
+          "includece",
+          "9408390"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            101200,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 800
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 115,
+          "TotalBond": 10100
+        }
+      ],
+      "productionDurationMs": 68,
+      "productionWallMs": 69.226
+    },
+    {
+      "id": "case-11-locked-support",
+      "features": {
+        "cost": 112,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 1,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "112"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "includesupportce",
+          "9407850"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10100
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            101200,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 800
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 111,
+          "TotalBond": 10100
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            303900,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 108,
+          "TotalBond": 10100
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "800130"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 109,
+          "TotalBond": 10050
+        },
+        {
+          "Servants": [
+            2300900,
+            501200,
+            303000,
+            504100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 800
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10000
+        }
+      ],
+      "productionDurationMs": 72,
+      "productionWallMs": 73.019
+    },
+    {
+      "id": "case-12-excluded-support",
+      "features": {
+        "cost": 101,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 1,
+        "include_svt": 2,
+        "exclude_svt": 0,
+        "include_ce": 1,
+        "exclude_ce": 2,
+        "support_lock": 0,
+        "support_exclude": 1
+      },
+      "request": [
+        [
+          "costlimit",
+          "101"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "includesvt",
+          "704700"
+        ],
+        [
+          "includesvtdiff",
+          "asc1"
+        ],
+        [
+          "includesvt",
+          "504500"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "allowtraits",
+          "106"
+        ],
+        [
+          "includece",
+          "9403990"
+        ],
+        [
+          "excludece",
+          "9408590"
+        ],
+        [
+          "excludece",
+          "9408060"
+        ],
+        [
+          "excludesupportce",
+          "9408590"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            504500,
+            704700,
+            702800,
+            700900,
+            701300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "702830",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9407480,
+              "contribution": 400
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 98,
+          "TotalBond": 7550
+        },
+        {
+          "Servants": [
+            504500,
+            704700,
+            702800,
+            700900,
+            701600
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "702830",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9407480,
+              "contribution": 600
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 98,
+          "TotalBond": 7500
+        },
+        {
+          "Servants": [
+            504500,
+            704700,
+            702800,
+            700500,
+            700900
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "702830",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9407480,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            },
+            {
+              "id": 9404360,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 101,
+          "TotalBond": 7400
+        },
+        {
+          "Servants": [
+            504500,
+            704700,
+            702800,
+            700500,
+            700900
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "702830",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9407480,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9404180,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 101,
+          "TotalBond": 7400
+        },
+        {
+          "Servants": [
+            504500,
+            704700,
+            702800,
+            703400,
+            701300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9403990,
+              "contribution": 250
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            },
+            {
+              "id": 9403520,
+              "contribution": 250
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 750
+            }
+          ],
+          "TotalCost": 99,
+          "TotalBond": 7400
+        }
+      ],
+      "productionDurationMs": 20,
+      "productionWallMs": 21.455
+    },
+    {
+      "id": "case-13-large-exclusion",
+      "features": {
+        "cost": 128,
+        "svt": 5,
+        "ce": 6,
+        "support": 2,
+        "bond": 4748,
+        "server": "CN",
+        "event": true,
+        "events": 1,
+        "traits": 1,
+        "include_svt": 2,
+        "exclude_svt": 100,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "128"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "6"
+        ],
+        [
+          "supportlimit",
+          "2"
+        ],
+        [
+          "basebond",
+          "4748"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "true"
+        ],
+        [
+          "includesvt",
+          "301200"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "includesvt",
+          "300500"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "selected_events",
+          "71544"
+        ],
+        [
+          "allowtraits",
+          "101"
+        ],
+        [
+          "excludesvt",
+          "4000100"
+        ],
+        [
+          "excludesvt",
+          "2301100"
+        ],
+        [
+          "excludesvt",
+          "400800"
+        ],
+        [
+          "excludesvt",
+          "101200"
+        ],
+        [
+          "excludesvt",
+          "501800"
+        ],
+        [
+          "excludesvt",
+          "504300"
+        ],
+        [
+          "excludesvt",
+          "502100"
+        ],
+        [
+          "excludesvt",
+          "501000"
+        ],
+        [
+          "excludesvt",
+          "403900"
+        ],
+        [
+          "excludesvt",
+          "403400"
+        ],
+        [
+          "excludesvt",
+          "504100"
+        ],
+        [
+          "excludesvt",
+          "401800"
+        ],
+        [
+          "excludesvt",
+          "104800"
+        ],
+        [
+          "excludesvt",
+          "401900"
+        ],
+        [
+          "excludesvt",
+          "402200"
+        ],
+        [
+          "excludesvt",
+          "502700"
+        ],
+        [
+          "excludesvt",
+          "900700"
+        ],
+        [
+          "excludesvt",
+          "303900"
+        ],
+        [
+          "excludesvt",
+          "102000"
+        ],
+        [
+          "excludesvt",
+          "100700"
+        ],
+        [
+          "excludesvt",
+          "102900"
+        ],
+        [
+          "excludesvt",
+          "105800"
+        ],
+        [
+          "excludesvt",
+          "105200"
+        ],
+        [
+          "excludesvt",
+          "102200"
+        ],
+        [
+          "excludesvt",
+          "101900"
+        ],
+        [
+          "excludesvt",
+          "106200"
+        ],
+        [
+          "excludesvt",
+          "104300"
+        ],
+        [
+          "excludesvt",
+          "105500"
+        ],
+        [
+          "excludesvt",
+          "103900"
+        ],
+        [
+          "excludesvt",
+          "106500"
+        ],
+        [
+          "excludesvt",
+          "106600"
+        ],
+        [
+          "excludesvt",
+          "103700"
+        ],
+        [
+          "excludesvt",
+          "105300"
+        ],
+        [
+          "excludesvt",
+          "100500"
+        ],
+        [
+          "excludesvt",
+          "103800"
+        ],
+        [
+          "excludesvt",
+          "106400"
+        ],
+        [
+          "excludesvt",
+          "100300"
+        ],
+        [
+          "excludesvt",
+          "103300"
+        ],
+        [
+          "excludesvt",
+          "104400"
+        ],
+        [
+          "excludesvt",
+          "100200"
+        ],
+        [
+          "excludesvt",
+          "101800"
+        ],
+        [
+          "excludesvt",
+          "704300"
+        ],
+        [
+          "excludesvt",
+          "701600"
+        ],
+        [
+          "excludesvt",
+          "702700"
+        ],
+        [
+          "excludesvt",
+          "705100"
+        ],
+        [
+          "excludesvt",
+          "705200"
+        ],
+        [
+          "excludesvt",
+          "700600"
+        ],
+        [
+          "excludesvt",
+          "703700"
+        ],
+        [
+          "excludesvt",
+          "104600"
+        ],
+        [
+          "excludesvt",
+          "306000"
+        ],
+        [
+          "excludesvt",
+          "501200"
+        ],
+        [
+          "excludesvt",
+          "303800"
+        ],
+        [
+          "excludesvt",
+          "306300"
+        ],
+        [
+          "excludesvt",
+          "302000"
+        ],
+        [
+          "excludesvt",
+          "303600"
+        ],
+        [
+          "excludesvt",
+          "305300"
+        ],
+        [
+          "excludesvt",
+          "306400"
+        ],
+        [
+          "excludesvt",
+          "304000"
+        ],
+        [
+          "excludesvt",
+          "303000"
+        ],
+        [
+          "excludesvt",
+          "302900"
+        ],
+        [
+          "excludesvt",
+          "303500"
+        ],
+        [
+          "excludesvt",
+          "305800"
+        ],
+        [
+          "excludesvt",
+          "304700"
+        ],
+        [
+          "excludesvt",
+          "305400"
+        ],
+        [
+          "excludesvt",
+          "304600"
+        ],
+        [
+          "excludesvt",
+          "306100"
+        ],
+        [
+          "excludesvt",
+          "301900"
+        ],
+        [
+          "excludesvt",
+          "301300"
+        ],
+        [
+          "excludesvt",
+          "305700"
+        ],
+        [
+          "excludesvt",
+          "302400"
+        ],
+        [
+          "excludesvt",
+          "305100"
+        ],
+        [
+          "excludesvt",
+          "106700"
+        ],
+        [
+          "excludesvt",
+          "303300"
+        ],
+        [
+          "excludesvt",
+          "302800"
+        ],
+        [
+          "excludesvt",
+          "305600"
+        ],
+        [
+          "excludesvt",
+          "304300"
+        ],
+        [
+          "excludesvt",
+          "305900"
+        ],
+        [
+          "excludesvt",
+          "301400"
+        ],
+        [
+          "excludesvt",
+          "300600"
+        ],
+        [
+          "excludesvt",
+          "300400"
+        ],
+        [
+          "excludesvt",
+          "304800"
+        ],
+        [
+          "excludesvt",
+          "300800"
+        ],
+        [
+          "excludesvt",
+          "304900"
+        ],
+        [
+          "excludesvt",
+          "303200"
+        ],
+        [
+          "excludesvt",
+          "300900"
+        ],
+        [
+          "excludesvt",
+          "2801100"
+        ],
+        [
+          "excludesvt",
+          "1000900"
+        ],
+        [
+          "excludesvt",
+          "604200"
+        ],
+        [
+          "excludesvt",
+          "2300600"
+        ],
+        [
+          "excludesvt",
+          "705000"
+        ],
+        [
+          "excludesvt",
+          "1101600"
+        ],
+        [
+          "excludesvt",
+          "402800"
+        ],
+        [
+          "excludesvt",
+          "2301000"
+        ],
+        [
+          "excludesvt",
+          "505900"
+        ],
+        [
+          "excludesvt",
+          "504600"
+        ],
+        [
+          "excludesvt",
+          "300700"
+        ],
+        [
+          "excludesvt",
+          "301000"
+        ],
+        [
+          "excludesvt",
+          "300100"
+        ],
+        [
+          "excludesvt",
+          "301600"
+        ],
+        [
+          "excludesvt",
+          "300200"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            300500,
+            301200,
+            305500,
+            306200,
+            301700
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            },
+            {
+              "id": 9404180,
+              "contribution": 1185
+            },
+            {
+              "id": 9404360,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 3560
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "TotalCost": 128,
+          "TotalBond": 36795
+        },
+        {
+          "Servants": [
+            300500,
+            301200,
+            305500,
+            301700,
+            302500
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            },
+            {
+              "id": 9404180,
+              "contribution": 1185
+            },
+            {
+              "id": 9404360,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 3560
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "TotalCost": 124,
+          "TotalBond": 36795
+        },
+        {
+          "Servants": [
+            300500,
+            301200,
+            305500,
+            306200,
+            301700
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 949
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            },
+            {
+              "id": 9404180,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 3560
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "TotalCost": 128,
+          "TotalBond": 36559
+        },
+        {
+          "Servants": [
+            300500,
+            301200,
+            305500,
+            306200,
+            304400
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "asc3",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 949
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            },
+            {
+              "id": 9404180,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 3560
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "TotalCost": 128,
+          "TotalBond": 36559
+        },
+        {
+          "Servants": [
+            300500,
+            301200,
+            305500,
+            306200,
+            300300
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "asc3",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 949
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9403990,
+              "contribution": 1185
+            },
+            {
+              "id": 9404180,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9403520,
+              "contribution": 3560
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "TotalCost": 128,
+          "TotalBond": 36559
+        }
+      ],
+      "productionDurationMs": 61,
+      "productionWallMs": 62.68
+    },
+    {
+      "id": "case-14-unrestricted-pool",
+      "features": {
+        "cost": 114,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "114"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 10250
+        },
+        {
+          "Servants": [
+            2300900,
+            306000,
+            106700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10100
+        },
+        {
+          "Servants": [
+            2300900,
+            501200,
+            702700,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 10100
+        }
+      ],
+      "productionDurationMs": 576,
+      "productionWallMs": 577.351
+    },
+    {
+      "id": "case-15-low-base-bond",
+      "features": {
+        "cost": 115,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 500,
+        "server": "JP",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "115"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "500"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            },
+            {
+              "id": 9407850,
+              "contribution": 500
+            },
+            {
+              "id": 9408390,
+              "contribution": 500
+            },
+            {
+              "id": 9408590,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 500
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 5250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            },
+            {
+              "id": 9407850,
+              "contribution": 500
+            },
+            {
+              "id": 9408390,
+              "contribution": 500
+            },
+            {
+              "id": 9408590,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 5250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            },
+            {
+              "id": 9407850,
+              "contribution": 500
+            },
+            {
+              "id": 9408390,
+              "contribution": 500
+            },
+            {
+              "id": 9408590,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 500
+            }
+          ],
+          "TotalCost": 113,
+          "TotalBond": 5250
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            501200,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 400
+            },
+            {
+              "id": 9407850,
+              "contribution": 500
+            },
+            {
+              "id": 9408390,
+              "contribution": 500
+            },
+            {
+              "id": 9408590,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 500
+            }
+          ],
+          "TotalCost": 109,
+          "TotalBond": 5150
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            },
+            {
+              "id": 9407850,
+              "contribution": 500
+            },
+            {
+              "id": 9408390,
+              "contribution": 400
+            },
+            {
+              "id": 9408590,
+              "contribution": 500
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 500
+            }
+          ],
+          "TotalCost": 109,
+          "TotalBond": 5150
+        }
+      ],
+      "productionDurationMs": 7513,
+      "productionWallMs": 7514.637
+    },
+    {
+      "id": "case-16-high-base-bond",
+      "features": {
+        "cost": 116,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 4998,
+        "server": "JP",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "116"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "4998"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 4995
+            },
+            {
+              "id": 9407850,
+              "contribution": 4995
+            },
+            {
+              "id": 9408390,
+              "contribution": 3996
+            },
+            {
+              "id": 9408590,
+              "contribution": 4995
+            },
+            {
+              "id": 9401970,
+              "contribution": 2495
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 4995
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 51476
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 4995
+            },
+            {
+              "id": 9407850,
+              "contribution": 4995
+            },
+            {
+              "id": 9408390,
+              "contribution": 3996
+            },
+            {
+              "id": 9408590,
+              "contribution": 4995
+            },
+            {
+              "id": 9401970,
+              "contribution": 2495
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 4995
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 51476
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            501200,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 3996
+            },
+            {
+              "id": 9407850,
+              "contribution": 4995
+            },
+            {
+              "id": 9408390,
+              "contribution": 4995
+            },
+            {
+              "id": 9408590,
+              "contribution": 4995
+            },
+            {
+              "id": 9401970,
+              "contribution": 2495
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 4995
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 51476
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            306000,
+            303000,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 4995
+            },
+            {
+              "id": 9407850,
+              "contribution": 4995
+            },
+            {
+              "id": 9408390,
+              "contribution": 3996
+            },
+            {
+              "id": 9408590,
+              "contribution": 4995
+            },
+            {
+              "id": 9401970,
+              "contribution": 2495
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4995
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 51476
+        },
+        {
+          "Servants": [
+            403400,
+            403700,
+            400800,
+            400300,
+            401300
+          ],
+          "DiffChoice": [
+            "403430",
+            "default",
+            "400830",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408220,
+              "contribution": 4995
+            },
+            {
+              "id": 9408390,
+              "contribution": 3996
+            },
+            {
+              "id": 9408800,
+              "contribution": 3996
+            },
+            {
+              "id": 9408990,
+              "contribution": 4995
+            },
+            {
+              "id": 9401970,
+              "contribution": 2495
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408220,
+              "contribution": 4995
+            }
+          ],
+          "TotalCost": 115,
+          "TotalBond": 50477
+        }
+      ],
+      "productionDurationMs": 7609,
+      "productionWallMs": 7610.55
+    },
+    {
+      "id": "case-17-low-cost",
+      "features": {
+        "cost": 83,
+        "svt": 3,
+        "ce": 3,
+        "support": 1,
+        "bond": 1000,
+        "server": "CN",
+        "event": false,
+        "events": 1,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "83"
+        ],
+        [
+          "svtlimit",
+          "3"
+        ],
+        [
+          "celimit",
+          "3"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "selected_events",
+          "71544"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 80,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            2301000,
+            103700,
+            1000900
+          ],
+          "DiffChoice": [
+            "asc3",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 80,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            2301000,
+            103700,
+            1000900
+          ],
+          "DiffChoice": [
+            "asc3",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 80,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            2301000,
+            103700,
+            1000900
+          ],
+          "DiffChoice": [
+            "asc3",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407480,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408590,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 80,
+          "TotalBond": 5400
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            },
+            {
+              "id": 9407850,
+              "contribution": 600
+            },
+            {
+              "id": 9408390,
+              "contribution": 600
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 600
+            }
+          ],
+          "TotalCost": 80,
+          "TotalBond": 5400
+        }
+      ],
+      "productionDurationMs": 52,
+      "productionWallMs": 53.804
+    },
+    {
+      "id": "case-18-high-cost",
+      "features": {
+        "cost": 130,
+        "svt": 5,
+        "ce": 5,
+        "support": 1,
+        "bond": 1000,
+        "server": "JP",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "130"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "5"
+        ],
+        [
+          "supportlimit",
+          "1"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408390,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 120,
+          "TotalBond": 10500
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9408590,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 120,
+          "TotalBond": 10500
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 120,
+          "TotalBond": 10500
+        },
+        {
+          "Servants": [
+            2300900,
+            4000100,
+            303000,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "asc3",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 1000
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 120,
+          "TotalBond": 10500
+        },
+        {
+          "Servants": [
+            2501400,
+            2300900,
+            4000100,
+            901100,
+            800100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "asc3",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            },
+            {
+              "id": 9407850,
+              "contribution": 1000
+            },
+            {
+              "id": 9408390,
+              "contribution": 800
+            },
+            {
+              "id": 9408590,
+              "contribution": 1000
+            },
+            {
+              "id": 9401970,
+              "contribution": 500
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407740,
+              "contribution": 1000
+            }
+          ],
+          "TotalCost": 124,
+          "TotalBond": 10300
+        }
+      ],
+      "productionDurationMs": 7578,
+      "productionWallMs": 7579.464
+    },
+    {
+      "id": "case-19-three-servants",
+      "features": {
+        "cost": 116,
+        "svt": 3,
+        "ce": 3,
+        "support": 0,
+        "bond": 1000,
+        "server": "JP",
+        "event": false,
+        "events": 0,
+        "traits": 0,
+        "include_svt": 3,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 5,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "116"
+        ],
+        [
+          "svtlimit",
+          "3"
+        ],
+        [
+          "celimit",
+          "3"
+        ],
+        [
+          "supportlimit",
+          "0"
+        ],
+        [
+          "basebond",
+          "1000"
+        ],
+        [
+          "server",
+          "JP"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "includesvt",
+          "704700"
+        ],
+        [
+          "includesvtdiff",
+          "asc1"
+        ],
+        [
+          "includesvt",
+          "505000"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "includesvt",
+          "502300"
+        ],
+        [
+          "includesvtdiff",
+          "default"
+        ],
+        [
+          "excludece",
+          "9409320"
+        ],
+        [
+          "excludece",
+          "9409210"
+        ],
+        [
+          "excludece",
+          "9408990"
+        ],
+        [
+          "excludece",
+          "9408800"
+        ],
+        [
+          "excludece",
+          "9407480"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            505000,
+            704700,
+            502300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9408590,
+              "contribution": 200
+            },
+            {
+              "id": 9401970,
+              "contribution": 300
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 76,
+          "TotalBond": 3900
+        },
+        {
+          "Servants": [
+            505000,
+            704700,
+            502300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9408390,
+              "contribution": 200
+            },
+            {
+              "id": 9401970,
+              "contribution": 300
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 76,
+          "TotalBond": 3900
+        },
+        {
+          "Servants": [
+            505000,
+            704700,
+            502300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 200
+            },
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 300
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 76,
+          "TotalBond": 3900
+        },
+        {
+          "Servants": [
+            505000,
+            704700,
+            502300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 300
+            },
+            {
+              "id": 9403520,
+              "contribution": 150
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 76,
+          "TotalBond": 3850
+        },
+        {
+          "Servants": [
+            505000,
+            704700,
+            502300
+          ],
+          "DiffChoice": [
+            "default",
+            "asc1",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9408060,
+              "contribution": 400
+            },
+            {
+              "id": 9401970,
+              "contribution": 300
+            },
+            {
+              "id": 9400980,
+              "contribution": 150
+            }
+          ],
+          "SupportCraftEssences": [],
+          "TotalCost": 69,
+          "TotalBond": 3850
+        }
+      ],
+      "productionDurationMs": 6,
+      "productionWallMs": 6.812
+    },
+    {
+      "id": "case-20-six-ce",
+      "features": {
+        "cost": 116,
+        "svt": 5,
+        "ce": 6,
+        "support": 2,
+        "bond": 4748,
+        "server": "CN",
+        "event": false,
+        "events": 0,
+        "traits": 1,
+        "include_svt": 0,
+        "exclude_svt": 0,
+        "include_ce": 0,
+        "exclude_ce": 0,
+        "support_lock": 0,
+        "support_exclude": 0
+      },
+      "request": [
+        [
+          "costlimit",
+          "116"
+        ],
+        [
+          "svtlimit",
+          "5"
+        ],
+        [
+          "celimit",
+          "6"
+        ],
+        [
+          "supportlimit",
+          "2"
+        ],
+        [
+          "basebond",
+          "4748"
+        ],
+        [
+          "server",
+          "CN"
+        ],
+        [
+          "enable_event_bonus",
+          "false"
+        ],
+        [
+          "allowtraits",
+          "100"
+        ]
+      ],
+      "expectedTeams": [
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            103600,
+            100100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9308100,
+              "contribution": 474
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 46765
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            102900,
+            105200
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 46540
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            102900,
+            103600
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9403520,
+              "contribution": 1185
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 112,
+          "TotalBond": 46540
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            103600,
+            100100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 949
+            },
+            {
+              "id": 9308100,
+              "contribution": 474
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 46529
+        },
+        {
+          "Servants": [
+            102000,
+            100700,
+            101200,
+            102900,
+            100100
+          ],
+          "DiffChoice": [
+            "default",
+            "default",
+            "default",
+            "default",
+            "default"
+          ],
+          "CraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            },
+            {
+              "id": 9408590,
+              "contribution": 949
+            },
+            {
+              "id": 9401970,
+              "contribution": 2370
+            },
+            {
+              "id": 9400980,
+              "contribution": 250
+            }
+          ],
+          "SupportCraftEssences": [
+            {
+              "id": 9407850,
+              "contribution": 4745
+            },
+            {
+              "id": 9408390,
+              "contribution": 4745
+            }
+          ],
+          "TotalCost": 116,
+          "TotalBond": 46304
+        }
+      ],
+      "productionDurationMs": 665,
+      "productionWallMs": 666.287
+    }
+  ]
+}

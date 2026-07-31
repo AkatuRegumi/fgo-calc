@@ -8,12 +8,12 @@ type SvtBonus struct {
 }
 
 type Team struct {
-	Servants            []*Servant
-	DiffChoice          []string
-	CraftEssences       []CraftEssence
+	Servants             []*Servant
+	DiffChoice           []string
+	CraftEssences        []CraftEssence
 	SupportCraftEssences []CraftEssence
-	TotalCost           int
-	TotalBond           int
+	TotalCost            int
+	TotalBond            int
 }
 
 type TeamHeap []Team
@@ -38,17 +38,17 @@ func (h *TeamHeap) Pop() interface{} {
 }
 
 type TeamResultCE struct {
-	CraftEssence
+	Id           int `json:"id"`
 	Contribution int `json:"contribution"`
 }
 
 type TeamResponse struct {
-	Servants            []*Servant     `json:"Servants"`
-	DiffChoice          []string       `json:"DiffChoice"`
-	CraftEssences       []TeamResultCE `json:"CraftEssences"`
+	Servants             []int          `json:"Servants"`
+	DiffChoice           []string       `json:"DiffChoice"`
+	CraftEssences        []TeamResultCE `json:"CraftEssences"`
 	SupportCraftEssences []TeamResultCE `json:"SupportCraftEssences"`
-	TotalCost           int            `json:"TotalCost"`
-	TotalBond           int            `json:"TotalBond"`
+	TotalCost            int            `json:"TotalCost"`
+	TotalBond            int            `json:"TotalBond"`
 }
 
 type PathNode struct {

@@ -83,6 +83,14 @@ def get_traits(trait_list):
         traits.append(trait['id'])
     return traits
 
+attr_map = {
+    "human": 202,
+    "star": 203,
+    "earth": 201,
+    "sky": 200,
+    "beast": 204,
+}
+
 # Event related functions
 def load_events():
     files = ['chaldea-data/dist/wiki.events.1.json']
@@ -246,11 +254,39 @@ def process_servant(test):
                 if key == '0':
                     asc_key = 'default'
                 if asc_key in data['diff']:
-                    data['diff'][asc_key]['traits'] = get_traits(value)
+                    merged = list(set(data['diff'][asc_key]['traits'] + get_traits(value)))
+                    merged.sort()
+                    data['diff'][asc_key]['traits'] = merged
         if 'costume' in indiv:
             for key, value in indiv['costume'].items():
                 if str(key) in data['diff']:
-                    data['diff'][str(key)]['traits'] = get_traits(value)
+                    merged = list(set(data['diff'][str(key)]['traits'] + get_traits(value)))
+                    merged.sort()
+                    data['diff'][str(key)]['traits'] = merged
+
+    if 'attribute' in test['ascensionAdd']:
+        attr_add = test['ascensionAdd']['attribute']
+        if 'ascension' in attr_add:
+            for key, value in attr_add['ascension'].items():
+                asc_key = f"asc{key}"
+                if key == '0':
+                    asc_key = 'default'
+                if asc_key in data['diff']:
+                    tmp = data['diff'][asc_key]['traits']
+                    for attr in tmp:
+                        if attr in [200, 201, 202, 203, 204]:
+                            tmp.remove(attr)
+                    tmp.append(attr_map[value])
+                    data['diff'][asc_key]['traits'] = tmp
+        if 'costume' in attr_add:
+            for key, value in attr_add['costume'].items():
+                if str(key) in data['diff']:
+                    tmp = data['diff'][str(key)]['traits']
+                    for attr in tmp:
+                        if attr in [200, 201, 202, 203, 204]:
+                            tmp.remove(attr)
+                    tmp.append(attr_map[value])
+                    data['diff'][str(key)]['traits'] = tmp
 
     diffs = []
 
@@ -337,7 +373,7 @@ def apply_extra_event_bonuses(processed_servants):
 
 processed = []
 
-remove_list = [2501500, 1002100]
+remove_list = [2501500, 1002100, 505600, 600710]
 
 for file in find_files("servants"):
     raw = json.loads(open(file, "r").read())
