@@ -51,17 +51,7 @@ type TeamResponse struct {
 	TotalBond            int            `json:"TotalBond"`
 }
 
-type PathNode struct {
-	ItemIdx int
-	Prev    *PathNode
-}
-
 type CeEffect struct {
 	Percent float64
 	Direct  int
-}
-
-type DPResult struct {
-	Bond  int
-	Combo []SvtBonus
 }

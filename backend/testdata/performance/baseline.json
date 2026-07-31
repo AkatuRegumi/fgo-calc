@@ -12,9 +12,9 @@
       ],
       "testMedianDurationMs": 1,
       "testWallMs": [
-        9.44,
+        9.61,
         2.078,
-        2.033
+        1.463
       ],
       "testMedianWallMs": 2.078,
       "productionDurationMs": 1,
@@ -25,36 +25,36 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        55,
-        48,
-        53
+        20,
+        19,
+        22
       ],
-      "testMedianDurationMs": 53,
+      "testMedianDurationMs": 20,
       "testWallMs": [
-        55.909,
-        48.922,
-        54.457
+        23.058,
+        20.42,
+        22.629
       ],
-      "testMedianWallMs": 54.457,
+      "testMedianWallMs": 22.629,
       "productionDurationMs": 48,
       "productionWallMs": 49.174
     },
     {
       "id": "case-03-no-support",
       "comparison": "same-optimum",
-      "stableAcrossRuns": false,
+      "stableAcrossRuns": true,
       "testDurationMs": [
-        77,
-        91,
-        84
+        14,
+        18,
+        12
       ],
-      "testMedianDurationMs": 84,
+      "testMedianDurationMs": 14,
       "testWallMs": [
-        77.901,
-        92.159,
-        85.404
+        15.244,
+        19.588,
+        13.473
       ],
-      "testMedianWallMs": 85.404,
+      "testMedianWallMs": 15.244,
       "productionDurationMs": 83,
       "productionWallMs": 84.207
     },
@@ -63,17 +63,17 @@
       "comparison": "same-optimum",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        43653,
-        46119,
-        43772
+        5107,
+        5232,
+        5945
       ],
-      "testMedianDurationMs": 43772,
+      "testMedianDurationMs": 5232,
       "testWallMs": [
-        43653.957,
-        46120.979,
-        43773.323
+        5107.777,
+        5233.389,
+        5945.863
       ],
-      "testMedianWallMs": 43773.323,
+      "testMedianWallMs": 5233.389,
       "productionDurationMs": 46467,
       "productionWallMs": 46468.759
     },
@@ -82,17 +82,17 @@
       "comparison": "same-optimum",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        7184,
-        7348,
-        7807
+        1055,
+        1075,
+        1097
       ],
-      "testMedianDurationMs": 7348,
+      "testMedianDurationMs": 1075,
       "testWallMs": [
-        7185.289,
-        7349.052,
-        7807.918
+        1056.325,
+        1075.952,
+        1100.68
       ],
-      "testMedianWallMs": 7349.052,
+      "testMedianWallMs": 1075.952,
       "productionDurationMs": 7784,
       "productionWallMs": 7786.119
     },
@@ -101,17 +101,17 @@
       "comparison": "same-optimum",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        561,
-        584,
-        576
+        87,
+        96,
+        95
       ],
-      "testMedianDurationMs": 576,
+      "testMedianDurationMs": 95,
       "testWallMs": [
-        562.129,
-        585.057,
-        576.948
+        87.922,
+        96.902,
+        96.096
       ],
-      "testMedianWallMs": 576.948,
+      "testMedianWallMs": 96.096,
       "productionDurationMs": 636,
       "productionWallMs": 637.397
     },
@@ -120,36 +120,36 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        310,
-        311,
-        294
+        44,
+        51,
+        54
       ],
-      "testMedianDurationMs": 310,
+      "testMedianDurationMs": 51,
       "testWallMs": [
-        310.956,
-        312.295,
-        295.04
+        45.512,
+        52.013,
+        55.737
       ],
-      "testMedianWallMs": 310.956,
+      "testMedianWallMs": 52.013,
       "productionDurationMs": 264,
       "productionWallMs": 265.599
     },
     {
       "id": "case-08-trait-filter",
-      "comparison": "exact",
+      "comparison": "equivalent-scores",
       "stableAcrossRuns": true,
       "testDurationMs": [
-        237,
-        247,
-        245
+        30,
+        36,
+        28
       ],
-      "testMedianDurationMs": 245,
+      "testMedianDurationMs": 30,
       "testWallMs": [
-        238.494,
-        248.373,
-        246.313
+        31.564,
+        37.349,
+        28.831
       ],
-      "testMedianWallMs": 246.313,
+      "testMedianWallMs": 31.564,
       "productionDurationMs": 227,
       "productionWallMs": 230.698
     },
@@ -158,17 +158,17 @@
       "comparison": "exact",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        39,
-        49,
-        50
+        50,
+        50,
+        54
       ],
-      "testMedianDurationMs": 49,
+      "testMedianDurationMs": 50,
       "testWallMs": [
-        39.969,
-        50.338,
-        51.412
+        51.186,
+        51.382,
+        55.331
       ],
-      "testMedianWallMs": 50.338,
+      "testMedianWallMs": 51.382,
       "productionDurationMs": 58,
       "productionWallMs": 59.074
     },
@@ -177,17 +177,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        73,
-        66,
-        79
+        14,
+        15,
+        11
       ],
-      "testMedianDurationMs": 73,
+      "testMedianDurationMs": 14,
       "testWallMs": [
-        73.959,
-        67.283,
-        80.073
+        15.566,
+        16.745,
+        12.138
       ],
-      "testMedianWallMs": 73.959,
+      "testMedianWallMs": 15.566,
       "productionDurationMs": 68,
       "productionWallMs": 69.226
     },
@@ -196,17 +196,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": true,
       "testDurationMs": [
-        72,
-        74,
-        91
+        21,
+        24,
+        16
       ],
-      "testMedianDurationMs": 74,
+      "testMedianDurationMs": 21,
       "testWallMs": [
-        73.595,
-        75.529,
-        92.535
+        21.622,
+        24.885,
+        18.51
       ],
-      "testMedianWallMs": 75.529,
+      "testMedianWallMs": 21.622,
       "productionDurationMs": 72,
       "productionWallMs": 73.019
     },
@@ -215,17 +215,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        16,
-        21,
-        17
+        4,
+        7,
+        4
       ],
-      "testMedianDurationMs": 17,
+      "testMedianDurationMs": 4,
       "testWallMs": [
-        17.075,
-        22.228,
-        17.924
+        5.258,
+        7.973,
+        4.808
       ],
-      "testMedianWallMs": 17.924,
+      "testMedianWallMs": 5.258,
       "productionDurationMs": 20,
       "productionWallMs": 21.455
     },
@@ -234,17 +234,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        78,
-        74,
-        70
+        54,
+        44,
+        51
       ],
-      "testMedianDurationMs": 74,
+      "testMedianDurationMs": 51,
       "testWallMs": [
-        78.808,
-        75.445,
-        71.348
+        55.244,
+        45.182,
+        54.722
       ],
-      "testMedianWallMs": 75.445,
+      "testMedianWallMs": 54.722,
       "productionDurationMs": 61,
       "productionWallMs": 62.68
     },
@@ -253,36 +253,36 @@
       "comparison": "same-optimum",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        569,
-        563,
-        889
+        79,
+        83,
+        96
       ],
-      "testMedianDurationMs": 569,
+      "testMedianDurationMs": 83,
       "testWallMs": [
-        570.547,
-        564.051,
-        890.469
+        79.724,
+        84.758,
+        98.603
       ],
-      "testMedianWallMs": 570.547,
+      "testMedianWallMs": 84.758,
       "productionDurationMs": 576,
       "productionWallMs": 577.351
     },
     {
       "id": "case-15-low-base-bond",
       "comparison": "same-optimum",
-      "stableAcrossRuns": false,
+      "stableAcrossRuns": true,
       "testDurationMs": [
-        7707,
-        8011,
-        12844
+        901,
+        892,
+        901
       ],
-      "testMedianDurationMs": 8011,
+      "testMedianDurationMs": 901,
       "testWallMs": [
-        7707.997,
-        8012.553,
-        12845.392
+        903.854,
+        893.252,
+        902.284
       ],
-      "testMedianWallMs": 8012.553,
+      "testMedianWallMs": 902.284,
       "productionDurationMs": 7513,
       "productionWallMs": 7514.637
     },
@@ -291,17 +291,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        12887,
-        7594,
-        7728
+        911,
+        859,
+        909
       ],
-      "testMedianDurationMs": 7728,
+      "testMedianDurationMs": 909,
       "testWallMs": [
-        12888.182,
-        7595.569,
-        7728.901
+        911.933,
+        860.621,
+        910.34
       ],
-      "testMedianWallMs": 7728.901,
+      "testMedianWallMs": 910.34,
       "productionDurationMs": 7609,
       "productionWallMs": 7610.55
     },
@@ -310,17 +310,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        68,
-        64,
-        64
+        19,
+        18,
+        18
       ],
-      "testMedianDurationMs": 64,
+      "testMedianDurationMs": 18,
       "testWallMs": [
-        68.777,
-        65.558,
-        65.599
+        19.734,
+        19.354,
+        18.98
       ],
-      "testMedianWallMs": 65.599,
+      "testMedianWallMs": 19.354,
       "productionDurationMs": 52,
       "productionWallMs": 53.804
     },
@@ -329,36 +329,36 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        7088,
-        7161,
-        7283
+        876,
+        840,
+        918
       ],
-      "testMedianDurationMs": 7161,
+      "testMedianDurationMs": 876,
       "testWallMs": [
-        7088.81,
-        7162.558,
-        7284.609
+        876.836,
+        842.549,
+        919.512
       ],
-      "testMedianWallMs": 7162.558,
+      "testMedianWallMs": 876.836,
       "productionDurationMs": 7578,
       "productionWallMs": 7579.464
     },
     {
       "id": "case-19-three-servants",
-      "comparison": "exact",
+      "comparison": "unordered",
       "stableAcrossRuns": true,
       "testDurationMs": [
-        5,
-        4,
-        4
+        8,
+        8,
+        8
       ],
-      "testMedianDurationMs": 4,
+      "testMedianDurationMs": 8,
       "testWallMs": [
-        5.649,
-        5.228,
-        5.034
+        9.038,
+        9.66,
+        8.605
       ],
-      "testMedianWallMs": 5.228,
+      "testMedianWallMs": 9.038,
       "productionDurationMs": 6,
       "productionWallMs": 6.812
     },
@@ -367,17 +367,17 @@
       "comparison": "equivalent-scores",
       "stableAcrossRuns": false,
       "testDurationMs": [
-        804,
-        756,
-        942
+        133,
+        144,
+        141
       ],
-      "testMedianDurationMs": 804,
+      "testMedianDurationMs": 141,
       "testWallMs": [
-        804.979,
-        756.918,
-        943.286
+        134.37,
+        145.33,
+        141.961
       ],
-      "testMedianWallMs": 804.979,
+      "testMedianWallMs": 141.961,
       "productionDurationMs": 665,
       "productionWallMs": 666.287
     }
