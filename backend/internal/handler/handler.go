@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"crypto/sha256"
+	"encoding/json"
 	"fgo-calc-backend/internal/config"
 	"fgo-calc-backend/internal/repository"
 	"fgo-calc-backend/internal/service"
@@ -12,21 +14,44 @@ import (
 )
 
 type Handler struct {
-	repo    *repository.Repository
-	service *service.CalculatorService
-	cfg     *config.Config
+	repo     *repository.Repository
+	service  *service.CalculatorService
+	cfg      *config.Config
+	data     []byte
+	dataETag string
 }
 
-func NewHandler(repo *repository.Repository, service *service.CalculatorService, cfg *config.Config) *Handler {
-	return &Handler{repo: repo, service: service, cfg: cfg}
+func NewHandler(repo *repository.Repository, service *service.CalculatorService, cfg *config.Config) (*Handler, error) {
+	data, err := json.Marshal(gin.H{
+		"servants":      repo.GetServants(),
+		"craftEssences": repo.GetCraftEssences(),
+		"traits":        repo.GetTraits(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	hash := sha256.Sum256(data)
+	return &Handler{
+		repo:     repo,
+		service:  service,
+		cfg:      cfg,
+		data:     data,
+		dataETag: fmt.Sprintf(`"%x"`, hash),
+	}, nil
 }
 
 func (h *Handler) Register(r *gin.Engine) {
 	r.NoRoute(func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
 		c.File("./static/index.html")
 	})
 
-	r.Static("/static", "./static")
+	static := r.Group("/static")
+	static.Use(func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=86400")
+		c.Next()
+	})
+	static.Static("/", "./static")
 
 	api := r.Group("/api")
 	{
@@ -54,11 +79,13 @@ func (h *Handler) Register(r *gin.Engine) {
 }
 
 func (h *Handler) GetData(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{
-		"servants":      h.repo.GetServants(),
-		"craftEssences": h.repo.GetCraftEssences(),
-		"traits":        h.repo.GetTraits(),
-	})
+	c.Header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400")
+	c.Header("ETag", h.dataETag)
+	if c.GetHeader("If-None-Match") == h.dataETag {
+		c.Status(http.StatusNotModified)
+		return
+	}
+	c.Data(http.StatusOK, "application/json; charset=utf-8", h.data)
 }
 
 func (h *Handler) FilterTraits(c *gin.Context) {

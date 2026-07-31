@@ -8,6 +8,7 @@ import (
 	"flag"
 	"log"
 
+	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,10 +33,16 @@ func main() {
 	svc := service.NewCalculatorService(repo)
 
 	// 4. 初始化 Handler
-	h := handler.NewHandler(repo, svc, cfg)
+	h, err := handler.NewHandler(repo, svc, cfg)
+	if err != nil {
+		log.Fatalf("Failed to initialize handler: %v", err)
+	}
 
 	// 5. 设置 Gin 路由
 	r := gin.Default()
+	r.Use(gzip.Gzip(gzip.DefaultCompression, gzip.WithExcludedExtensions([]string{
+		".png", ".gif", ".jpeg", ".jpg", ".webp",
+	})))
 	h.Register(r)
 
 	// 6. 启动服务器

@@ -591,7 +591,7 @@
 
         <footer style="text-align: center; margin-top: 3rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 2rem;">
             <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1rem;">
-                <img src="/static/author.png" alt="author avatar" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--pico-primary);">
+                <img src="/static/author.webp" alt="author avatar" width="50" height="50" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid var(--pico-primary);">
                 <div style="text-align: left;">
                     <strong style="display: block; font-size: 1.1rem;">pikaball</strong>
                 </div>
@@ -1135,16 +1135,7 @@
         }
 
         // --- 数据加载与初始化 ---
-        window.onload = async () => {
-            try {
-                const res = await fetch('/api/me');
-                if (res.ok) {
-                    const data = await res.json();
-                    CURRENT_USER = data.username;
-                }
-            } catch(e) {}
-            
-            updateAuthUI();
+        async function initApp() {
             lucide.createIcons();
             initCollapseToggles();
             renderExcludeSvtClassFilters();
@@ -1180,9 +1171,25 @@
                 }
             });
 
+            const [meResult, dataResult] = await Promise.allSettled([
+                fetch('/api/me'),
+                fetch('/api/data')
+            ]);
+
+            if (meResult.status === 'fulfilled' && meResult.value.ok) {
+                try {
+                    const data = await meResult.value.json();
+                    CURRENT_USER = data.username;
+                } catch (error) {
+                    console.error('Failed to parse user data:', error);
+                }
+            }
+            updateAuthUI();
+
             try {
-                const response = await fetch('/api/data');
-                ALL_DATA = await response.json();
+                if (dataResult.status === 'rejected') throw dataResult.reason;
+                if (!dataResult.value.ok) throw new Error(`Server error: ${dataResult.value.status}`);
+                ALL_DATA = await dataResult.value.json();
                 ALL_DATA.servants.sort((a, b) => a.id - b.id);
                 ALL_DATA.craftEssences.sort((a, b) => a.id - b.id);
                
@@ -1200,7 +1207,9 @@
                 console.error('Failed to load data:', error);
                 alert('数据加载失败，请检查后端服务是否正常。');
             }
-        };
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
 
         // --- 职阶筛选逻辑 ---
         function toggleEventSelection() {
@@ -1702,16 +1711,19 @@
                 SELECTIONS.supportLockCe.forEach(id => params.append('includesupportce', id));
                 SELECTIONS.excludeSupportCe.forEach(id => params.append('excludesupportce', id));
 
+                const requestStarted = performance.now();
                 const response = await fetch('/api/calculate', {
                     method: 'POST',
                     body: params
                 });
-                
                 const results = await response.json();
+                const requestDuration = performance.now() - requestStarted;
                 if (!response.ok) {
                     throw new Error(results.error || `Server error: ${response.statusText}`);
                 }
-                renderResults(results.teams, results.duration);
+                const backendDuration = Number(results.duration) || 0;
+                const networkDuration = Math.max(0, requestDuration - backendDuration);
+                renderResults(results.teams, backendDuration, networkDuration);
                 if (CURRENT_USER) {
                     postHistory(results.teams);
                 }
@@ -1762,17 +1774,18 @@
         }
 
         // --- 结果渲染 ---
-        function renderResults(teams, duration) {
+        function renderResults(teams, backendDuration, networkDuration) {
             const container = document.getElementById('results-container');
             const list = document.getElementById('results-list');
             list.innerHTML = '';
 
-            if (duration !== undefined) {
+            if (backendDuration !== undefined) {
                 const p = document.createElement('p');
                 p.style.textAlign = 'right';
                 p.style.fontSize = '0.8rem';
                 p.style.opacity = '0.7';
-                p.innerHTML = `<i data-lucide="timer" style="width: 14px; vertical-align: middle;"></i> 计算耗时: ${duration} ms`;
+                const networkText = networkDuration === undefined ? '' : ` | 网络延迟: ${Math.round(networkDuration)} ms`;
+                p.innerHTML = `<i data-lucide="timer" style="width: 14px; vertical-align: middle;"></i> 后端计算: ${Math.round(backendDuration)} ms${networkText}`;
                 list.appendChild(p);
                 refreshIcons();
             }
