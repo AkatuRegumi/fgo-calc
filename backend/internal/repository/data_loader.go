@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 )
 
 type Repository struct {
@@ -15,6 +17,7 @@ type Repository struct {
 	traits        map[int]string
 	ceEffects     map[int]map[int]map[string]model.CeEffect
 	dominateMap   map[int]int
+	dataUpdatedAt int64
 
 	db      *sql.DB
 	dataDir string
@@ -52,6 +55,10 @@ func (r *Repository) clearInternalData() {
 }
 
 func (r *Repository) loadData(dataDir string) error {
+	if updatedAt, err := os.ReadFile(filepath.Join(dataDir, "update.txt")); err == nil {
+		r.dataUpdatedAt, _ = strconv.ParseInt(strings.TrimSpace(string(updatedAt)), 10, 64)
+	}
+
 	svtFile, err := os.Open(filepath.Join(dataDir, "servants.json"))
 	if err != nil {
 		return err
@@ -171,6 +178,10 @@ func (r *Repository) GetCraftEssences() []model.CraftEssence {
 
 func (r *Repository) GetTraits() map[int]string {
 	return r.traits
+}
+
+func (r *Repository) GetDataUpdatedAt() int64 {
+	return r.dataUpdatedAt
 }
 
 func (r *Repository) GetCeEffects() map[int]map[int]map[string]model.CeEffect {

@@ -11,8 +11,8 @@ def fetch_git_repo():
     last_update = 0
     if os.path.exists("update.txt"):
         last_update = int(open("update.txt").read().strip())
-    if time.time() - last_update < 86400:
-        print("Last update was less than 24 hours ago. Skipping fetch.")
+    if time.time() - last_update < 3600:
+        print("Last update was less than 1 hour ago. Skipping fetch.")
         return
 
     try:

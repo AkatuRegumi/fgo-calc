@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS history (
 	username TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE,
 	timestamp INTEGER NOT NULL,
 	state TEXT NOT NULL,
-	result TEXT NOT NULL
+	result TEXT NOT NULL,
+	name TEXT NOT NULL DEFAULT '',
+	pinned INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS idx_history_user_time
 	ON history(username, timestamp DESC, id DESC);
@@ -57,6 +59,10 @@ func (r *Repository) initUserStore() error {
 		db.Close()
 		return err
 	}
+	if err := ensureHistoryColumns(db); err != nil {
+		db.Close()
+		return err
+	}
 	if err := os.Chmod(dbPath, 0600); err != nil {
 		db.Close()
 		return err
@@ -67,6 +73,42 @@ func (r *Repository) initUserStore() error {
 		db.Close()
 		r.db = nil
 		return err
+	}
+	return nil
+}
+
+func ensureHistoryColumns(db *sql.DB) error {
+	rows, err := db.Query(`PRAGMA table_info(history)`)
+	if err != nil {
+		return err
+	}
+	columns := make(map[string]bool)
+	for rows.Next() {
+		var cid int
+		var name, columnType string
+		var notNull, primaryKey int
+		var defaultValue any
+		if err := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &primaryKey); err != nil {
+			return err
+		}
+		columns[name] = true
+	}
+	if err := rows.Err(); err != nil {
+		rows.Close()
+		return err
+	}
+	if err := rows.Close(); err != nil {
+		return err
+	}
+	if !columns["name"] {
+		if _, err := db.Exec(`ALTER TABLE history ADD COLUMN name TEXT NOT NULL DEFAULT ''`); err != nil {
+			return err
+		}
+	}
+	if !columns["pinned"] {
+		if _, err := db.Exec(`ALTER TABLE history ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0`); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -198,8 +240,9 @@ func (r *Repository) AddHistory(username, state, result string) error {
 	if err := requireAffectedUser(insert); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(`DELETE FROM history WHERE username = ? AND id NOT IN (
-		SELECT id FROM history WHERE username = ? ORDER BY timestamp DESC, id DESC LIMIT 10
+	if _, err := tx.Exec(`DELETE FROM history WHERE username = ? AND pinned = 0 AND id NOT IN (
+		SELECT id FROM history WHERE username = ? AND pinned = 0
+		ORDER BY timestamp DESC, id DESC LIMIT 10
 	)`, username, username); err != nil {
 		return err
 	}
@@ -214,22 +257,82 @@ func (r *Repository) GetHistory(username string) ([]model.HistoryEntry, error) {
 		return nil, err
 	}
 
-	rows, err := r.db.Query(`SELECT timestamp, state, result FROM history
-		WHERE username = ? ORDER BY timestamp DESC, id DESC LIMIT 10`, username)
+	rows, err := r.db.Query(`SELECT id, timestamp, state, result, name, pinned FROM history
+		WHERE username = ? ORDER BY pinned DESC, timestamp DESC, id DESC`, username)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	history := make([]model.HistoryEntry, 0, 10)
+	history := make([]model.HistoryEntry, 0)
 	for rows.Next() {
 		var entry model.HistoryEntry
-		if err := rows.Scan(&entry.Timestamp, &entry.State, &entry.Result); err != nil {
+		var pinned int
+		if err := rows.Scan(&entry.ID, &entry.Timestamp, &entry.State, &entry.Result, &entry.Name, &pinned); err != nil {
 			return nil, err
 		}
+		entry.Pinned = pinned != 0
 		history = append(history, entry)
 	}
 	return history, rows.Err()
+}
+
+func (r *Repository) SetHistoryPinned(username string, id int64, pinned bool) error {
+	tx, err := r.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if pinned {
+		var alreadyPinned int
+		if err := tx.QueryRow(`SELECT pinned FROM history WHERE username = ? AND id = ?`, username, id).Scan(&alreadyPinned); errors.Is(err, sql.ErrNoRows) {
+			return errors.New("history entry not found")
+		} else if err != nil {
+			return err
+		} else if alreadyPinned == 0 {
+			var count int
+			if err := tx.QueryRow(`SELECT COUNT(*) FROM history WHERE username = ? AND pinned = 1`, username).Scan(&count); err != nil {
+				return err
+			}
+			if count >= 15 {
+				return errors.New("pinned history limit reached")
+			}
+		}
+	}
+	result, err := tx.Exec(`UPDATE history SET pinned = ? WHERE username = ? AND id = ?`, boolToInt(pinned), username, id)
+	if err != nil {
+		return err
+	}
+	if err := requireAffectedUser(result); err != nil {
+		return errors.New("history entry not found")
+	}
+	if !pinned {
+		if _, err := tx.Exec(`DELETE FROM history WHERE username = ? AND pinned = 0 AND id NOT IN (
+			SELECT id FROM history WHERE username = ? AND pinned = 0
+			ORDER BY timestamp DESC, id DESC LIMIT 10
+		)`, username, username); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (r *Repository) RenameHistory(username string, id int64, name string) error {
+	result, err := r.db.Exec(`UPDATE history SET name = ? WHERE username = ? AND id = ?`, name, username, id)
+	if err != nil {
+		return err
+	}
+	if err := requireAffectedUser(result); err != nil {
+		return errors.New("history entry not found")
+	}
+	return nil
+}
+
+func boolToInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }
 
 func (r *Repository) GetUserState(username string) (string, error) {

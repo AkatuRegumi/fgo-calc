@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type Handler struct {
@@ -26,6 +27,7 @@ func NewHandler(repo *repository.Repository, service *service.CalculatorService,
 		"servants":      repo.GetServants(),
 		"craftEssences": repo.GetCraftEssences(),
 		"traits":        repo.GetTraits(),
+		"dataUpdatedAt": repo.GetDataUpdatedAt(),
 	})
 	if err != nil {
 		return nil, err
@@ -70,6 +72,8 @@ func (h *Handler) Register(r *gin.Engine) {
 			auth.GET("/state", h.GetState)
 			auth.POST("/history", h.AddHistory)
 			auth.GET("/history", h.GetHistory)
+			auth.POST("/history/:id/pin", h.SetHistoryPinned)
+			auth.POST("/history/:id/name", h.RenameHistory)
 		}
 	}
 
@@ -280,6 +284,57 @@ func (h *Handler) GetHistory(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"history": history})
+}
+
+func (h *Handler) SetHistoryPinned(c *gin.Context) {
+	username := c.GetString("username")
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid history id"})
+		return
+	}
+	var req struct {
+		Pinned bool `json:"pinned"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	if err := h.repo.SetHistoryPinned(username, id, req.Pinned); err != nil {
+		status := http.StatusBadRequest
+		if err.Error() == "pinned history limit reached" {
+			status = http.StatusConflict
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+}
+
+func (h *Handler) RenameHistory(c *gin.Context) {
+	username := c.GetString("username")
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid history id"})
+		return
+	}
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := c.BindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
+		return
+	}
+	name := strings.TrimSpace(req.Name)
+	if len([]rune(name)) > 100 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name is too long"})
+		return
+	}
+	if err := h.repo.RenameHistory(username, id, name); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
 func (h *Handler) AuthMiddleware() gin.HandlerFunc {
