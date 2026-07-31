@@ -538,11 +538,23 @@ async function initApp() {
        renderEventSelection();
     } catch (error) {
         console.error('Failed to load data:', error);
-        alert('数据加载失败，请检查后端服务是否正常。');
+        showFlash('数据加载失败，请检查后端服务是否正常。', 'error', 6000);
     }
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+function hideAppLoading() {
+    const loading = document.getElementById('app-loading');
+    if (!loading) return;
+    loading.classList.add('is-leaving');
+    setTimeout(() => loading.remove(), 200);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    initApp().catch(error => {
+        console.error('Failed to initialize app:', error);
+        showFlash('页面初始化失败，请刷新后重试。', 'error', 6000);
+    }).finally(hideAppLoading);
+});
 
 // --- 职阶筛选逻辑 ---
 function toggleEventSelection() {

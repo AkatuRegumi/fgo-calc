@@ -31,6 +31,48 @@
             margin: 0 auto;
             background-color: var(--pico-background-color);
         }
+        .app-loading {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            display: grid;
+            place-items: center;
+            background: color-mix(in srgb, var(--pico-background-color) 94%, transparent);
+            backdrop-filter: blur(3px);
+            transition: opacity 0.18s ease, visibility 0.18s ease;
+        }
+        .app-loading.is-leaving {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .app-loading-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: center;
+            color: var(--pico-muted-color);
+            font-size: 0.85rem;
+        }
+        .app-loading-spinner {
+            width: 2.5rem;
+            height: 2.5rem;
+            border: 3px solid var(--pico-muted-border-color);
+            border-top-color: var(--pico-primary);
+            border-radius: 50%;
+            animation: app-loading-spin 0.75s linear infinite;
+        }
+        @keyframes app-loading-spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .app-loading-spinner {
+                animation-duration: 1.5s;
+            }
+            .app-loading {
+                transition: none;
+            }
+        }
         .app-title {
             margin-bottom: 1.5rem;
             text-align: center;
@@ -658,6 +700,12 @@
     </style>
 </head>
 <body>
+    <div id="app-loading" class="app-loading" role="status" aria-live="polite" aria-label="正在加载数据">
+        <div class="app-loading-content">
+            <span class="app-loading-spinner" aria-hidden="true"></span>
+            <span>正在加载数据...</span>
+        </div>
+    </div>
     <div id="flash-container" aria-live="polite" aria-atomic="true"></div>
     <main class="container">
         <div class="app-title">
@@ -942,7 +990,7 @@
         </article>
     </dialog>
 
-    <script src="/static/app.js?v=20260731-1"></script>
-    <script src="/static/picker.js?v=20260731-1"></script>
+    <script src="/static/app.js?v=20260801"></script>
+    <script src="/static/picker.js?v=20260801"></script>
 </body>
 </html>
