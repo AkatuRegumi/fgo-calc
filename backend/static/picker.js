@@ -104,7 +104,7 @@ function isPickerItemSelected(id) {
 function populateModalGrid(filter = '') {
     const grid = document.getElementById('modal-grid');
     grid.innerHTML = '';
-    const items = currentModal.type === 'svt' ? ALL_DATA.servants : ALL_DATA.craftEssences;
+    const items = currentModal.type === 'svt' ? getActiveServants() : ALL_DATA.craftEssences;
 
     items.filter(item => {
         if (!item.name?.toLowerCase().includes(filter.toLowerCase())) return false;
@@ -157,7 +157,7 @@ function togglePickerItem(id) {
     }
 
     if (type === 'svt' && list === 'include') {
-        const servant = ALL_DATA.servants.find(item => item.id === id);
+        const servant = getActiveServants().find(item => item.id === id);
         if (!servant) return;
         const diffs = Object.keys(servant.diff);
         if (diffs.length > 1) {

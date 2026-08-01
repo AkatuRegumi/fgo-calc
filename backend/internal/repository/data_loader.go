@@ -13,9 +13,12 @@ import (
 
 type Repository struct {
 	servants      []model.Servant
+	cnServants    []model.Servant
+	cnOverrides   []model.Servant
+	cnUnavailable []int
 	craftEssences []model.CraftEssence
 	traits        map[int]string
-	ceEffects     map[int]map[int]map[string]model.CeEffect
+	ceEffects     map[string]map[int]map[int]map[string]model.CeEffect
 	dominateMap   map[int]int
 	dataUpdatedAt int64
 
@@ -46,12 +49,17 @@ func (r *Repository) Close() error {
 }
 
 func (r *Repository) clearInternalData() {
-	for i := range r.servants {
-		for key, detail := range r.servants[i].Diff {
-			detail.TraitSet = nil
-			r.servants[i].Diff[key] = detail
+	clear := func(servants []model.Servant) {
+		for i := range servants {
+			for key, detail := range servants[i].Diff {
+				detail.TraitSet = nil
+				servants[i].Diff[key] = detail
+			}
 		}
 	}
+	clear(r.servants)
+	clear(r.cnServants)
+	clear(r.cnOverrides)
 }
 
 func (r *Repository) loadData(dataDir string) error {
@@ -68,16 +76,41 @@ func (r *Repository) loadData(dataDir string) error {
 		return err
 	}
 
-	for i := range r.servants {
-		for key, detail := range r.servants[i].Diff {
-			traitSet := make(map[int]struct{}, len(detail.Traits))
-			for _, traitId := range detail.Traits {
-				traitSet[traitId] = struct{}{}
+	initializeTraits := func(servants []model.Servant) {
+		for i := range servants {
+			for key, detail := range servants[i].Diff {
+				traitSet := make(map[int]struct{}, len(detail.Traits))
+				for _, traitId := range detail.Traits {
+					traitSet[traitId] = struct{}{}
+				}
+				detail.TraitSet = traitSet
+				servants[i].Diff[key] = detail
 			}
-			detail.TraitSet = traitSet
-			r.servants[i].Diff[key] = detail
 		}
 	}
+	initializeTraits(r.servants)
+
+	if cnFile, err := os.Open(filepath.Join(dataDir, "cn.json")); err == nil {
+		defer cnFile.Close()
+		if err := json.NewDecoder(cnFile).Decode(&r.cnOverrides); err != nil {
+			return err
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	if unavailable, err := os.ReadFile(filepath.Join(dataDir, "cn_unavailable.txt")); err == nil {
+		for _, line := range strings.Fields(string(unavailable)) {
+			id, err := strconv.Atoi(line)
+			if err != nil {
+				return err
+			}
+			r.cnUnavailable = append(r.cnUnavailable, id)
+		}
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	initializeTraits(r.cnOverrides)
+	r.buildCNServants()
 
 	ceFile, err := os.Open(filepath.Join(dataDir, "ces.json"))
 	if err != nil {
@@ -106,10 +139,16 @@ func (r *Repository) precompute() {
 }
 
 func (r *Repository) precomputeCeEffects() {
-	r.ceEffects = make(map[int]map[int]map[string]model.CeEffect)
-	for _, ce := range r.craftEssences {
+	r.ceEffects = make(map[string]map[int]map[int]map[string]model.CeEffect)
+	r.ceEffects["JP"] = buildCeEffects(r.servants, r.craftEssences)
+	r.ceEffects["CN"] = buildCeEffects(r.cnServants, r.craftEssences)
+}
+
+func buildCeEffects(servants []model.Servant, craftEssences []model.CraftEssence) map[int]map[int]map[string]model.CeEffect {
+	result := make(map[int]map[int]map[string]model.CeEffect)
+	for _, ce := range craftEssences {
 		ceMap := make(map[int]map[string]model.CeEffect)
-		for _, svt := range r.servants {
+		for _, svt := range servants {
 			svtDiffMap := make(map[string]model.CeEffect)
 			for diffKey, detail := range svt.Diff {
 				percent := 0.0
@@ -142,8 +181,30 @@ func (r *Repository) precomputeCeEffects() {
 			}
 		}
 		if len(ceMap) > 0 {
-			r.ceEffects[ce.Id] = ceMap
+			result[ce.Id] = ceMap
 		}
+	}
+	return result
+}
+
+func (r *Repository) buildCNServants() {
+	overrides := make(map[int]model.Servant, len(r.cnOverrides))
+	for _, servant := range r.cnOverrides {
+		overrides[servant.Id] = servant
+	}
+	unavailable := make(map[int]struct{}, len(r.cnUnavailable))
+	for _, id := range r.cnUnavailable {
+		unavailable[id] = struct{}{}
+	}
+	r.cnServants = make([]model.Servant, 0, len(r.servants)-len(unavailable))
+	for _, servant := range r.servants {
+		if _, excluded := unavailable[servant.Id]; excluded {
+			continue
+		}
+		if override, ok := overrides[servant.Id]; ok {
+			servant = override
+		}
+		r.cnServants = append(r.cnServants, servant)
 	}
 }
 
@@ -168,9 +229,16 @@ func (r *Repository) buildDominateMap() {
 	}
 }
 
-func (r *Repository) GetServants() []model.Servant {
+func (r *Repository) GetServants(server string) []model.Servant {
+	if server == "CN" {
+		return r.cnServants
+	}
 	return r.servants
 }
+
+func (r *Repository) GetCNOverrides() []model.Servant { return r.cnOverrides }
+
+func (r *Repository) GetCNUnavailable() []int { return r.cnUnavailable }
 
 func (r *Repository) GetCraftEssences() []model.CraftEssence {
 	return r.craftEssences
@@ -184,8 +252,11 @@ func (r *Repository) GetDataUpdatedAt() int64 {
 	return r.dataUpdatedAt
 }
 
-func (r *Repository) GetCeEffects() map[int]map[int]map[string]model.CeEffect {
-	return r.ceEffects
+func (r *Repository) GetCeEffects(server string) map[int]map[int]map[string]model.CeEffect {
+	if server == "CN" {
+		return r.ceEffects["CN"]
+	}
+	return r.ceEffects["JP"]
 }
 
 func (r *Repository) GetDominateMap() map[int]int {

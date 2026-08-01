@@ -12,6 +12,17 @@ let SELECTIONS = {
 };
 let HISTORY_ITEMS = [];
 
+function getActiveServants() {
+    if (document.getElementById('server-select')?.value !== 'CN') {
+        return ALL_DATA.servants;
+    }
+    const overrides = new Map((ALL_DATA.cnServants || []).map(servant => [servant.id, servant]));
+    const unavailable = new Set(ALL_DATA.cnUnavailable || []);
+    return ALL_DATA.servants
+        .filter(servant => !unavailable.has(servant.id))
+        .map(servant => overrides.get(servant.id) || servant);
+}
+
 function showFlash(message, type = 'info', duration = 4000) {
     const container = document.getElementById('flash-container');
     const flash = document.createElement('div');
@@ -343,11 +354,29 @@ function pruneInvalidSelectionsByServer() {
         }
     }
 
+    const availableServants = new Set(getActiveServants().map(servant => servant.id));
+    for (const id of Array.from(SELECTIONS.includeSvt.keys())) {
+        const servant = getActiveServants().find(item => item.id === id);
+        const diffKey = SELECTIONS.includeSvt.get(id);
+        if (!servant || !servant.diff[diffKey]) {
+            SELECTIONS.includeSvt.delete(id);
+            changed = true;
+        }
+    }
+    for (const id of Array.from(SELECTIONS.excludeSvt)) {
+        if (!availableServants.has(id)) {
+            SELECTIONS.excludeSvt.delete(id);
+            changed = true;
+        }
+    }
+
     if (changed) {
         renderSelectionList('ce', 'include');
         renderSelectionList('ce', 'exclude');
         renderSelectionList('ce', 'supportLock');
         renderSelectionList('ce', 'excludeSupport');
+        renderSelectionList('svt', 'include');
+        renderSelectionList('svt', 'exclude');
     }
 
     return changed;
@@ -524,6 +553,8 @@ async function initApp() {
             label.hidden = false;
         }
         ALL_DATA.servants.sort((a, b) => a.id - b.id);
+        ALL_DATA.cnServants = ALL_DATA.cnServants || [];
+        ALL_DATA.cnServants.sort((a, b) => a.id - b.id);
         ALL_DATA.craftEssences.sort((a, b) => a.id - b.id);
        
        // 加载持久化状态
@@ -577,7 +608,7 @@ function renderEventSelection(autoSelect = false) {
 
     // Extract unique events for current server
     const eventsMap = new Map();
-    ALL_DATA.servants.forEach(svt => {
+    getActiveServants().forEach(svt => {
         const bonuses = svt.event_bonuses ? svt.event_bonuses[server] : [];
         const extraBonuses = svt.event_extra_bonuses ? svt.event_extra_bonuses[server] : [];
         [...bonuses, ...extraBonuses].forEach(b => {
@@ -854,7 +885,7 @@ function renderSelectionList(type, list) {
     const container = document.getElementById(getSelectionContainerId(type, list));
     if (!container) return;
     container.innerHTML = '';
-    const items = type === 'svt' ? ALL_DATA.servants : ALL_DATA.craftEssences;
+    const items = type === 'svt' ? getActiveServants() : ALL_DATA.craftEssences;
     
     const selection = (type === 'svt' && list === 'include') ? 
         Array.from(SELECTIONS.includeSvt.keys()) : 
@@ -1030,7 +1061,7 @@ function renderResults(teams, backendDuration, networkDuration) {
 
             if (i < team.Servants.length) {
                 const svtId = team.Servants[i];
-                const svt = ALL_DATA.servants.find(s => s.id === svtId);
+                const svt = getActiveServants().find(s => s.id === svtId);
                 if (!svt) continue;
                 const diffKey = team.DiffChoice[i];
                 const detail = svt.diff[diffKey];

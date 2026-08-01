@@ -24,7 +24,7 @@ func NewCalculatorService(repo *repository.Repository) *CalculatorService {
 	return &CalculatorService{repo: repo}
 }
 
-func (s *CalculatorService) FilterServants(traits []int, includeSvt []int, excludeSvt []int) []model.Servant {
+func (s *CalculatorService) FilterServants(traits []int, includeSvt []int, excludeSvt []int, serverType string) []model.Servant {
 	includeSet := map[int]bool{}
 	excludeSet := map[int]bool{}
 	for _, id := range includeSvt {
@@ -40,7 +40,7 @@ func (s *CalculatorService) FilterServants(traits []int, includeSvt []int, exclu
 		traitSet[t] = true
 	}
 
-	servants := s.repo.GetServants()
+	servants := s.repo.GetServants(serverType)
 	for _, svt := range servants {
 		if excludeSet[svt.Id] {
 			continue
@@ -383,8 +383,17 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	log.Println("User CE Pool: ", len(userCePool))
 	log.Println("Support CE Pool: ", len(supportPool))
 
-	svtPool := s.FilterServants(allowTraits, includeSvt, excludeSvt)
+	svtPool := s.FilterServants(allowTraits, includeSvt, excludeSvt, serverType)
 	log.Println("Servant Pool: ", len(svtPool))
+	availableSvt := make(map[int]struct{}, len(svtPool))
+	for _, servant := range svtPool {
+		availableSvt[servant.Id] = struct{}{}
+	}
+	for _, id := range includeSvt {
+		if _, ok := availableSvt[id]; !ok {
+			return []model.TeamResponse{}, 0
+		}
+	}
 
 	includeSvtSet := map[int]bool{}
 	for _, id := range includeSvt {
@@ -419,7 +428,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	}
 
 	svtDiffEffects := make([]map[string][]SimpleEffect, len(svtPool))
-	repoCeEffects := s.repo.GetCeEffects()
+	repoCeEffects := s.repo.GetCeEffects(serverType)
 
 	for i, svt := range svtPool {
 		svtDiffEffects[i] = make(map[string][]SimpleEffect)
@@ -917,7 +926,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	}
 
 	finalResults := make([]model.TeamResponse, 0, limit)
-	ceEffects := s.repo.GetCeEffects()
+	ceEffects := s.repo.GetCeEffects(serverType)
 
 	for i := 0; i < limit; i++ {
 		team := sortedTeams[i]

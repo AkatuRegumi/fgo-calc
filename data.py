@@ -2,7 +2,12 @@ import os
 import json
 import time
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
+
+TRAIT_NAME_OVERRIDES = {
+    "2717": "中国地域",
+}
 
 # Change working directory to 'data' folder relative to this script
 os.chdir(os.path.dirname(os.path.abspath(__file__))+'/data')
@@ -41,6 +46,7 @@ def get_translation():
     traits = {}
     for k, v in traits_raw.items():
         traits[k] = v["CN"]
+    traits.update(TRAIT_NAME_OVERRIDES)
     open("names/traits.json", "w").write(json.dumps(traits, ensure_ascii=False, indent=4))
 
     ce_raw = json.loads(open("chaldea-data/mappings/ce_names.json", "r").read())
@@ -180,7 +186,7 @@ def process_servant(test):
     if 'traitAdd' in test:
         trait_adds = test['traitAdd']
         for trait_add in trait_adds:
-            if not "eventId" in trait_add and "endedAt" in trait_add:
+            if not trait_add.get("eventId") and "endedAt" in trait_add:
                 # if test['id'] == 604200: print(trait_add)
                 ended_at = datetime.fromtimestamp(trait_add["endedAt"])
                 if ended_at < datetime.now():
@@ -221,25 +227,29 @@ def process_servant(test):
         'cost': cost
     }
 
-    if 'costume' in test['extraAssets']['faces']:
-        for key, value in test['extraAssets']['faces']['costume'].items():
+    profile_costumes = (test.get('profile') or {}).get('costume') or {}
+    costume_faces = (test.get('extraAssets') or {}).get('faces', {}).get('costume') or {}
+    for key, costume in profile_costumes.items():
+        if key in costume_faces:
             data['diff'][key] = {
-                'name': translate(test['profile']['costume'][key]['name'], "costume"),
+                'name': translate(costume['name'], "costume"),
                 'traits': traits,
-                'img': value,
+                'img': costume_faces[key],
                 'cost': cost
             }
 
     costume_map = {}
-    if 'costume' in test['profile']:
-        for key, value in test['profile']['costume'].items():
+    if profile_costumes:
+        for key, value in profile_costumes.items():
             costume_map[str(value['id'])] = str(key)
 
     if 'overwriteCost' in test['ascensionAdd']:
         oc = test['ascensionAdd']['overwriteCost']
         if 'costume' in oc:
             for key, value in oc['costume'].items():
-                data['diff'][costume_map[str(key)]]['cost'] = value
+                costume_key = costume_map.get(str(key))
+                if costume_key in data['diff']:
+                    data['diff'][costume_key]['cost'] = value
         if 'ascension' in oc:
             for key, value in oc['ascension'].items():
                 asc_key = f"asc{key}"
@@ -387,7 +397,76 @@ for file in find_files("servants"):
 
 apply_extra_event_bonuses(processed)
 
-open('servants.json','w').write(json.dumps(processed, ensure_ascii=False, indent=4))
+def fetch_atlas_json(url, attempts=3):
+    for attempt in range(attempts):
+        try:
+            response = requests.get(url, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException:
+            if attempt == attempts - 1:
+                raise
+            time.sleep(2 ** attempt)
+
+def servant_form_signature(servant):
+    return {
+        key: {
+            'traits': sorted(detail['traits']),
+            'cost': detail['cost']
+        }
+        for key, detail in servant['diff'].items()
+    }
+
+def write_atomic(path, content):
+    temp_path = f'{path}.tmp'
+    with open(temp_path, 'w') as file:
+        file.write(content)
+    os.replace(temp_path, path)
+
+def load_cn_servants(jp_servants):
+    basic_url = (
+        'https://api.atlasacademy.io/basic/CN/servant/search'
+        '?rarity=0&rarity=1&rarity=2&rarity=3&rarity=4&rarity=5'
+    )
+    cn_ids = {servant['id'] for servant in fetch_atlas_json(basic_url)}
+    jp_by_id = {servant['id']: servant for servant in jp_servants}
+    available_ids = sorted(jp_by_id.keys() & cn_ids)
+    unavailable_ids = sorted(jp_by_id.keys() - cn_ids)
+
+    raw_cn = {}
+    errors = []
+    with ThreadPoolExecutor(max_workers=12) as executor:
+        futures = {
+            executor.submit(
+                fetch_atlas_json,
+                f'https://api.atlasacademy.io/nice/CN/svt/{servant_id}?lore=false'
+            ): servant_id
+            for servant_id in available_ids
+        }
+        for future in as_completed(futures):
+            servant_id = futures[future]
+            try:
+                raw_cn[servant_id] = future.result()
+            except Exception as error:
+                errors.append(f'{servant_id}: {error}')
+    if errors:
+        raise RuntimeError('Failed to fetch CN servants: ' + '; '.join(errors))
+
+    cn_differences = []
+    for servant_id in available_ids:
+        cn_servant = process_servant(raw_cn[servant_id])
+        jp_servant = jp_by_id[servant_id]
+        cn_servant['event_bonuses'] = jp_servant['event_bonuses']
+        cn_servant['event_extra_bonuses'] = jp_servant['event_extra_bonuses']
+        if servant_form_signature(cn_servant) != servant_form_signature(jp_servant):
+            cn_differences.append(cn_servant)
+    return cn_differences, unavailable_ids
+
+cn_differences, cn_unavailable = load_cn_servants(processed)
+write_atomic('servants.json', json.dumps(processed, ensure_ascii=False, indent=4))
+write_atomic('cn.json', json.dumps(cn_differences, ensure_ascii=False, indent=4))
+write_atomic('cn_unavailable.txt', ''.join(f'{servant_id}\n' for servant_id in cn_unavailable))
+print(f'[+] CN servant differences: {len(cn_differences)}, unavailable: {len(cn_unavailable)}')
 
 os.chdir('..')
 

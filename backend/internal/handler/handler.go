@@ -24,7 +24,9 @@ type Handler struct {
 
 func NewHandler(repo *repository.Repository, service *service.CalculatorService, cfg *config.Config) (*Handler, error) {
 	data, err := json.Marshal(gin.H{
-		"servants":      repo.GetServants(),
+		"servants":      repo.GetServants("JP"),
+		"cnServants":    repo.GetCNOverrides(),
+		"cnUnavailable": repo.GetCNUnavailable(),
 		"craftEssences": repo.GetCraftEssences(),
 		"traits":        repo.GetTraits(),
 		"dataUpdatedAt": repo.GetDataUpdatedAt(),
@@ -94,7 +96,11 @@ func (h *Handler) GetData(c *gin.Context) {
 
 func (h *Handler) FilterTraits(c *gin.Context) {
 	traits := mapStr2Int(c.PostFormArray("traits"))
-	results := h.service.FilterServants(traits, []int{}, []int{})
+	server := c.PostForm("server")
+	if server == "" {
+		server = "CN"
+	}
+	results := h.service.FilterServants(traits, []int{}, []int{}, server)
 	c.JSON(http.StatusOK, results)
 }
 
