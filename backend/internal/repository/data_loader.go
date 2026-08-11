@@ -4,11 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fgo-calc-backend/internal/model"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Repository struct {
@@ -21,6 +23,7 @@ type Repository struct {
 	ceEffects     map[string]map[int]map[int]map[string]model.CeEffect
 	dominateMap   map[int]int
 	dataUpdatedAt int64
+	announcements []model.Announcement
 
 	db      *sql.DB
 	dataDir string
@@ -66,6 +69,11 @@ func (r *Repository) loadData(dataDir string) error {
 	if updatedAt, err := os.ReadFile(filepath.Join(dataDir, "update.txt")); err == nil {
 		r.dataUpdatedAt, _ = strconv.ParseInt(strings.TrimSpace(string(updatedAt)), 10, 64)
 	}
+	announcements, err := loadAnnouncements(filepath.Join(dataDir, "announcement.txt"))
+	if err != nil {
+		return err
+	}
+	r.announcements = announcements
 
 	svtFile, err := os.Open(filepath.Join(dataDir, "servants.json"))
 	if err != nil {
@@ -131,6 +139,43 @@ func (r *Repository) loadData(dataDir string) error {
 	}
 
 	return nil
+}
+
+func loadAnnouncements(path string) ([]model.Announcement, error) {
+	data, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return []model.Announcement{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	content := strings.ReplaceAll(string(data), "\r\n", "\n")
+	blocks := strings.Split(content, "------")
+	announcements := make([]model.Announcement, 0, len(blocks))
+	for i, block := range blocks {
+		block = strings.TrimSpace(block)
+		if block == "" {
+			continue
+		}
+		lines := strings.Split(block, "\n")
+		if len(lines) < 3 {
+			return nil, fmt.Errorf("announcement block %d must contain title, date and content", i+1)
+		}
+		title := strings.TrimSpace(lines[0])
+		date := strings.TrimSpace(lines[1])
+		body := strings.TrimSpace(strings.Join(lines[2:], "\n"))
+		if title == "" || body == "" {
+			return nil, fmt.Errorf("announcement block %d has an empty title or content", i+1)
+		}
+		if _, err := time.Parse("2006-01-02", date); err != nil {
+			return nil, fmt.Errorf("announcement block %d has invalid date %q: %w", i+1, date, err)
+		}
+		announcements = append(announcements, model.Announcement{Title: title, Date: date, Content: body})
+	}
+	sort.SliceStable(announcements, func(i, j int) bool {
+		return announcements[i].Date > announcements[j].Date
+	})
+	return announcements, nil
 }
 
 func (r *Repository) precompute() {
@@ -250,6 +295,10 @@ func (r *Repository) GetTraits() map[int]string {
 
 func (r *Repository) GetDataUpdatedAt() int64 {
 	return r.dataUpdatedAt
+}
+
+func (r *Repository) GetAnnouncements() []model.Announcement {
+	return r.announcements
 }
 
 func (r *Repository) GetCeEffects(server string) map[int]map[int]map[string]model.CeEffect {

@@ -15,11 +15,12 @@ import (
 )
 
 type Handler struct {
-	repo     *repository.Repository
-	service  *service.CalculatorService
-	cfg      *config.Config
-	data     []byte
-	dataETag string
+	repo          *repository.Repository
+	service       *service.CalculatorService
+	cfg           *config.Config
+	data          []byte
+	dataETag      string
+	announcements []byte
 }
 
 func NewHandler(repo *repository.Repository, service *service.CalculatorService, cfg *config.Config) (*Handler, error) {
@@ -35,12 +36,17 @@ func NewHandler(repo *repository.Repository, service *service.CalculatorService,
 		return nil, err
 	}
 	hash := sha256.Sum256(data)
+	announcements, err := json.Marshal(gin.H{"announcements": repo.GetAnnouncements()})
+	if err != nil {
+		return nil, err
+	}
 	return &Handler{
-		repo:     repo,
-		service:  service,
-		cfg:      cfg,
-		data:     data,
-		dataETag: fmt.Sprintf(`"%x"`, hash),
+		repo:          repo,
+		service:       service,
+		cfg:           cfg,
+		data:          data,
+		dataETag:      fmt.Sprintf(`"%x"`, hash),
+		announcements: announcements,
 	}, nil
 }
 
@@ -60,6 +66,7 @@ func (h *Handler) Register(r *gin.Engine) {
 	api := r.Group("/api")
 	{
 		api.GET("/data", h.GetData)
+		api.GET("/announcements", h.GetAnnouncements)
 		api.POST("/filtertraits", h.FilterTraits)
 		api.POST("/calculate", h.Calculate)
 		api.POST("/register", h.RegisterUser)
@@ -82,6 +89,11 @@ func (h *Handler) Register(r *gin.Engine) {
 	r.GET("/test", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"msg": "给我玩FGO"})
 	})
+}
+
+func (h *Handler) GetAnnouncements(c *gin.Context) {
+	c.Header("Cache-Control", "public, max-age=300")
+	c.Data(http.StatusOK, "application/json; charset=utf-8", h.announcements)
 }
 
 func (h *Handler) GetData(c *gin.Context) {

@@ -11,6 +11,79 @@ let SELECTIONS = {
     selectedEvents: new Set()
 };
 let HISTORY_ITEMS = [];
+const ANNOUNCEMENT_VIEWED_AT_KEY = 'fgo-announcement-viewed-at';
+
+function parseAnnouncementDate(date) {
+    return new Date(`${date}T00:00:00`);
+}
+
+function renderAnnouncements(announcements = []) {
+    const list = document.getElementById('announcement-list');
+    if (!list) return;
+    announcements = [...announcements]
+        .filter(item => !Number.isNaN(parseAnnouncementDate(item.date).getTime()))
+        .sort((a, b) => parseAnnouncementDate(b.date) - parseAnnouncementDate(a.date));
+    list.innerHTML = '';
+
+    announcements.forEach(item => {
+        const article = document.createElement('section');
+        article.className = 'announcement-item';
+        const title = document.createElement('h3');
+        title.textContent = item.title;
+        const time = document.createElement('time');
+        time.className = 'announcement-time';
+        time.dateTime = item.date;
+        time.textContent = parseAnnouncementDate(item.date).toLocaleDateString('zh-CN');
+        const content = document.createElement('p');
+        content.className = 'announcement-content';
+        content.textContent = item.content;
+        article.append(title, time, content);
+        list.appendChild(article);
+    });
+
+    if (announcements.length === 0) {
+        list.innerHTML = '<p class="announcement-content">暂无公告。</p>';
+    }
+    const latest = announcements[0] ? parseAnnouncementDate(announcements[0].date) : null;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const recentBoundary = new Date(today);
+    recentBoundary.setDate(recentBoundary.getDate() - 6);
+    if (latest) latest.setHours(0, 0, 0, 0);
+    let viewedAt = null;
+    try {
+        const storedViewedAt = localStorage.getItem(ANNOUNCEMENT_VIEWED_AT_KEY);
+        const parsedViewedAt = storedViewedAt ? new Date(storedViewedAt) : null;
+        if (parsedViewedAt && !Number.isNaN(parsedViewedAt.getTime())) viewedAt = parsedViewedAt;
+    } catch (error) {
+        console.error('Failed to read announcement view time:', error);
+    }
+    const isActive = latest
+        && latest >= recentBoundary
+        && latest <= today
+        && (!viewedAt || latest > viewedAt);
+    setAnnouncementActive(isActive);
+
+    const panel = document.getElementById('announcement-panel');
+    if (panel && !panel.dataset.viewTrackingReady) {
+        panel.dataset.viewTrackingReady = 'true';
+        panel.addEventListener('toggle', () => {
+            if (!panel.open) return;
+            try {
+                localStorage.setItem(ANNOUNCEMENT_VIEWED_AT_KEY, new Date().toISOString());
+            } catch (error) {
+                console.error('Failed to save announcement view time:', error);
+            }
+            setAnnouncementActive(false);
+        });
+    }
+}
+
+function setAnnouncementActive(isActive) {
+    document.getElementById('announcement-icon')?.classList.toggle('is-active', !!isActive);
+    const activeLabel = document.getElementById('announcement-active-label');
+    if (activeLabel) activeLabel.hidden = !isActive;
+}
 
 function getActiveServants() {
     if (document.getElementById('server-select')?.value !== 'CN') {
@@ -460,6 +533,7 @@ function loadState() {
             if (state.selections.excludeSupportCe) SELECTIONS.excludeSupportCe = new Set(state.selections.excludeSupportCe);
             if (state.selections.allowTraits) SELECTIONS.allowTraits = new Set(state.selections.allowTraits);
             if (state.selections.selectedEvents) SELECTIONS.selectedEvents = new Set(state.selections.selectedEvents);
+            normalizeSelectionConflicts();
             
             renderMainClassFilters();
             renderSelectionList('svt', 'include');
@@ -490,9 +564,28 @@ function loadState() {
     }
 }
 
+function normalizeSelectionConflicts() {
+    SELECTIONS.includeSvt.forEach((_, id) => SELECTIONS.excludeSvt.delete(id));
+    SELECTIONS.includeCe.forEach(id => SELECTIONS.excludeCe.delete(id));
+    SELECTIONS.supportLockCe.forEach(id => SELECTIONS.excludeSupportCe.delete(id));
+}
+
+function removeOppositeSelection(type, list, id) {
+    if (type === 'svt') {
+        if (list === 'include') SELECTIONS.excludeSvt.delete(id);
+        if (list === 'exclude') SELECTIONS.includeSvt.delete(id);
+        return;
+    }
+    if (list === 'include') SELECTIONS.excludeCe.delete(id);
+    if (list === 'exclude') SELECTIONS.includeCe.delete(id);
+    if (list === 'supportLock') SELECTIONS.excludeSupportCe.delete(id);
+    if (list === 'excludeSupport') SELECTIONS.supportLockCe.delete(id);
+}
+
 // --- 数据加载与初始化 ---
 async function initApp() {
     lucide.createIcons();
+    renderAnnouncements();
     initCollapseToggles();
     renderExcludeSvtClassFilters();
     
@@ -527,9 +620,10 @@ async function initApp() {
         }
     });
 
-    const [meResult, dataResult] = await Promise.allSettled([
+    const [meResult, dataResult, announcementResult] = await Promise.allSettled([
         fetch('/api/me'),
-        fetch('/api/data')
+        fetch('/api/data'),
+        fetch('/api/announcements')
     ]);
 
     if (meResult.status === 'fulfilled' && meResult.value.ok) {
@@ -541,6 +635,17 @@ async function initApp() {
         }
     }
     updateAuthUI();
+
+    if (announcementResult.status === 'fulfilled' && announcementResult.value.ok) {
+        try {
+            const data = await announcementResult.value.json();
+            renderAnnouncements(data.announcements || []);
+        } catch (error) {
+            console.error('Failed to parse announcements:', error);
+        }
+    } else if (announcementResult.status === 'rejected') {
+        console.error('Failed to load announcements:', announcementResult.reason);
+    }
 
     try {
         if (dataResult.status === 'rejected') throw dataResult.reason;
@@ -862,8 +967,10 @@ function closeSvtTraitDisplayModal() {
 
 // --- 列表管理 ---
 function addSvtWithDiff(id, diffKey) {
+    removeOppositeSelection('svt', 'include', id);
     SELECTIONS.includeSvt.set(id, diffKey);
     renderSelectionList('svt', 'include');
+    renderSelectionList('svt', 'exclude');
     saveState();
     closeSvtDiffModal();
     populateModalGrid(document.getElementById('modal-search').value);
@@ -1190,6 +1297,7 @@ function quickAdd(event, type, list, id, extra) {
     event.stopPropagation();
     const key = getSelectionKey(type, list);
     if (key === 'includeSvt') {
+        removeOppositeSelection(type, list, id);
         SELECTIONS[key].set(id, extra || 'default');
     } else if (key === 'supportLockCe') {
         const limit = getSupportLimitValue();
@@ -1197,11 +1305,16 @@ function quickAdd(event, type, list, id, extra) {
             alert(`锁定助战礼装数量不能超过 ${limit} 个`);
             return;
         }
+        removeOppositeSelection(type, list, id);
         SELECTIONS[key].add(id);
     } else {
+        removeOppositeSelection(type, list, id);
         SELECTIONS[key].add(id);
     }
     renderSelectionList(type, list);
+    if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
+    if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
+    if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();
 }
 

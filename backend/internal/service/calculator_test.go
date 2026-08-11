@@ -113,3 +113,70 @@ func TestFilterServantsUsesRegionalOverridesAndAvailability(t *testing.T) {
 		t.Fatalf("expected unavailable mandatory servant to produce no teams, got %#v", teams)
 	}
 }
+
+func TestOptimizeRequiredServantOverridesExclusionAndCanStandAlone(t *testing.T) {
+	dataDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dataDir, "names"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{
+		"servants.json": `[
+			{"id":1,"name":"required","diff":{"default":{"name":"Default","traits":[],"cost":1,"img":""}},"event_bonuses":{},"event_extra_bonuses":{}},
+			{"id":2,"name":"unaffordable","diff":{"default":{"name":"Default","traits":[],"cost":16,"img":""}},"event_bonuses":{},"event_extra_bonuses":{}}
+		]`,
+		"ces.json":          `[]`,
+		"names/traits.json": `{}`,
+	}
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dataDir, name), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	repo, err := repository.NewRepository(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer repo.Close()
+	service := NewCalculatorService(repo)
+
+	teams, _ := service.Optimize(1, 2, 0, 0, nil, nil, nil, []int{1}, []string{"default"}, []int{1}, nil, nil, 100, "CN", false, nil)
+	if len(teams) == 0 {
+		t.Fatal("expected the required-only team")
+	}
+	if len(teams[0].Servants) != 1 || teams[0].Servants[0] != 1 {
+		t.Fatalf("expected only required servant 1, got %#v", teams[0].Servants)
+	}
+}
+
+func TestOptimizeSearchesCECountsBelowCostHeuristic(t *testing.T) {
+	dataDir := t.TempDir()
+	if err := os.Mkdir(filepath.Join(dataDir, "names"), 0755); err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{
+		"servants.json": `[{
+			"id":1,"name":"servant","diff":{"default":{"name":"Default","traits":[],"cost":1,"img":""}},
+			"event_bonuses":{},"event_extra_bonuses":{}
+		}]`,
+		"ces.json":          `[]`,
+		"names/traits.json": `{}`,
+	}
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dataDir, name), []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	repo, err := repository.NewRepository(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer repo.Close()
+	service := NewCalculatorService(repo)
+
+	teams, _ := service.Optimize(128, 5, 6, 0, nil, nil, nil, nil, nil, nil, nil, nil, 100, "CN", false, nil)
+	if len(teams) == 0 {
+		t.Fatal("expected a valid team with fewer than the heuristic CE count")
+	}
+}

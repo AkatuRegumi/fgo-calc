@@ -42,11 +42,11 @@ func (s *CalculatorService) FilterServants(traits []int, includeSvt []int, exclu
 
 	servants := s.repo.GetServants(serverType)
 	for _, svt := range servants {
-		if excludeSet[svt.Id] {
-			continue
-		}
 		if includeSet[svt.Id] {
 			result = append(result, svt)
+			continue
+		}
+		if excludeSet[svt.Id] {
 			continue
 		}
 		if len(traits) == 0 {
@@ -96,6 +96,9 @@ func (s *CalculatorService) GetSupportCombinations(supportLimit int, serverType 
 	excludeSet := map[int]bool{}
 	for _, id := range excludeSupportCe {
 		excludeSet[id] = true
+	}
+	for _, id := range includeSupportCe {
+		delete(excludeSet, id)
 	}
 
 	supportPool := []model.CraftEssence{}
@@ -231,6 +234,9 @@ func (s *CalculatorService) GetCombination(num int, includeCe []int, excludeCe [
 	for _, id := range excludeCe {
 		excludeSet[id] = true
 	}
+	for _, id := range includeCe {
+		delete(excludeSet, id)
+	}
 
 	craftEssences := s.repo.GetCraftEssences()
 	included := []model.CraftEssence{}
@@ -358,14 +364,6 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	}
 
 	mince := len(includeCe)
-	if mince < 0 {
-		mince = 0
-	}
-	mince += (costLimit - svtLimit*16) / 12
-
-	if mince > ceLimit {
-		mince = ceLimit
-	}
 
 	// Prepare Support CE Pool
 	supportPool := s.GetSupportCombinations(supportLimit, serverType, includeSupportCe, excludeSupportCe)
@@ -828,7 +826,11 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 					}
 
 					candidates := make([]teamCandidate, 0, OPTIMIZE_LIMIT)
-					for k := 1; k <= currentSvtLimit; k++ {
+					minOptional := 1
+					if len(mandatoryBonuses) > 0 {
+						minOptional = 0
+					}
+					for k := minOptional; k <= currentSvtLimit; k++ {
 						for j := 0; j <= currentCostLimit; j++ {
 							if dp[k][j] == NEG {
 								continue

@@ -723,7 +723,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -762,7 +768,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -803,7 +815,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -837,7 +855,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -933,7 +957,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -997,7 +1027,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -1037,7 +1073,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -1194,7 +1236,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -1755,6 +1803,7 @@
                     2850,
                     2851,
                     5000,
+                    10049,
                     901900
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_9019000.png",
@@ -2058,7 +2107,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2101,7 +2156,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 50
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2139,7 +2200,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2179,7 +2246,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 50
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2266,7 +2339,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 50
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2328,7 +2407,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2399,7 +2484,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 50
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -2435,7 +2526,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -3405,6 +3502,61 @@
         }
     },
     {
+        "id": 605300,
+        "name": "哈桑·萨巴赫",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    1,
+                    105,
+                    202,
+                    300,
+                    304,
+                    405,
+                    1000,
+                    2001,
+                    2008,
+                    2012,
+                    2631,
+                    2858,
+                    5000,
+                    605300
+                ],
+                "img": "https://static.atlasacademy.io/JP/Faces/f_6053000.png",
+                "cost": 16
+            },
+            "asc3": {
+                "name": "灵基再临3",
+                "traits": [
+                    3,
+                    105,
+                    202,
+                    300,
+                    304,
+                    405,
+                    1000,
+                    2008,
+                    2012,
+                    2835,
+                    2858,
+                    5000,
+                    605300
+                ],
+                "img": "https://static.atlasacademy.io/JP/Faces/f_6053003.png",
+                "cost": 16
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
         "id": 505700,
         "name": "弗兰切斯卡·普勒拉蒂",
         "diff": {
@@ -3646,6 +3798,7 @@
                     2631,
                     2780,
                     5000,
+                    10049,
                     1100300
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_11003000.png",
@@ -4092,7 +4245,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4287,7 +4446,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4350,7 +4515,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4419,7 +4590,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4606,7 +4783,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4648,7 +4831,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4683,7 +4872,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4742,7 +4937,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4782,7 +4983,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4818,7 +5025,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4858,7 +5071,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -4892,7 +5111,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -5138,6 +5363,7 @@
                     2667,
                     2858,
                     5000,
+                    10049,
                     302600
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_3026000.png",
@@ -5334,7 +5560,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -5515,7 +5747,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -5792,7 +6030,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6414,7 +6658,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6454,7 +6704,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6496,7 +6752,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6533,7 +6795,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6574,7 +6842,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6609,7 +6883,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6651,7 +6931,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -6694,7 +6980,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -7696,7 +7988,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8017,7 +8315,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8128,6 +8432,7 @@
                     2838,
                     2858,
                     5000,
+                    10049,
                     203200
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_2032000.png",
@@ -8135,7 +8440,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8175,7 +8486,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8214,7 +8531,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8243,6 +8566,7 @@
                     2838,
                     2858,
                     5000,
+                    10049,
                     703100
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_7031000.png",
@@ -8250,7 +8574,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8295,7 +8625,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8335,7 +8671,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8376,7 +8718,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -8601,7 +8949,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -9521,7 +9875,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -9849,7 +10209,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -9993,7 +10359,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10032,7 +10404,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10070,7 +10448,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10109,7 +10493,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10182,7 +10572,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10229,7 +10625,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10296,7 +10698,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -10571,7 +10979,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11146,7 +11560,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11184,7 +11604,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11226,7 +11652,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11265,7 +11697,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11332,7 +11770,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11374,7 +11818,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11410,7 +11860,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11483,7 +11939,7 @@
                 "cost": 12
             },
             "104440": {
-                "name": "海边的轻浮男",
+                "name": "海滨的吊儿郎当男",
                 "traits": [
                     1,
                     100,
@@ -11509,7 +11965,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -11724,7 +12186,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12501,7 +12969,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12647,7 +13121,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12714,7 +13194,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12749,7 +13235,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12784,7 +13276,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12819,7 +13317,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12917,7 +13421,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12963,7 +13473,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -12998,7 +13514,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14155,7 +14677,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14196,7 +14724,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14246,7 +14780,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14285,7 +14825,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14327,7 +14873,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14363,7 +14915,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14406,7 +14964,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14449,7 +15013,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14492,7 +15062,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -14906,7 +15482,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15571,7 +16153,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15656,7 +16244,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15698,7 +16292,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15759,7 +16359,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15797,7 +16403,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15868,7 +16480,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15909,7 +16527,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -15974,7 +16598,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -16414,7 +17044,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 5
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -16656,7 +17292,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -16872,7 +17514,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -16974,7 +17622,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -17454,7 +18108,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -17929,7 +18589,7 @@
                 "cost": 7
             },
             "502130": {
-                "name": "热带卢恩夏日",
+                "name": "热带卢恩之夏",
                 "traits": [
                     1,
                     104,
@@ -17958,7 +18618,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -18727,6 +19393,7 @@
                     2631,
                     2780,
                     5000,
+                    10049,
                     900100
                 ],
                 "img": "https://static.atlasacademy.io/JP/Faces/f_9001000.png",
@@ -19777,7 +20444,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -20264,7 +20937,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {

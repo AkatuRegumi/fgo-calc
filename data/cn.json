@@ -1,209 +1,5 @@
 [
     {
-        "id": 100700,
-        "name": "高文",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    100,
-                    201,
-                    300,
-                    303,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2075,
-                    2631,
-                    2780,
-                    2795,
-                    2858,
-                    5000,
-                    100700
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1007000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 100800,
-        "name": "齐格飞",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    100,
-                    201,
-                    301,
-                    303,
-                    404,
-                    1000,
-                    2001,
-                    2002,
-                    2003,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2075,
-                    2113,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    100800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1008000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 102000,
-        "name": "兰斯洛特",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    100,
-                    201,
-                    300,
-                    303,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2075,
-                    2631,
-                    2780,
-                    2795,
-                    2858,
-                    5000,
-                    102000
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1020000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 102800,
-        "name": "两仪式",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    2,
-                    100,
-                    202,
-                    302,
-                    305,
-                    405,
-                    1000,
-                    2001,
-                    2075,
-                    2631,
-                    2780,
-                    2835,
-                    2858,
-                    5000,
-                    102800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1028000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 103300,
-        "name": "齐格鲁德",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    100,
-                    201,
-                    302,
-                    303,
-                    405,
-                    1000,
-                    2000,
-                    2001,
-                    2002,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2040,
-                    2075,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    103300
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1033000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 103600,
         "name": "兰陵王",
         "diff": {
@@ -232,202 +28,43 @@
                 ],
                 "img": "https://static.atlasacademy.io/CN/Faces/f_1036000.png",
                 "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 104400,
-        "name": "斋藤一",
-        "diff": {
-            "default": {
-                "name": "默认",
+            },
+            "103630": {
+                "name": "辩天衣",
                 "traits": [
                     1,
                     100,
                     202,
                     300,
-                    305,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2075,
-                    2631,
-                    2780,
-                    2839,
-                    2858,
-                    5000,
-                    10009,
-                    104400
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_1044000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 200100,
-        "name": "卫宫",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    102,
-                    202,
-                    302,
-                    305,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2012,
-                    2631,
-                    2780,
-                    2858,
-                    2883,
-                    5000,
-                    200100
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_2001000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 200300,
-        "name": "罗宾汉",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    102,
-                    202,
-                    302,
-                    303,
-                    403,
-                    1000,
-                    2001,
-                    2008,
-                    2012,
-                    2631,
-                    2780,
-                    2810,
-                    2858,
-                    5000,
-                    200300
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_2003000.png",
-                "cost": 7
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 200800,
-        "name": "崔斯坦",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    102,
-                    201,
-                    300,
                     303,
                     404,
                     1000,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2631,
-                    2780,
-                    2795,
-                    2858,
-                    5000,
-                    200800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_2008000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 300400,
-        "name": "迦尔纳",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    101,
-                    200,
-                    300,
-                    303,
-                    405,
-                    1000,
-                    2000,
                     2001,
                     2008,
                     2009,
-                    2011,
                     2012,
-                    2037,
-                    2040,
+                    2075,
                     2631,
+                    2717,
                     2780,
-                    2851,
+                    2838,
                     2858,
+                    2973,
                     5000,
-                    300400
+                    103600
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_3004000.png",
-                "cost": 16
+                "img": "https://static.atlasacademy.io/CN/Faces/f_1036300.png",
+                "cost": 12
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -436,34 +73,40 @@
         }
     },
     {
-        "id": 301300,
-        "name": "斯卡哈",
+        "id": 203200,
+        "name": "贞德",
         "diff": {
             "default": {
                 "name": "默认",
                 "traits": [
                     2,
-                    101,
-                    203,
-                    302,
-                    303,
+                    102,
+                    202,
+                    300,
+                    308,
                     405,
                     1000,
                     2001,
+                    2007,
                     2008,
-                    2113,
                     2631,
-                    2780,
+                    2838,
                     2858,
                     5000,
-                    301300
+                    203200
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_3013000.png",
+                "img": "https://static.atlasacademy.io/CN/Faces/f_2032000.png",
                 "cost": 16
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -494,6 +137,42 @@
                     301700
                 ],
                 "img": "https://static.atlasacademy.io/CN/Faces/f_3017000.png",
+                "cost": 12
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
+        "id": 302600,
+        "name": "贞德·Alter·Santa·Lily",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    2,
+                    101,
+                    202,
+                    301,
+                    303,
+                    404,
+                    1000,
+                    2001,
+                    2007,
+                    2008,
+                    2631,
+                    2667,
+                    2858,
+                    5000,
+                    302600
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_3026000.png",
                 "cost": 12
             }
         },
@@ -613,163 +292,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 304700,
-        "name": "珀西瓦尔",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    101,
-                    201,
-                    300,
-                    303,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2631,
-                    2780,
-                    2795,
-                    2858,
-                    5000,
-                    304700
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_3047000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 400400,
-        "name": "阿斯托尔福",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    3,
-                    103,
-                    201,
-                    301,
-                    303,
-                    404,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2011,
-                    2037,
-                    2356,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    400400
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_4004000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 400800,
-        "name": "爱迪·萨奇",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    103,
-                    202,
-                    301,
-                    304,
-                    402,
-                    1000,
-                    2001,
-                    2008,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    400800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_4008000.png",
-                "cost": 4
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 402900,
-        "name": "阿喀琉斯",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    103,
-                    201,
-                    300,
-                    305,
-                    405,
-                    1000,
-                    2000,
-                    2001,
-                    2008,
-                    2009,
-                    2011,
-                    2012,
-                    2037,
-                    2040,
-                    2114,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    402900
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_4029000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -856,158 +385,6 @@
         }
     },
     {
-        "id": 403400,
-        "name": "巴沙洛缪·罗伯茨",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    103,
-                    202,
-                    301,
-                    304,
-                    401,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2012,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    403400
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_4034000.png",
-                "cost": 3
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 403900,
-        "name": "曼迪卡尔多",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    103,
-                    202,
-                    302,
-                    305,
-                    403,
-                    1000,
-                    2001,
-                    2008,
-                    2009,
-                    2012,
-                    2113,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    403900
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_4039000.png",
-                "cost": 7
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 500800,
-        "name": "梅林",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    104,
-                    201,
-                    300,
-                    303,
-                    405,
-                    1000,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2631,
-                    2780,
-                    2795,
-                    2858,
-                    5000,
-                    500800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_5008000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 501800,
-        "name": "吉尔伽美什",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    104,
-                    202,
-                    300,
-                    303,
-                    404,
-                    1000,
-                    2000,
-                    2001,
-                    2008,
-                    2012,
-                    2040,
-                    2113,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    501800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_5018000.png",
-                "cost": 12
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 501900,
         "name": "诸葛孔明〔埃尔梅罗Ⅱ世〕",
         "diff": {
@@ -1045,46 +422,6 @@
         }
     },
     {
-        "id": 502100,
-        "name": "库·丘林",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    104,
-                    200,
-                    300,
-                    305,
-                    403,
-                    1000,
-                    2000,
-                    2001,
-                    2008,
-                    2011,
-                    2012,
-                    2037,
-                    2040,
-                    2631,
-                    2851,
-                    2858,
-                    5000,
-                    502100
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_5021000.png",
-                "cost": 7
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 502200,
         "name": "西行者",
         "diff": {
@@ -1110,48 +447,6 @@
                 ],
                 "img": "https://static.atlasacademy.io/CN/Faces/f_5022000.png",
                 "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 504300,
-        "name": "阿斯克勒庇俄斯",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    104,
-                    201,
-                    302,
-                    305,
-                    403,
-                    1000,
-                    1110,
-                    2000,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2040,
-                    2114,
-                    2466,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    504300
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_5043000.png",
-                "cost": 7
             }
         },
         "event_bonuses": {
@@ -1234,41 +529,6 @@
         }
     },
     {
-        "id": 601900,
-        "name": "风魔小太郎",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    105,
-                    202,
-                    301,
-                    304,
-                    403,
-                    1000,
-                    2001,
-                    2008,
-                    2631,
-                    2780,
-                    2858,
-                    5000,
-                    601900
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_6019000.png",
-                "cost": 7
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 602600,
         "name": "燕青",
         "diff": {
@@ -1295,10 +555,41 @@
                 ],
                 "img": "https://static.atlasacademy.io/CN/Faces/f_6026000.png",
                 "cost": 12
+            },
+            "602630": {
+                "name": "修炼服（现代Ver.）",
+                "traits": [
+                    1,
+                    105,
+                    202,
+                    301,
+                    304,
+                    404,
+                    1000,
+                    2001,
+                    2008,
+                    2012,
+                    2631,
+                    2717,
+                    2780,
+                    2838,
+                    2840,
+                    2858,
+                    5000,
+                    602600
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_6026300.png",
+                "cost": 12
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -1419,47 +710,6 @@
         }
     },
     {
-        "id": 604700,
-        "name": "特斯卡特利波卡",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    105,
-                    200,
-                    301,
-                    303,
-                    405,
-                    1000,
-                    2000,
-                    2001,
-                    2008,
-                    2011,
-                    2040,
-                    2654,
-                    2780,
-                    2797,
-                    2835,
-                    2851,
-                    2858,
-                    5000,
-                    604700
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_6047000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 700300,
         "name": "虎狼",
         "diff": {
@@ -1532,78 +782,40 @@
         }
     },
     {
-        "id": 702700,
-        "name": "彭忒西勒亚",
+        "id": 703100,
+        "name": "贞德〔Alter〕",
         "diff": {
             "default": {
                 "name": "默认",
                 "traits": [
                     2,
                     106,
-                    201,
-                    300,
-                    303,
+                    202,
+                    301,
+                    308,
                     404,
                     1000,
-                    2000,
                     2001,
+                    2007,
                     2008,
-                    2011,
-                    2037,
-                    2040,
-                    2113,
                     2631,
-                    2780,
+                    2838,
                     2858,
                     5000,
-                    702700
+                    703100
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_7027000.png",
+                "img": "https://static.atlasacademy.io/CN/Faces/f_7031000.png",
                 "cost": 12
             }
         },
         "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 702800,
-        "name": "保罗·班扬",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    2,
-                    106,
-                    201,
-                    302,
-                    305,
-                    401,
-                    1000,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2631,
-                    2666,
-                    2667,
-                    2780,
-                    2810,
-                    2858,
-                    5000,
-                    702800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_7028000.png",
-                "cost": 3
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -1649,33 +861,29 @@
         }
     },
     {
-        "id": 800100,
-        "name": "玛修·基列莱特",
+        "id": 900100,
+        "name": "贞德",
         "diff": {
             "default": {
                 "name": "默认",
                 "traits": [
                     2,
-                    107,
-                    201,
+                    108,
+                    203,
                     300,
                     303,
-                    403,
                     405,
                     1000,
                     2001,
+                    2007,
                     2008,
-                    2009,
-                    2011,
                     2631,
-                    2654,
                     2780,
-                    2795,
                     5000,
-                    800100
+                    900100
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_8001000.png",
-                "cost": 0
+                "img": "https://static.atlasacademy.io/CN/Faces/f_9001000.png",
+                "cost": 16
             }
         },
         "event_bonuses": {
@@ -1758,70 +966,36 @@
         }
     },
     {
-        "id": 1000700,
-        "name": "冲田总司〔Alter〕",
+        "id": 901900,
+        "name": "梅塔特隆·贞德",
         "diff": {
             "default": {
                 "name": "默认",
                 "traits": [
                     2,
-                    109,
-                    202,
-                    302,
-                    305,
-                    405,
-                    1000,
-                    2001,
-                    2007,
-                    2008,
-                    2012,
-                    2631,
-                    2780,
-                    2839,
-                    5000,
-                    10009,
-                    1000700
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_10007000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 1001000,
-        "name": "芦屋道满",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    3,
-                    109,
-                    201,
-                    301,
-                    304,
+                    108,
+                    200,
+                    300,
+                    303,
                     405,
                     1000,
                     2000,
                     2001,
+                    2007,
                     2008,
                     2011,
-                    2019,
                     2037,
                     2040,
-                    2780,
+                    2076,
+                    2797,
                     2835,
+                    2847,
+                    2850,
+                    2851,
                     5000,
-                    1001000
+                    901900
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_10010000.png",
+                "img": "https://static.atlasacademy.io/CN/Faces/f_9019000.png",
                 "cost": 16
             }
         },
@@ -1835,78 +1009,13 @@
         }
     },
     {
-        "id": 1001800,
-        "name": "Kazuradrop",
+        "id": 1100300,
+        "name": "贞德〔Alter〕",
         "diff": {
             "default": {
                 "name": "默认",
                 "traits": [
                     2,
-                    109,
-                    201,
-                    300,
-                    303,
-                    405,
-                    1000,
-                    1177,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2667,
-                    2780,
-                    2781,
-                    2925,
-                    5000,
-                    1001800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_10018000.png",
-                "cost": 16
-            },
-            "asc1": {
-                "name": "灵基再临1",
-                "traits": [
-                    2,
-                    109,
-                    201,
-                    300,
-                    303,
-                    405,
-                    1000,
-                    1177,
-                    2001,
-                    2008,
-                    2011,
-                    2037,
-                    2667,
-                    2780,
-                    2781,
-                    2838,
-                    2925,
-                    5000,
-                    1001800
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_10018001.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
-        "id": 1100200,
-        "name": "岩窟王",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
                     110,
                     202,
                     301,
@@ -1914,13 +1023,14 @@
                     405,
                     1000,
                     2001,
+                    2007,
                     2008,
                     2631,
                     2780,
                     5000,
-                    1100200
+                    1100300
                 ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_11002000.png",
+                "img": "https://static.atlasacademy.io/CN/Faces/f_11003000.png",
                 "cost": 16
             }
         },
@@ -1997,45 +1107,6 @@
         }
     },
     {
-        "id": 2800100,
-        "name": "奥伯龙",
-        "diff": {
-            "default": {
-                "name": "默认",
-                "traits": [
-                    1,
-                    120,
-                    201,
-                    301,
-                    304,
-                    405,
-                    1000,
-                    1172,
-                    1177,
-                    2001,
-                    2002,
-                    2009,
-                    2011,
-                    2037,
-                    2113,
-                    2780,
-                    5000,
-                    2800100
-                ],
-                "img": "https://static.atlasacademy.io/CN/Faces/f_28001000.png",
-                "cost": 16
-            }
-        },
-        "event_bonuses": {
-            "CN": [],
-            "JP": []
-        },
-        "event_extra_bonuses": {
-            "CN": [],
-            "JP": []
-        }
-    },
-    {
         "id": 4000100,
         "name": "Ｕ－奥尔加玛丽",
         "diff": {
@@ -2085,7 +1156,13 @@
             }
         },
         "event_bonuses": {
-            "CN": [],
+            "CN": [
+                {
+                    "id": 80558,
+                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "bonus": 20
+                }
+            ],
             "JP": []
         },
         "event_extra_bonuses": {

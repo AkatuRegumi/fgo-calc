@@ -175,8 +175,12 @@ function togglePickerItem(id) {
             return;
         }
     }
+    removeOppositeSelection(type, list, id);
     SELECTIONS[getSelectionKey(type, list)].add(id);
     renderSelectionList(type, list);
+    if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
+    if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
+    if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();
     populateModalGrid(document.getElementById('modal-search').value);
 }

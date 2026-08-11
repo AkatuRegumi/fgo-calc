@@ -97,6 +97,95 @@
             margin-bottom: 1.5rem;
             box-shadow: var(--pico-card-sectionning-background-color);
         }
+        .announcement-card {
+            padding-top: 0.85rem;
+            padding-bottom: 0.85rem;
+        }
+        .announcement-card details {
+            margin-bottom: 0;
+        }
+        .announcement-summary {
+            display: flex;
+            gap: 0.55rem;
+            align-items: center;
+            font-weight: bold;
+        }
+        .announcement-summary::marker {
+            content: '';
+        }
+        .announcement-summary::-webkit-details-marker {
+            display: none;
+        }
+        .announcement-icon {
+            position: relative;
+            display: inline-flex;
+            color: var(--pico-muted-color);
+        }
+        .announcement-icon svg {
+            width: 1.15rem;
+            height: 1.15rem;
+        }
+        .announcement-icon.is-active {
+            color: var(--pico-primary);
+        }
+        .announcement-icon.is-active::after {
+            position: absolute;
+            top: -0.18rem;
+            right: -0.22rem;
+            width: 0.45rem;
+            height: 0.45rem;
+            border: 2px solid var(--pico-card-background-color);
+            border-radius: 50%;
+            background: #e53935;
+            content: '';
+        }
+        .announcement-active-label {
+            color: var(--pico-primary);
+            font-size: 0.7rem;
+            font-weight: normal;
+        }
+        .announcement-chevron {
+            width: 1rem;
+            height: 1rem;
+            margin-left: auto;
+            color: var(--pico-muted-color);
+            transition: transform 0.18s ease;
+        }
+        #announcement-panel[open] .announcement-chevron {
+            transform: rotate(180deg);
+        }
+        .announcement-list {
+            max-height: 20rem;
+            margin-top: 0.75rem;
+            padding: 0 0.75rem;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            background: var(--pico-card-sectionning-background-color);
+        }
+        .announcement-item {
+            padding: 1rem 0;
+        }
+        .announcement-item + .announcement-item {
+            border-top: 1px solid var(--pico-muted-border-color);
+        }
+        .announcement-item h3 {
+            margin: 0;
+            font-size: 1rem;
+        }
+        .announcement-time {
+            display: block;
+            margin-top: 0.2rem;
+            color: var(--pico-muted-color);
+            font-size: 0.72rem;
+        }
+        .announcement-content {
+            margin: 0.65rem 0 0;
+            font-size: 0.85rem;
+            line-height: 1.65;
+            white-space: pre-line;
+        }
         .avatar-container {
             position: relative;
             cursor: pointer;
@@ -512,6 +601,35 @@
         .flash-message.is-leaving {
             animation: flash-leave 0.16s ease-in forwards;
         }
+        .donate-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+        .donate-option {
+            margin: 0;
+            padding: 0.75rem;
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            background: var(--pico-card-sectionning-background-color);
+            text-align: center;
+        }
+        .donate-option strong {
+            display: block;
+            margin-bottom: 0.6rem;
+        }
+        .donate-option img {
+            display: block;
+            width: 100%;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 6px;
+            object-fit: contain;
+            background: white;
+        }
+        .donate-option img.donate-aifadian {
+            height: 380px;
+        }
         @keyframes flash-enter {
             from { opacity: 0; transform: translateY(-0.5rem); }
             to { opacity: 1; transform: translateY(0); }
@@ -532,6 +650,16 @@
                 top: 0.5rem;
                 right: 0.5rem;
                 width: calc(100vw - 1rem);
+            }
+            .donate-grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            .donate-option img {
+                height: auto;
+                max-height: 70vh;
+            }
+            .donate-option img.donate-aifadian {
+                height: auto;
             }
         }
         .event-bonus-item {
@@ -733,6 +861,18 @@
             </details>
         </article>
 
+        <article class="card-section announcement-card">
+            <details id="announcement-panel">
+                <summary class="announcement-summary">
+                    <span id="announcement-icon" class="announcement-icon" aria-hidden="true"><i data-lucide="bell"></i></span>
+                    <span>公告栏</span>
+                    <small id="announcement-active-label" class="announcement-active-label" hidden>有新公告</small>
+                    <!-- <i class="announcement-chevron" data-lucide="chevron-down" aria-hidden="true"></i> -->
+                </summary>
+                <div id="announcement-list" class="announcement-list"></div>
+            </details>
+        </article>
+
         <article class="card-section">
             <header><i data-lucide="settings-2" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 限制条件</header>
             <div class="grid-config">
@@ -889,7 +1029,7 @@
                 <a href="https://github.com/pikaball" target="_blank" class="secondary"><i data-lucide="github" style="width: 16px; vertical-align: middle;"></i> GitHub</a> | 
                 <a href="https://pikaball.cc" target="_blank" class="secondary"><i data-lucide="globe" style="width: 16px; vertical-align: middle;"></i> Blog</a> | 
                 <a href="https://space.bilibili.com/3546788520790068" target="_blank" class="secondary"><i data-lucide="video" style="width: 16px; vertical-align: middle;"></i> Bilibili</a> |
-                <a href="javascript:void(0)" onclick="openDonateModal()" class="secondary"><i data-lucide="heart" style="width: 16px; vertical-align: middle;"></i> 捐赠（爱发电）</a>
+                <a href="javascript:void(0)" onclick="openDonateModal()" class="secondary"><i data-lucide="heart" style="width: 16px; vertical-align: middle;"></i> 捐赠</a>
             </p>
         </footer>
     </main>
@@ -938,14 +1078,20 @@
     </dialog>
 
     <dialog id="donate-modal">
-        <article style="max-width: 400px;">
+        <article style="max-width: 760px; width: 92%;">
             <header>
                 <a href="#close" aria-label="Close" class="close" onclick="closeDonateModal()"></a>
                 <span>请作者喝杯蜜雪冰城</span>
             </header>
-            <div style="text-align: center;">
-                <img src="/static/donate.jpg" alt="捐赠二维码" style="max-width: 100%; border-radius: 8px;">
-                <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--pico-muted-color);">感谢支持喵</p>
+            <div class="donate-grid">
+                <figure class="donate-option">
+                    <strong>微信赞赏</strong>
+                    <img src="/static/wx.jpg" alt="微信赞赏码">
+                </figure>
+                <figure class="donate-option">
+                    <strong>爱发电</strong>
+                    <img class="donate-aifadian" src="/static/donate.jpg" alt="爱发电二维码">
+                </figure>
             </div>
         </article>
     </dialog>
@@ -990,7 +1136,7 @@
         </article>
     </dialog>
 
-    <script src="/static/app.js?v=20260801-2"></script>
-    <script src="/static/picker.js?v=20260801-2"></script>
+    <script src="/static/app.js?v=20260811-1"></script>
+    <script src="/static/picker.js?v=20260811-1"></script>
 </body>
 </html>

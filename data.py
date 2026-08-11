@@ -1,5 +1,6 @@
 import os
 import json
+import sys
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -171,7 +172,7 @@ funcs = loadfuncs()
 
 exclude_events = [80059, 80077, 80044, 80072]
 
-def process_servant(test):
+def process_servant(test, available_costumes=None):
     data = {}
     data['id'] = test['id']
 
@@ -227,7 +228,9 @@ def process_servant(test):
         'cost': cost
     }
 
-    profile_costumes = (test.get('profile') or {}).get('costume') or {}
+    profile_costumes = available_costumes
+    if profile_costumes is None:
+        profile_costumes = (test.get('profile') or {}).get('costume') or {}
     costume_faces = (test.get('extraAssets') or {}).get('faces', {}).get('costume') or {}
     for key, costume in profile_costumes.items():
         if key in costume_faces:
@@ -423,18 +426,38 @@ def write_atomic(path, content):
         file.write(content)
     os.replace(temp_path, path)
 
+def show_download_progress(completed, total, last_reported=-1):
+    ratio = completed / total if total else 1
+    width = 30
+    filled = round(width * ratio)
+    bar = '█' * filled + '░' * (width - filled)
+    message = f'[Atlas CN] [{bar}] {ratio:>6.1%} {completed}/{total}'
+    if sys.stdout.isatty():
+        print(f'\r{message}', end='\n' if completed == total else '', flush=True)
+        return last_reported
+
+    reported = int(ratio * 10)
+    if reported > last_reported or completed == total:
+        print(message, flush=True)
+    return reported
+
 def load_cn_servants(jp_servants):
     basic_url = (
         'https://api.atlasacademy.io/basic/CN/servant/search'
         '?rarity=0&rarity=1&rarity=2&rarity=3&rarity=4&rarity=5'
     )
-    cn_ids = {servant['id'] for servant in fetch_atlas_json(basic_url)}
+    print('[Atlas CN] Fetching available servant list...', flush=True)
+    cn_basic = fetch_atlas_json(basic_url)
+    cn_basic_by_id = {servant['id']: servant for servant in cn_basic}
+    cn_ids = set(cn_basic_by_id)
     jp_by_id = {servant['id']: servant for servant in jp_servants}
     available_ids = sorted(jp_by_id.keys() & cn_ids)
     unavailable_ids = sorted(jp_by_id.keys() - cn_ids)
 
     raw_cn = {}
     errors = []
+    completed = 0
+    last_reported = show_download_progress(0, len(available_ids))
     with ThreadPoolExecutor(max_workers=12) as executor:
         futures = {
             executor.submit(
@@ -449,12 +472,22 @@ def load_cn_servants(jp_servants):
                 raw_cn[servant_id] = future.result()
             except Exception as error:
                 errors.append(f'{servant_id}: {error}')
+            completed += 1
+            last_reported = show_download_progress(completed, len(available_ids), last_reported)
     if errors:
         raise RuntimeError('Failed to fetch CN servants: ' + '; '.join(errors))
 
     cn_differences = []
     for servant_id in available_ids:
-        cn_servant = process_servant(raw_cn[servant_id])
+        available_costumes = {
+            key: {
+                'id': costume['id'],
+                'name': costume['shortName']
+            }
+            for key, costume in (cn_basic_by_id[servant_id].get('costume') or {}).items()
+            if costume.get('costumeCollectionNo', 0) > 0 or costume.get('shortName')
+        }
+        cn_servant = process_servant(raw_cn[servant_id], available_costumes)
         jp_servant = jp_by_id[servant_id]
         cn_servant['event_bonuses'] = jp_servant['event_bonuses']
         cn_servant['event_extra_bonuses'] = jp_servant['event_extra_bonuses']
