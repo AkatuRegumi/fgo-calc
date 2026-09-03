@@ -1,5 +1,48 @@
 [
     {
+        "id": 101200,
+        "name": "贝德维尔",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    1,
+                    100,
+                    203,
+                    300,
+                    303,
+                    403,
+                    1000,
+                    2001,
+                    2008,
+                    2009,
+                    2012,
+                    2075,
+                    2631,
+                    2780,
+                    2795,
+                    2858,
+                    5000,
+                    101200
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_1012000.png",
+                "cost": 7
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
         "id": 103600,
         "name": "兰陵王",
         "diff": {
@@ -58,13 +101,11 @@
             }
         },
         "event_bonuses": {
-            "CN": [
-                {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
-                    "bonus": 20
-                }
-            ],
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -100,13 +141,11 @@
             }
         },
         "event_bonuses": {
-            "CN": [
-                {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
-                    "bonus": 20
-                }
-            ],
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -144,6 +183,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -177,6 +220,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -219,6 +266,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -252,6 +303,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -292,13 +347,11 @@
             }
         },
         "event_bonuses": {
-            "CN": [
-                {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
-                    "bonus": 20
-                }
-            ],
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -339,6 +392,16 @@
             }
         },
         "event_bonuses": {
+            "CN": [
+                {
+                    "id": 80559,
+                    "name": "失落的创世(Vanished_Beginning)_来自未来的方舟",
+                    "bonus": 20
+                }
+            ],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -379,6 +442,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -413,6 +480,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -453,6 +524,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -488,6 +563,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -520,6 +599,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -583,13 +666,11 @@
             }
         },
         "event_bonuses": {
-            "CN": [
-                {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
-                    "bonus": 20
-                }
-            ],
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -626,6 +707,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -668,6 +753,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -701,6 +790,49 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
+        "id": 605000,
+        "name": "耀星哈桑",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    1,
+                    105,
+                    202,
+                    300,
+                    304,
+                    404,
+                    1000,
+                    2001,
+                    2008,
+                    2631,
+                    2858,
+                    2973,
+                    5000,
+                    605000
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_6050000.png",
+                "cost": 12
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -740,6 +872,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -776,6 +912,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -809,13 +949,11 @@
             }
         },
         "event_bonuses": {
-            "CN": [
-                {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
-                    "bonus": 20
-                }
-            ],
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {
@@ -852,6 +990,111 @@
             }
         },
         "event_bonuses": {
+            "CN": [
+                {
+                    "id": 80559,
+                    "name": "失落的创世(Vanished_Beginning)_来自未来的方舟",
+                    "bonus": 20
+                }
+            ],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
+        "id": 800100,
+        "name": "玛修·基列莱特",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    2,
+                    107,
+                    201,
+                    300,
+                    303,
+                    403,
+                    405,
+                    1000,
+                    2001,
+                    2008,
+                    2009,
+                    2011,
+                    2631,
+                    2654,
+                    2780,
+                    2795,
+                    5000,
+                    800100
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_8001000.png",
+                "cost": 0
+            },
+            "800130": {
+                "name": "常夏的泳装",
+                "traits": [
+                    2,
+                    107,
+                    201,
+                    300,
+                    303,
+                    403,
+                    405,
+                    1000,
+                    2001,
+                    2008,
+                    2009,
+                    2011,
+                    2631,
+                    2654,
+                    2780,
+                    2795,
+                    2838,
+                    5000,
+                    800100
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_8001300.png",
+                "cost": 0
+            },
+            "800190": {
+                "name": "圣骑士",
+                "traits": [
+                    2,
+                    107,
+                    300,
+                    303,
+                    403,
+                    405,
+                    1000,
+                    2001,
+                    2008,
+                    2009,
+                    2011,
+                    2631,
+                    2654,
+                    2780,
+                    2795,
+                    2849,
+                    5000,
+                    800100,
+                    202
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_8001900.png",
+                "cost": 16
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -887,6 +1130,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -926,6 +1173,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -957,6 +1208,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -1003,6 +1258,10 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -1035,6 +1294,10 @@
             }
         },
         "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
             "CN": [],
             "JP": []
         },
@@ -1101,6 +1364,47 @@
             "CN": [],
             "JP": []
         },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_extra_bonuses": {
+            "CN": [],
+            "JP": []
+        }
+    },
+    {
+        "id": 2801000,
+        "name": "但丁·阿利吉耶里",
+        "diff": {
+            "default": {
+                "name": "默认",
+                "traits": [
+                    1,
+                    120,
+                    203,
+                    302,
+                    305,
+                    405,
+                    1000,
+                    2001,
+                    2631,
+                    2849,
+                    5000,
+                    2801000
+                ],
+                "img": "https://static.atlasacademy.io/CN/Faces/f_28010000.png",
+                "cost": 16
+            }
+        },
+        "event_bonuses": {
+            "CN": [],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
+            "JP": []
+        },
         "event_extra_bonuses": {
             "CN": [],
             "JP": []
@@ -1158,11 +1462,15 @@
         "event_bonuses": {
             "CN": [
                 {
-                    "id": 80558,
-                    "name": "迦勒底·U－夏日岛_～总统会梦见夏日吗？～",
+                    "id": 80559,
+                    "name": "失落的创世(Vanished_Beginning)_来自未来的方舟",
                     "bonus": 20
                 }
             ],
+            "JP": []
+        },
+        "event_party_bonuses": {
+            "CN": [],
             "JP": []
         },
         "event_extra_bonuses": {

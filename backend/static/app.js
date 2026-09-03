@@ -8,6 +8,7 @@ let SELECTIONS = {
     supportLockCe: new Set(),
     excludeSupportCe: new Set(),
     allowTraits: new Set(),
+    crownClass: '',
     selectedEvents: new Set()
 };
 let HISTORY_ITEMS = [];
@@ -192,7 +193,6 @@ async function handleLogin() {
             localStorage.setItem(STORAGE_KEY, data.state);
             loadState();
             renderEventSelection();
-            renderMainClassFilters();
             renderExcludeSvtClassFilters();
         } else {
             syncState();
@@ -250,6 +250,18 @@ const CLASS_TRAITS = [
     { name: 'Foreigner', trait: 117 },
     { name: 'Pretender', trait: 120 },
     { name: 'Beast', trait: [132, 129, 124] }
+];
+
+const CROWN_CLASSES = [
+    { value: 'Saber', name: 'Saber', traits: [100] },
+    { value: 'Archer', name: 'Archer', traits: [102] },
+    { value: 'Lancer', name: 'Lancer', traits: [101] },
+    { value: 'Rider', name: 'Rider', traits: [103] },
+    { value: 'Caster', name: 'Caster', traits: [104] },
+    { value: 'Assassin', name: 'Assassin', traits: [105] },
+    { value: 'Berserker', name: 'Berserker', traits: [106] },
+    { value: 'EX1', name: 'EX1', traits: [108, 110, 115, 107] },
+    { value: 'EX2', name: 'EX2', traits: [109, 117, 120, 132, 129, 124] }
 ];
 
 let FILTER_STATE = {
@@ -368,9 +380,8 @@ function renderExcludeSvtClassFilters() {
 }
 
 function getSupportLimitValue() {
-    const raw = parseInt(document.getElementById('support-limit').value, 10);
-    if (Number.isNaN(raw)) return 1;
-    return Math.max(0, raw);
+    if (!document.getElementById('consider-support-ce')?.checked) return 0;
+    return document.getElementById('enable-crown-war')?.checked ? 2 : 1;
 }
 
 function isSupportCandidateCe(ce) {
@@ -481,10 +492,11 @@ function saveState() {
             costLimit: document.getElementById('cost-limit').value,
             svtLimit: document.getElementById('svt-limit').value,
             ceLimit: document.getElementById('ce-limit').value,
-            supportLimit: document.getElementById('support-limit').value,
+            considerSupportCe: document.getElementById('consider-support-ce').checked,
             baseBond: document.getElementById('base-bond').value,
             server: document.getElementById('server-select').value,
             enableEventBonus: document.getElementById('enable-event-bonus').checked,
+            crownWar: document.getElementById('enable-crown-war').checked,
         },
         selections: {
             includeSvt: Array.from(SELECTIONS.includeSvt.entries()),
@@ -494,6 +506,7 @@ function saveState() {
             supportLockCe: Array.from(SELECTIONS.supportLockCe),
             excludeSupportCe: Array.from(SELECTIONS.excludeSupportCe),
             allowTraits: Array.from(SELECTIONS.allowTraits),
+            crownClass: SELECTIONS.crownClass,
             selectedEvents: Array.from(SELECTIONS.selectedEvents),
         },
         ui: {
@@ -519,10 +532,17 @@ function loadState() {
             if (state.config.costLimit !== undefined) document.getElementById('cost-limit').value = state.config.costLimit;
             if (state.config.svtLimit !== undefined) document.getElementById('svt-limit').value = state.config.svtLimit;
             if (state.config.ceLimit !== undefined) document.getElementById('ce-limit').value = state.config.ceLimit;
-            if (state.config.supportLimit !== undefined) document.getElementById('support-limit').value = state.config.supportLimit;
+            if (state.config.considerSupportCe !== undefined) {
+                document.getElementById('consider-support-ce').checked = state.config.considerSupportCe;
+            } else if (state.config.supportLimit !== undefined) {
+                const legacyLimit = parseInt(state.config.supportLimit, 10);
+                document.getElementById('consider-support-ce').checked = !Number.isNaN(legacyLimit) && legacyLimit > 0;
+            }
             if (state.config.baseBond !== undefined) document.getElementById('base-bond').value = state.config.baseBond;
             if (state.config.server !== undefined) document.getElementById('server-select').value = state.config.server;
             if (state.config.enableEventBonus !== undefined) document.getElementById('enable-event-bonus').checked = state.config.enableEventBonus;
+            if (state.config.crownWar !== undefined) document.getElementById('enable-crown-war').checked = state.config.crownWar;
+            if (state.config.crownClass !== undefined && state.config.crownClass) SELECTIONS.crownClass = state.config.crownClass;
         }
         if (state.selections) {
             if (state.selections.includeSvt) SELECTIONS.includeSvt = new Map(state.selections.includeSvt);
@@ -532,10 +552,10 @@ function loadState() {
             if (state.selections.supportLockCe) SELECTIONS.supportLockCe = new Set(state.selections.supportLockCe);
             if (state.selections.excludeSupportCe) SELECTIONS.excludeSupportCe = new Set(state.selections.excludeSupportCe);
             if (state.selections.allowTraits) SELECTIONS.allowTraits = new Set(state.selections.allowTraits);
+            if (state.selections.crownClass !== undefined) SELECTIONS.crownClass = state.selections.crownClass;
             if (state.selections.selectedEvents) SELECTIONS.selectedEvents = new Set(state.selections.selectedEvents);
             normalizeSelectionConflicts();
             
-            renderMainClassFilters();
             renderSelectionList('svt', 'include');
             renderSelectionList('svt', 'exclude');
             renderSelectionList('ce', 'include');
@@ -557,6 +577,7 @@ function loadState() {
             );
         }
         renderExcludeSvtClassFilters();
+        renderCrownClassPicker();
         try { renderSelectionList('svt', 'exclude'); } catch(e){}
         Object.keys(UI_STATE.collapsedSections).forEach(applySectionCollapse);
     } catch (e) {
@@ -590,7 +611,7 @@ async function initApp() {
     renderExcludeSvtClassFilters();
     
     // 为所有基础配置输入添加自动保存
-    ['cost-limit', 'svt-limit', 'ce-limit', 'support-limit', 'base-bond', 'server-select', 'enable-event-bonus'].forEach(id => {
+    ['cost-limit', 'svt-limit', 'ce-limit', 'consider-support-ce', 'base-bond', 'server-select', 'enable-event-bonus', 'enable-crown-war'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', () => {
@@ -602,7 +623,12 @@ async function initApp() {
                     }
                 } else if (id === 'enable-event-bonus') {
                     renderEventSelection(el.checked);
-                } else if (id === 'support-limit') {
+                } else if (id === 'consider-support-ce') {
+                    refreshSupportLockLimitText();
+                    enforceSupportLockLimit(true);
+                }
+                if (id === 'enable-crown-war') {
+                    renderCrownClassPicker();
                     refreshSupportLockLimitText();
                     enforceSupportLockLimit(true);
                 }
@@ -613,9 +639,6 @@ async function initApp() {
             });
             if (el.type === 'number' || el.type === 'text') {
                 el.addEventListener('input', saveState);
-                if (id === 'support-limit') {
-                    el.addEventListener('input', refreshSupportLockLimitText);
-                }
             }
         }
     });
@@ -670,7 +693,7 @@ async function initApp() {
            saveState();
        }
        
-       renderMainClassFilters();
+       renderCrownClassPicker();
        renderEventSelection();
     } catch (error) {
         console.error('Failed to load data:', error);
@@ -807,58 +830,58 @@ function renderEventSelection(autoSelect = false) {
     });
 }
 
-function renderMainClassFilters() {
-    const container = document.getElementById('main-class-filters');
+function renderCrownClassPicker() {
+    const container = document.getElementById('crown-class-picker');
     if (!container) return;
+    const enabled = document.getElementById('enable-crown-war').checked;
+    container.hidden = !enabled;
     container.innerHTML = '';
+    if (!enabled) return;
 
-    // Bronze All (Clear)
-    const bronzeAll = document.createElement('img');
-    bronzeAll.src = '/static/fgo-icon/铜卡All.png';
-    bronzeAll.className = 'class-icon-btn';
-    bronzeAll.title = '全部取消';
-    bronzeAll.onclick = () => {
-        SELECTIONS.allowTraits.clear();
-        renderMainClassFilters();
-        saveState();
-    };
-    container.appendChild(bronzeAll);
+    const selected = CROWN_CLASSES.find(item => item.value === SELECTIONS.crownClass);
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'outline secondary';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.innerHTML = selected
+        ? `${crownClassIcons(selected)}<span>${selected.name}</span>`
+        : '<span>选择戴冠战职阶</span>';
 
-    // Gold All (Select All)
-    const goldAll = document.createElement('img');
-    goldAll.src = '/static/fgo-icon/金卡All.png';
-    goldAll.className = 'class-icon-btn';
-    goldAll.title = '全选';
-    goldAll.onclick = () => {
-        CLASS_TRAITS.forEach(c => {
-            if (Array.isArray(c.trait)) c.trait.forEach(t => SELECTIONS.allowTraits.add(t));
-            else SELECTIONS.allowTraits.add(c.trait);
-        });
-        renderMainClassFilters();
-        saveState();
-    };
-    container.appendChild(goldAll);
+    const options = document.createElement('div');
+    options.className = 'crown-class-options';
+    options.setAttribute('role', 'listbox');
+    options.hidden = true;
 
-    // Individual classes
-    CLASS_TRAITS.forEach(({name, trait}) => {
-        const isSelected = Array.isArray(trait) ? trait.every(t => SELECTIONS.allowTraits.has(t)) : SELECTIONS.allowTraits.has(trait);
-        const img = document.createElement('img');
-        img.className = 'class-icon-btn';
-        img.src = `/static/fgo-icon/${isSelected ? '金卡' : '铜卡'}${name}.png`;
-        img.title = name;
-        img.onclick = () => {
-            if (isSelected) {
-                if (Array.isArray(trait)) trait.forEach(t => SELECTIONS.allowTraits.delete(t));
-                else SELECTIONS.allowTraits.delete(trait);
-            } else {
-                if (Array.isArray(trait)) trait.forEach(t => SELECTIONS.allowTraits.add(t));
-                else SELECTIONS.allowTraits.add(trait);
-            }
-            renderMainClassFilters();
+    CROWN_CLASSES.forEach(item => {
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'crown-class-option';
+        option.setAttribute('role', 'option');
+        option.setAttribute('aria-selected', String(item.value === SELECTIONS.crownClass));
+        option.innerHTML = `${crownClassIcons(item)}<span>${item.name}</span>`;
+        option.onclick = () => {
+            SELECTIONS.crownClass = item.value;
+            renderCrownClassPicker();
             saveState();
         };
-        container.appendChild(img);
+        options.appendChild(option);
     });
+
+    trigger.onclick = () => {
+        options.hidden = !options.hidden;
+        trigger.setAttribute('aria-expanded', String(!options.hidden));
+    };
+    container.append(trigger, options);
+}
+
+function crownClassIcons(item) {
+    const names = item.value === 'EX1'
+        ? ['Ruler', 'Avenger', 'MoonCancer', 'Shielder']
+        : item.value === 'EX2'
+            ? ['Alterego', 'Foreigner', 'Pretender', 'Beast']
+            : [item.value];
+    return names.map(name => `<img src="/static/fgo-icon/金卡${name}.png" alt="">`).join('');
 }
 
 function openSvtDiffModal(svt) {
@@ -1036,16 +1059,29 @@ async function calculate() {
 
     try {
         const params = new URLSearchParams();
-        params.append('costlimit', document.getElementById('cost-limit').value);
+        const crownWarEnabled = document.getElementById('enable-crown-war').checked;
+        let allowTraits = SELECTIONS.allowTraits;
+        if (crownWarEnabled) {
+            const crownClass = CROWN_CLASSES.find(item => item.value === SELECTIONS.crownClass);
+            if (!crownClass) {
+                throw new Error('请先选择戴冠战职阶');
+            }
+            allowTraits = new Set(crownClass.traits);
+        }
+        const rawCostLimit = parseInt(document.getElementById('cost-limit').value, 10);
+        const costLimit = crownWarEnabled && !Number.isNaN(rawCostLimit)
+            ? rawCostLimit + 12
+            : document.getElementById('cost-limit').value;
+        params.append('costlimit', costLimit);
         params.append('svtlimit', document.getElementById('svt-limit').value);
         params.append('celimit', document.getElementById('ce-limit').value);
-        params.append('supportlimit', document.getElementById('support-limit').value);
+        params.append('supportlimit', getSupportLimitValue());
         params.append('basebond', document.getElementById('base-bond').value);
         params.append('server', document.getElementById('server-select').value);
         params.append('enable_event_bonus', document.getElementById('enable-event-bonus').checked);
         SELECTIONS.selectedEvents.forEach(id => params.append('selected_events', id));
 
-        SELECTIONS.allowTraits.forEach(id => params.append('allowtraits', id));
+        allowTraits.forEach(id => params.append('allowtraits', id));
         SELECTIONS.includeSvt.forEach((diff, id) => {
             params.append('includesvt', id);
             params.append('includesvtdiff', diff);
@@ -1060,15 +1096,34 @@ async function calculate() {
         SELECTIONS.excludeSupportCe.forEach(id => params.append('excludesupportce', id));
 
         const requestStarted = performance.now();
-        const response = await fetch('/api/calculate', {
-            method: 'POST',
-            body: params
-        });
-        const results = await response.json();
-        const requestDuration = performance.now() - requestStarted;
-        if (!response.ok) {
-            throw new Error(results.error || `Server error: ${response.statusText}`);
+        let response;
+        try {
+            response = await fetch('/api/calculate', {
+                method: 'POST',
+                body: params
+            });
+        } catch (error) {
+            console.error('Failed to connect to calculation service:', error);
+            throw new Error('服务连接异常');
         }
+
+        if (response.status !== 200 && response.status !== 400) {
+            throw new Error(`服务连接异常（HTTP ${response.status}）`);
+        }
+
+        let results;
+        try {
+            results = await response.json();
+        } catch (error) {
+            console.error('Failed to parse calculation response:', error);
+            throw new Error('服务状态异常');
+        }
+
+        if (response.status === 400) {
+            throw new Error(results.error || '请求参数错误');
+        }
+
+        const requestDuration = performance.now() - requestStarted;
         const backendDuration = Number(results.duration) || 0;
         const networkDuration = Math.max(0, requestDuration - backendDuration);
         renderResults(results.teams, backendDuration, networkDuration);
@@ -1135,6 +1190,7 @@ function renderResults(teams, backendDuration, networkDuration) {
     const container = document.getElementById('results-container');
     const list = document.getElementById('results-list');
     list.innerHTML = '';
+    const crownCostBonus = document.getElementById('enable-crown-war').checked ? 12 : 0;
 
     if (backendDuration !== undefined) {
         const p = document.createElement('p');
@@ -1159,7 +1215,7 @@ function renderResults(teams, backendDuration, networkDuration) {
         
         const header = document.createElement('hgroup');
         header.style.marginBottom = '0.75rem';
-        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1}</h5><p><mark>总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost}</small></p>`;
+        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1}</h5><p><mark>总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost - crownCostBonus}</small></p>`;
         teamDiv.appendChild(header);
 
         const svtTitle = document.createElement('div');
@@ -1515,7 +1571,6 @@ function restoreHistory(item) {
         localStorage.setItem(STORAGE_KEY, item.state);
         loadState();
         renderEventSelection();
-        renderMainClassFilters();
         renderExcludeSvtClassFilters();
         saveState();
     }

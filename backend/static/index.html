@@ -431,6 +431,55 @@
         .class-icon-btn:hover {
             transform: scale(1.1);
         }
+        .crown-class-picker {
+            position: relative;
+            max-width: 320px;
+            margin-bottom: 1rem;
+        }
+        .crown-class-picker button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            margin: 0;
+            text-align: left;
+        }
+        .crown-class-picker button img,
+        .crown-class-option img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .crown-class-options {
+            position: absolute;
+            z-index: 20;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--pico-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            box-shadow: var(--pico-box-shadow);
+        }
+        .crown-class-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.35rem 0.5rem;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            color: var(--pico-color);
+            text-align: left;
+            cursor: pointer;
+        }
+        .crown-class-option:hover,
+        .crown-class-option[aria-selected="true"] {
+            background: var(--pico-muted-border-color);
+        }
         .star-filter-label {
             display: inline-flex;
             align-items: center;
@@ -854,7 +903,7 @@
                 <ul>
                     <li>本项目已开源：<a href="https://github.com/pikaball/fgo-calc/">github</a></li>
                     <li>计算时不考虑前排加成。</li>
-                    <li><strong>戴冠战：</strong>Cost+12，礼装数设为6，筛选对应职阶。</li>
+                    <li><strong>戴冠战：</strong>勾选戴冠战并选择职阶后，系统自动计算额外 Cost 和助战礼装。</li>
                     <li><strong>特殊礼装：</strong>若带黑杯等非羁绊礼装，则减去对应Cost和礼装数量。</li>
                     <li><strong>15绊从者：</strong>减去该从者Cost，从者数量上限-1，并将其添加到排除列表。</li>
                 </ul>
@@ -889,10 +938,6 @@
                     <input type="number" id="ce-limit" value="5" max="6" min="1">
                 </label>
                 <label>
-                    助战礼装数量
-                    <input type="number" id="support-limit" value="1" max="2" min="0">
-                </label>
-                <label>
                     基础羁绊
                     <input type="number" id="base-bond" value="1000">
                 </label>
@@ -904,7 +949,20 @@
                     </select>
                 </label>
             </div>
+
+            <div class="crown-war-config">
+                <label style="margin-bottom: 0.5rem;">
+                    <input type="checkbox" id="enable-crown-war">
+                    戴冠战
+                </label>
+                <div id="crown-class-picker" class="crown-class-picker" hidden></div>
+            </div>
             
+            <label style="margin-bottom: 0.5rem;">
+                <input type="checkbox" id="consider-support-ce" checked>
+                考虑助战礼装
+            </label>
+
             <label style="margin-bottom: 0.5rem;">
                 <input type="checkbox" id="enable-event-bonus" onchange="toggleEventSelection()">   
                 计算活动羁绊加成
@@ -916,13 +974,6 @@
                     <!-- 动态生成复选框 -->
                 </div>
             </details>
-
-            <div class="section-header">
-                <h6><i data-lucide="filter" style="width: 16px; vertical-align: middle;"></i> 职阶筛选（戴冠战）</h6>
-            </div>
-            <div id="main-class-filters" class="filter-group" style="margin-bottom: 1.5rem; justify-content: center; gap: 8px;">
-                <!-- 职阶图标将在这里动态生成 -->
-            </div>
 
             <div class="grid">
                 <div>
@@ -983,7 +1034,7 @@
                         <h6>锁定助战礼装</h6>
                         <button class="outline btn-add" onclick="openModal('ce', 'supportLock')"><i data-lucide="lock"></i> 添加</button>
                     </div>
-                    <small style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">最多可选 <span id="support-lock-limit-text">1</span> 个（与“助战礼装数量”一致）</small>
+                    <small style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">最多可选 <span id="support-lock-limit-text">1</span> 个（与“考虑助战礼装”设置一致）</small>
                     <div class="selection-grid" id="support-lock-ce-list"></div>
                 </div>
                 <div>

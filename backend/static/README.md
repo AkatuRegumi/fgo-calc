@@ -64,7 +64,11 @@ diff: list[info]
         img: str url
         cost: int
     }
+event_party_bonuses: map[server]list[event_bonus]
+    | event_bonus: { id: int, name: str, bonus: int }
 ```
+
+`event_party_bonuses`表示从者入队时对全队生效的活动羁绊加成。
 
 礼装：
 ```
