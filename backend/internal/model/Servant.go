@@ -19,5 +19,6 @@ type Servant struct {
 	Name              string                   `json:"name"`
 	Diff              map[string]ServantDetail `json:"diff"`
 	EventBonuses      map[string][]EventBonus  `json:"event_bonuses"`
+	EventPartyBonuses map[string][]EventBonus  `json:"event_party_bonuses"`
 	EventExtraBonuses map[string][]EventBonus  `json:"event_extra_bonuses"`
 }

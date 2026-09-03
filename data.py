@@ -315,6 +315,7 @@ def process_servant(test, available_costumes=None):
     
     # Process event bonuses
     data['event_bonuses'] = {"CN": [], "JP": []}
+    data['event_party_bonuses'] = {"CN": [], "JP": []}
     data['event_extra_bonuses'] = {"CN": [], "JP": []}
     if "extraPassive" in test:
         for extra in test['extraPassive']:
@@ -332,7 +333,8 @@ def process_servant(test, available_costumes=None):
                         if funcs[funcId]['funcType'] == "servantFriendshipUp":
                             event_info = geteventbyid(event_id)
                             event_name = event_info['cn_name'] if event_info and event_info['cn_name'] else (event_info['name'] if event_info else str(event_id))
-                            data['event_bonuses']["CN"].append({
+                            target = data['event_party_bonuses'] if funcs[funcId].get('funcTargetType') == 'ptFull' else data['event_bonuses']
+                            target["CN"].append({
                                 'id': event_id, 
                                 'name': event_name, 
                                 'bonus': func["svals"][0]["RateCount"] // 10
@@ -348,7 +350,8 @@ def process_servant(test, available_costumes=None):
                         if funcs[funcId]['funcType'] == "servantFriendshipUp":
                             event_info = geteventbyid(event_id)
                             event_name = event_info['cn_name'] if event_info and event_info['cn_name'] else (event_info['name'] if event_info else str(event_id))
-                            data['event_bonuses']["JP"].append({
+                            target = data['event_party_bonuses'] if funcs[funcId].get('funcTargetType') == 'ptFull' else data['event_bonuses']
+                            target["JP"].append({
                                 'id': event_id, 
                                 'name': event_name, 
                                 'bonus': func["svals"][0]["RateCount"] // 10
@@ -490,6 +493,7 @@ def load_cn_servants(jp_servants):
         cn_servant = process_servant(raw_cn[servant_id], available_costumes)
         jp_servant = jp_by_id[servant_id]
         cn_servant['event_bonuses'] = jp_servant['event_bonuses']
+        cn_servant['event_party_bonuses'] = jp_servant['event_party_bonuses']
         cn_servant['event_extra_bonuses'] = jp_servant['event_extra_bonuses']
         if servant_form_signature(cn_servant) != servant_form_signature(jp_servant):
             cn_differences.append(cn_servant)

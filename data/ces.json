@@ -234,22 +234,6 @@
         ]
     },
     {
-        "id": 9408990,
-        "name": "迦勒底之人",
-        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94089900.png",
-        "cost": 12,
-        "filters": [
-            [
-                [
-                    301,
-                    2858
-                ],
-                20
-            ]
-        ],
-        "server": "JP"
-    },
-    {
         "id": 9408800,
         "name": "异星之神",
         "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94088000.png",
@@ -264,6 +248,21 @@
             [
                 [
                     203
+                ],
+                20
+            ]
+        ]
+    },
+    {
+        "id": 9408990,
+        "name": "迦勒底之人",
+        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94089900.png",
+        "cost": 12,
+        "filters": [
+            [
+                [
+                    301,
+                    2858
                 ],
                 20
             ]
@@ -320,6 +319,21 @@
             [
                 [
                     100
+                ],
+                20
+            ]
+        ],
+        "server": "JP"
+    },
+    {
+        "id": 9409490,
+        "name": "ガン・ディーラー",
+        "img": "https://static.atlasacademy.io/JP/EquipFaces/f_94094900.png",
+        "cost": 12,
+        "filters": [
+            [
+                [
+                    105
                 ],
                 20
             ]

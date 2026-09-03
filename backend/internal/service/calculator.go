@@ -329,6 +329,18 @@ func (s *CalculatorService) getEventBonus(svt *model.Servant, serverType string,
 	return bonus
 }
 
+func (s *CalculatorService) getEventPartyBonus(svt *model.Servant, serverType string, selectedEvents map[int]bool) int {
+	bonus := 0
+	if list, ok := svt.EventPartyBonuses[serverType]; ok {
+		for _, b := range list {
+			if selectedEvents[b.Id] {
+				bonus += b.Bonus
+			}
+		}
+	}
+	return bonus
+}
+
 func (s *CalculatorService) getEventMultiplier(svt *model.Servant, serverType string, selectedEvents map[int]bool) float64 {
 	// 累乘逻辑，可能要fallback
 	// multiplier := 1.0
@@ -403,6 +415,54 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 			includeSvtDiffMap[id] = includeSvtDiff[i]
 		}
 	}
+
+	type partyBonusState struct {
+		selected map[int]bool
+		bonus    int
+	}
+	partyBonusProviders := []struct {
+		id    int
+		bonus int
+	}{}
+	if enableEventBonus {
+		for i := range svtPool {
+			if bonus := s.getEventPartyBonus(&svtPool[i], serverType, selectedEvents); bonus > 0 {
+				partyBonusProviders = append(partyBonusProviders, struct {
+					id    int
+					bonus int
+				}{svtPool[i].Id, bonus})
+			}
+		}
+	}
+	partyBonusStates := []partyBonusState{}
+	var buildPartyBonusStates func(int, map[int]bool, int)
+	buildPartyBonusStates = func(index int, selected map[int]bool, bonus int) {
+		if len(selected) > svtLimit {
+			return
+		}
+		if index == len(partyBonusProviders) {
+			for _, provider := range partyBonusProviders {
+				if includeSvtSet[provider.id] && !selected[provider.id] {
+					return
+				}
+			}
+			stateSelected := make(map[int]bool, len(selected))
+			for id := range selected {
+				stateSelected[id] = true
+			}
+			partyBonusStates = append(partyBonusStates, partyBonusState{selected: stateSelected, bonus: bonus})
+			return
+		}
+
+		provider := partyBonusProviders[index]
+		if !includeSvtSet[provider.id] {
+			buildPartyBonusStates(index+1, selected, bonus)
+		}
+		selected[provider.id] = true
+		buildPartyBonusStates(index+1, selected, bonus+provider.bonus)
+		delete(selected, provider.id)
+	}
+	buildPartyBonusStates(0, map[int]bool{}, 0)
 
 	// Collect all involved CEs (User + Support)
 	// We need to scan all POTENTIAL user CEs.
@@ -568,67 +628,113 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 				for supportIdx, supportCombo := range supportPool {
 					supportCeDense := supportDense[supportIdx]
 					supportIsTeatime := supportTeatime[supportIdx]
+					for _, partyState := range partyBonusStates {
 
-					mandatoryBonuses := []model.SvtBonus{}
-					optionalBonuses := optionalBonusesBuf[:0]
+						mandatoryBonuses := []model.SvtBonus{}
+						optionalBonuses := optionalBonusesBuf[:0]
 
-					currentSvtLimit := svtLimit
-					currentCostLimit := costLimit - ceCost
-					validJob := true
+						currentSvtLimit := svtLimit
+						currentCostLimit := costLimit - ceCost
+						validJob := true
 
-					for svtIdx := 0; svtIdx < len(svtPool); svtIdx++ {
-						svt := &svtPool[svtIdx]
+						for svtIdx := 0; svtIdx < len(svtPool); svtIdx++ {
+							svt := &svtPool[svtIdx]
+							isPartyBonusProvider := enableEventBonus && s.getEventPartyBonus(svt, serverType, selectedEvents) > 0
+							if isPartyBonusProvider && !partyState.selected[svt.Id] {
+								continue
+							}
 
-						getTotalEffect := func(diffKey string, effSlice []SimpleEffect) (float64, int) {
-							total := userEffectTotals[svtIdx][diffKey]
-							tPercent := total.Percent
-							tDirect := total.Direct
-							// Support CEs
-							for k, idx := range supportCeDense {
-								if supportIsTeatime[k] {
-									tPercent += 15.0
-									continue
+							getTotalEffect := func(diffKey string, effSlice []SimpleEffect) (float64, int) {
+								total := userEffectTotals[svtIdx][diffKey]
+								tPercent := total.Percent
+								tDirect := total.Direct
+								// Support CEs
+								for k, idx := range supportCeDense {
+									if supportIsTeatime[k] {
+										tPercent += 15.0
+										continue
+									}
+									e := effSlice[idx]
+									tPercent += e.Percent
+									tDirect += e.Direct
 								}
-								e := effSlice[idx]
-								tPercent += e.Percent
-								tDirect += e.Direct
-							}
-							return tPercent, tDirect
-						}
-
-						if includeSvtSet[svt.Id] {
-							// Mandatory
-							diffKey := "default"
-							if k, ok := includeSvtDiffMap[svt.Id]; ok {
-								diffKey = k
+								return tPercent, tDirect
 							}
 
-							if detail, ok := svt.Diff[diffKey]; ok {
-								// Lookup effect slice
-								effSlice := svtDiffEffects[svtIdx][diffKey]
-								totalPercent, totalDirect := getTotalEffect(diffKey, effSlice)
-
-								if enableEventBonus {
-									totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
-
-									// convert independent multiplier to additive percentage
-									multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-									if multiplier > 0 {
-										totalPercent += math.Round((multiplier - 1.0) * 100.0)
+							if includeSvtSet[svt.Id] || partyState.selected[svt.Id] {
+								// Mandatory
+								diffKey := ""
+								if includeSvtSet[svt.Id] {
+									diffKey = "default"
+									if k, ok := includeSvtDiffMap[svt.Id]; ok {
+										diffKey = k
 									}
 								}
-								bonus := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
-								// if enableEventBonus {
-								// 	bonus = int(float64(bonus) * s.getEventMultiplier(svt, serverType, selectedEvents))
-								// }
-								mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
-									Svt:     svt,
-									DiffKey: diffKey,
-									Bonus:   bonus,
-									Cost:    detail.Cost,
-								})
+
+								if detail, ok := svt.Diff[diffKey]; ok {
+									// Lookup effect slice
+									effSlice := svtDiffEffects[svtIdx][diffKey]
+									totalPercent, totalDirect := getTotalEffect(diffKey, effSlice)
+
+									if enableEventBonus {
+										totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+										totalPercent += float64(partyState.bonus)
+
+										// convert independent multiplier to additive percentage
+										multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
+										if multiplier > 0 {
+											totalPercent += math.Round((multiplier - 1.0) * 100.0)
+										}
+									}
+									bonus := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
+									// if enableEventBonus {
+									// 	bonus = int(float64(bonus) * s.getEventMultiplier(svt, serverType, selectedEvents))
+									// }
+									mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
+										Svt:     svt,
+										DiffKey: diffKey,
+										Bonus:   bonus,
+										Cost:    detail.Cost,
+									})
+								} else {
+									// Fallback logic
+									bestBonus := -1
+									bestDiffKey := "default"
+									bestCost := svt.Diff["default"].Cost
+
+									for key, detail := range svt.Diff {
+										effSlice := svtDiffEffects[svtIdx][key]
+										totalPercent, totalDirect := getTotalEffect(key, effSlice)
+
+										if enableEventBonus {
+											totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+											totalPercent += float64(partyState.bonus)
+
+											// convert independent multiplier to additive percentage
+											multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
+											if multiplier > 0 {
+												totalPercent += math.Round((multiplier - 1.0) * 100.0)
+											}
+										}
+										b := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
+										// if enableEventBonus {
+										// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
+										// }
+										if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
+											bestBonus = b
+											bestDiffKey = key
+											bestCost = detail.Cost
+										}
+									}
+									mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
+										Svt:     svt,
+										DiffKey: bestDiffKey,
+										Bonus:   bestBonus,
+										Cost:    bestCost,
+									})
+								}
 							} else {
-								// Fallback logic
+								// Optional
 								bestBonus := -1
 								bestDiffKey := "default"
 								bestCost := svt.Diff["default"].Cost
@@ -639,6 +745,7 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 
 									if enableEventBonus {
 										totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+										totalPercent += float64(partyState.bonus)
 
 										// convert independent multiplier to additive percentage
 										multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
@@ -656,215 +763,180 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 										bestCost = detail.Cost
 									}
 								}
-								mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
+								optionalBonuses = append(optionalBonuses, model.SvtBonus{
 									Svt:     svt,
 									DiffKey: bestDiffKey,
 									Bonus:   bestBonus,
 									Cost:    bestCost,
 								})
 							}
-						} else {
-							// Optional
-							bestBonus := -1
-							bestDiffKey := "default"
-							bestCost := svt.Diff["default"].Cost
+						}
 
-							for key, detail := range svt.Diff {
-								effSlice := svtDiffEffects[svtIdx][key]
-								totalPercent, totalDirect := getTotalEffect(key, effSlice)
+						// Sum Mandatory Costs
+						mandatoryCost := 0
+						mandatoryBond := 0
+						for _, mb := range mandatoryBonuses {
+							mandatoryCost += mb.Cost
+							mandatoryBond += mb.Bonus
+						}
 
-								if enableEventBonus {
-									totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+						currentCostLimit = costLimit - ceCost - mandatoryCost
+						currentSvtLimit = svtLimit - len(mandatoryBonuses)
 
-									// convert independent multiplier to additive percentage
-									multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-									if multiplier > 0 {
-										totalPercent += math.Round((multiplier - 1.0) * 100.0)
+						if currentCostLimit < 0 || currentSvtLimit < 0 {
+							validJob = false
+						}
+
+						if !validJob {
+							continue
+						}
+
+						if currentSvtLimit == 0 {
+							team := model.Team{
+								CraftEssences:        ceCombo,
+								SupportCraftEssences: supportCombo,
+								TotalBond:            mandatoryBond,
+								TotalCost:            ceCost + mandatoryCost,
+							}
+							for _, sb := range mandatoryBonuses {
+								team.Servants = append(team.Servants, sb.Svt)
+								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+							}
+							localTeams = addLocalTeam(localTeams, team)
+							continue
+						}
+
+						if len(optionalBonuses) == 0 {
+							team := model.Team{
+								CraftEssences:        ceCombo,
+								SupportCraftEssences: supportCombo,
+								TotalBond:            mandatoryBond,
+								TotalCost:            ceCost + mandatoryCost,
+							}
+							for _, sb := range mandatoryBonuses {
+								team.Servants = append(team.Servants, sb.Svt)
+								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+							}
+							localTeams = addLocalTeam(localTeams, team)
+							continue
+						}
+
+						// DP
+						const NEG = -1 << 60
+						// Reset DP tables
+						for i := 0; i <= currentSvtLimit; i++ {
+							for j := 0; j <= currentCostLimit; j++ {
+								dp[i][j] = NEG
+								paths[i][j] = pathSelection{}
+							}
+						}
+						dp[0][0] = 0
+
+						costGroups := make([][]int, currentCostLimit+1)
+						for itemIdx, item := range optionalBonuses {
+							if item.Cost > currentCostLimit {
+								continue
+							}
+							group := costGroups[item.Cost]
+							insertAt := len(group)
+							for i, existingIdx := range group {
+								if item.Bonus > optionalBonuses[existingIdx].Bonus {
+									insertAt = i
+									break
+								}
+							}
+							if insertAt >= currentSvtLimit {
+								continue
+							}
+							group = append(group, 0)
+							copy(group[insertAt+1:], group[insertAt:])
+							group[insertAt] = itemIdx
+							if len(group) > currentSvtLimit {
+								group = group[:currentSvtLimit]
+							}
+							costGroups[item.Cost] = group
+						}
+
+						for cost, group := range costGroups {
+							if len(group) == 0 {
+								continue
+							}
+							for k := 0; k <= currentSvtLimit; k++ {
+								for j := 0; j <= currentCostLimit; j++ {
+									nextDP[k][j] = NEG
+									nextPaths[k][j] = pathSelection{}
+								}
+							}
+							for k := 0; k <= currentSvtLimit; k++ {
+								for j := 0; j <= currentCostLimit; j++ {
+									if dp[k][j] == NEG {
+										continue
+									}
+									bond := dp[k][j]
+									selection := paths[k][j]
+									maxTake := min(len(group), currentSvtLimit-k)
+									for take := 0; take <= maxTake; take++ {
+										newCost := j + take*cost
+										if newCost > currentCostLimit {
+											break
+										}
+										if take > 0 {
+											itemIdx := group[take-1]
+											bond += optionalBonuses[itemIdx].Bonus
+											selection[k+take-1] = uint16(itemIdx + 1)
+										}
+										if bond > nextDP[k+take][newCost] {
+											nextDP[k+take][newCost] = bond
+											nextPaths[k+take][newCost] = selection
+										}
 									}
 								}
-								b := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
-								// if enableEventBonus {
-								// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
-								// }
-								if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
-									bestBonus = b
-									bestDiffKey = key
-									bestCost = detail.Cost
-								}
 							}
-							optionalBonuses = append(optionalBonuses, model.SvtBonus{
-								Svt:     svt,
-								DiffKey: bestDiffKey,
-								Bonus:   bestBonus,
-								Cost:    bestCost,
-							})
+							dp, nextDP = nextDP, dp
+							paths, nextPaths = nextPaths, paths
 						}
-					}
 
-					// Sum Mandatory Costs
-					mandatoryCost := 0
-					mandatoryBond := 0
-					for _, mb := range mandatoryBonuses {
-						mandatoryCost += mb.Cost
-						mandatoryBond += mb.Bonus
-					}
-
-					currentCostLimit = costLimit - ceCost - mandatoryCost
-					currentSvtLimit = svtLimit - len(mandatoryBonuses)
-
-					if currentCostLimit < 0 || currentSvtLimit < 0 {
-						validJob = false
-					}
-
-					if !validJob {
-						continue
-					}
-
-					if currentSvtLimit == 0 {
-						team := model.Team{
-							CraftEssences:        ceCombo,
-							SupportCraftEssences: supportCombo,
-							TotalBond:            mandatoryBond,
-							TotalCost:            ceCost + mandatoryCost,
+						candidates := make([]teamCandidate, 0, OPTIMIZE_LIMIT)
+						minOptional := 1
+						if len(mandatoryBonuses) > 0 {
+							minOptional = 0
 						}
-						for _, sb := range mandatoryBonuses {
-							team.Servants = append(team.Servants, sb.Svt)
-							team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
-						}
-						localTeams = addLocalTeam(localTeams, team)
-						continue
-					}
-
-					if len(optionalBonuses) == 0 {
-						team := model.Team{
-							CraftEssences:        ceCombo,
-							SupportCraftEssences: supportCombo,
-							TotalBond:            mandatoryBond,
-							TotalCost:            ceCost + mandatoryCost,
-						}
-						for _, sb := range mandatoryBonuses {
-							team.Servants = append(team.Servants, sb.Svt)
-							team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
-						}
-						localTeams = addLocalTeam(localTeams, team)
-						continue
-					}
-
-					// DP
-					const NEG = -1 << 60
-					// Reset DP tables
-					for i := 0; i <= currentSvtLimit; i++ {
-						for j := 0; j <= currentCostLimit; j++ {
-							dp[i][j] = NEG
-							paths[i][j] = pathSelection{}
-						}
-					}
-					dp[0][0] = 0
-
-					costGroups := make([][]int, currentCostLimit+1)
-					for itemIdx, item := range optionalBonuses {
-						if item.Cost > currentCostLimit {
-							continue
-						}
-						group := costGroups[item.Cost]
-						insertAt := len(group)
-						for i, existingIdx := range group {
-							if item.Bonus > optionalBonuses[existingIdx].Bonus {
-								insertAt = i
-								break
-							}
-						}
-						if insertAt >= currentSvtLimit {
-							continue
-						}
-						group = append(group, 0)
-						copy(group[insertAt+1:], group[insertAt:])
-						group[insertAt] = itemIdx
-						if len(group) > currentSvtLimit {
-							group = group[:currentSvtLimit]
-						}
-						costGroups[item.Cost] = group
-					}
-
-					for cost, group := range costGroups {
-						if len(group) == 0 {
-							continue
-						}
-						for k := 0; k <= currentSvtLimit; k++ {
-							for j := 0; j <= currentCostLimit; j++ {
-								nextDP[k][j] = NEG
-								nextPaths[k][j] = pathSelection{}
-							}
-						}
-						for k := 0; k <= currentSvtLimit; k++ {
+						for k := minOptional; k <= currentSvtLimit; k++ {
 							for j := 0; j <= currentCostLimit; j++ {
 								if dp[k][j] == NEG {
 									continue
 								}
-								bond := dp[k][j]
-								selection := paths[k][j]
-								maxTake := min(len(group), currentSvtLimit-k)
-								for take := 0; take <= maxTake; take++ {
-									newCost := j + take*cost
-									if newCost > currentCostLimit {
-										break
-									}
-									if take > 0 {
-										itemIdx := group[take-1]
-										bond += optionalBonuses[itemIdx].Bonus
-										selection[k+take-1] = uint16(itemIdx + 1)
-									}
-									if bond > nextDP[k+take][newCost] {
-										nextDP[k+take][newCost] = bond
-										nextPaths[k+take][newCost] = selection
-									}
+								candidates = addCandidate(candidates, teamCandidate{
+									count: k,
+									cost:  ceCost + mandatoryCost + j,
+									bond:  mandatoryBond + dp[k][j],
+								})
+							}
+						}
+
+						for _, candidate := range candidates {
+							team := model.Team{
+								CraftEssences:        ceCombo,
+								SupportCraftEssences: supportCombo,
+								TotalBond:            candidate.bond,
+								TotalCost:            candidate.cost,
+							}
+							for _, sb := range mandatoryBonuses {
+								team.Servants = append(team.Servants, sb.Svt)
+								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+							}
+							selection := paths[candidate.count][candidate.cost-ceCost-mandatoryCost]
+							for i := 0; i < candidate.count; i++ {
+								itemIdx := int(selection[i]) - 1
+								if itemIdx < 0 {
+									continue
 								}
+								sb := optionalBonuses[itemIdx]
+								team.Servants = append(team.Servants, sb.Svt)
+								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
 							}
+							localTeams = addLocalTeam(localTeams, team)
 						}
-						dp, nextDP = nextDP, dp
-						paths, nextPaths = nextPaths, paths
-					}
-
-					candidates := make([]teamCandidate, 0, OPTIMIZE_LIMIT)
-					minOptional := 1
-					if len(mandatoryBonuses) > 0 {
-						minOptional = 0
-					}
-					for k := minOptional; k <= currentSvtLimit; k++ {
-						for j := 0; j <= currentCostLimit; j++ {
-							if dp[k][j] == NEG {
-								continue
-							}
-							candidates = addCandidate(candidates, teamCandidate{
-								count: k,
-								cost:  ceCost + mandatoryCost + j,
-								bond:  mandatoryBond + dp[k][j],
-							})
-						}
-					}
-
-					for _, candidate := range candidates {
-						team := model.Team{
-							CraftEssences:        ceCombo,
-							SupportCraftEssences: supportCombo,
-							TotalBond:            candidate.bond,
-							TotalCost:            candidate.cost,
-						}
-						for _, sb := range mandatoryBonuses {
-							team.Servants = append(team.Servants, sb.Svt)
-							team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
-						}
-						selection := paths[candidate.count][candidate.cost-ceCost-mandatoryCost]
-						for i := 0; i < candidate.count; i++ {
-							itemIdx := int(selection[i]) - 1
-							if itemIdx < 0 {
-								continue
-							}
-							sb := optionalBonuses[itemIdx]
-							team.Servants = append(team.Servants, sb.Svt)
-							team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
-						}
-						localTeams = addLocalTeam(localTeams, team)
 					}
 				}
 			} // end batch loop

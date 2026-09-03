@@ -54,14 +54,17 @@ ce_data.append(get_ce(9401970, [([], 10)]))
 ce_data.append(get_ce(9400980, [([], -50)]))
 ce_data.append(get_ce(9408390, [([2780], 20)]))
 ce_data.append(get_ce(9408590, [([300, 2], 20)]))
+ce_data.append(get_ce(9408800, [([304], 20),([203], 20)]))
 
 # 日服特供
 ce_data.append(get_ce(9408990, [([301, 2858], 20)], server="JP"))
-ce_data.append(get_ce(9408800, [([304], 20),([203], 20)], server="JP"))
 ce_data.append(get_ce(9311320, [([], 2)], server="JP"))
 ce_data.append(get_ce(9311450, [([], 2)], server="JP"))
 ce_data.append(get_ce(9409210, [([302], 20)], server="JP"))
 ce_data.append(get_ce(9409320, [([100], 20)], server="JP"))
+ce_data.append(get_ce(9409490, [([105], 20)], server="JP"))
+
+
 
 open('ces.json','w').write(json.dumps(ce_data, ensure_ascii=False, indent=4))
 

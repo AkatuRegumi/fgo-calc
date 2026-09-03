@@ -715,8 +715,9 @@ function renderEventSelection(autoSelect = false) {
     const eventsMap = new Map();
     getActiveServants().forEach(svt => {
         const bonuses = svt.event_bonuses ? svt.event_bonuses[server] : [];
+        const partyBonuses = svt.event_party_bonuses ? svt.event_party_bonuses[server] : [];
         const extraBonuses = svt.event_extra_bonuses ? svt.event_extra_bonuses[server] : [];
-        [...bonuses, ...extraBonuses].forEach(b => {
+        [...bonuses, ...partyBonuses, ...extraBonuses].forEach(b => {
             eventsMap.set(b.id, b.name);
         });
     });
@@ -1088,13 +1089,15 @@ function renderEventBonuses(div, svt) {
     const server = document.getElementById('server-select').value;
     if (enableEventBonus) {
         let bonuses = svt.event_bonuses ? svt.event_bonuses[server] : [];
+        let partyBonuses = svt.event_party_bonuses ? svt.event_party_bonuses[server] : [];
         let extraBonuses = svt.event_extra_bonuses ? svt.event_extra_bonuses[server] : [];
         
         // Filter based on selected events
         bonuses = bonuses.filter(b => SELECTIONS.selectedEvents.has(b.id));
+        partyBonuses = partyBonuses.filter(b => SELECTIONS.selectedEvents.has(b.id));
         extraBonuses = extraBonuses.filter(b => SELECTIONS.selectedEvents.has(b.id));
 
-        if ((bonuses && bonuses.length > 0) || (extraBonuses && extraBonuses.length > 0)) {
+        if ((bonuses && bonuses.length > 0) || (partyBonuses && partyBonuses.length > 0) || (extraBonuses && extraBonuses.length > 0)) {
             const bonusContainer = document.createElement('div');
             bonusContainer.className = 'event-bonus-container';
             
@@ -1102,6 +1105,13 @@ function renderEventBonuses(div, svt) {
                 const item = document.createElement('div');
                 item.className = 'event-bonus-item';
                 item.innerHTML = `<span class="event-bonus-val">+${b.bonus}%</span><span class="event-bonus-name" title="${b.name}">${b.name}</span>`;
+                bonusContainer.appendChild(item);
+            });
+
+            partyBonuses.forEach(b => {
+                const item = document.createElement('div');
+                item.className = 'event-bonus-item';
+                item.innerHTML = `<span class="event-bonus-val">全队 +${b.bonus}%</span><span class="event-bonus-name" title="${b.name}">${b.name}</span>`;
                 bonusContainer.appendChild(item);
             });
             
