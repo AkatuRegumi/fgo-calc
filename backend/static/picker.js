@@ -2,7 +2,9 @@ let currentModal = {type: '', list: ''};
 
 function openModal(type, list) {
     currentModal = {type, list};
-    if (type === 'ce' && list === 'supportLock') {
+    if (type === 'svt' && list === 'bond15') {
+        document.getElementById('modal-title').textContent = '选择15绊从者';
+    } else if (type === 'ce' && list === 'supportLock') {
         document.getElementById('modal-title').textContent = '选择锁定助战礼装';
     } else if (type === 'ce' && list === 'excludeSupport') {
         document.getElementById('modal-title').textContent = '选择排除助战礼装';
@@ -98,6 +100,7 @@ function renderClassFilters() {
 function isPickerItemSelected(id) {
     const {type, list} = currentModal;
     if (type === 'svt' && list === 'include') return SELECTIONS.includeSvt.has(id);
+    if (type === 'svt' && list === 'bond15') return SELECTIONS.bond15.has(id);
     return SELECTIONS[getSelectionKey(type, list)].has(id);
 }
 
@@ -149,8 +152,21 @@ function togglePickerItem(id) {
     const selected = isPickerItemSelected(id);
     if (selected) {
         if (type === 'svt' && list === 'include') SELECTIONS.includeSvt.delete(id);
+        else if (type === 'svt' && list === 'bond15') SELECTIONS.bond15.delete(id);
         else SELECTIONS[getSelectionKey(type, list)].delete(id);
         renderSelectionList(type, list);
+        saveState();
+        populateModalGrid(document.getElementById('modal-search').value);
+        return;
+    }
+
+    if (type === 'svt' && list === 'bond15') {
+        removeOppositeSelection(type, list, id);
+        // 国服当前15绊即为上限，默认按已满处理；日服用户可在列表中取消勾选
+        const defaultFull = document.getElementById('server-select').value !== 'JP';
+        SELECTIONS.bond15.set(id, defaultFull);
+        renderSelectionList(type, list);
+        renderSelectionList('svt', 'exclude');
         saveState();
         populateModalGrid(document.getElementById('modal-search').value);
         return;
@@ -179,6 +195,7 @@ function togglePickerItem(id) {
     SELECTIONS[getSelectionKey(type, list)].add(id);
     renderSelectionList(type, list);
     if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
+    if (type === 'svt') renderSelectionList('svt', 'bond15');
     if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
     if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();

@@ -1,16 +1,24 @@
 let CURRENT_USER = null;
 let ALL_DATA = { servants: [], craftEssences: [], traits: {} };
-let SELECTIONS = {
-    includeSvt: new Map(),
-    excludeSvt: new Set(),
-    includeCe: new Set(),
-    excludeCe: new Set(),
-    supportLockCe: new Set(),
-    excludeSupportCe: new Set(),
-    allowTraits: new Set(),
-    crownClass: '',
-    selectedEvents: new Set()
-};
+// state版本：1=初版（无version字段），2=引入15绊配置。
+// 新增字段时递增版本，loadState会先全量重置再应用，旧state缺失的字段自然落到默认值，无需逐字段迁移。
+const STATE_VERSION = 2;
+
+function createDefaultSelections() {
+    return {
+        includeSvt: new Map(),
+        excludeSvt: new Set(),
+        includeCe: new Set(),
+        excludeCe: new Set(),
+        supportLockCe: new Set(),
+        excludeSupportCe: new Set(),
+        allowTraits: new Set(),
+        crownClass: '',
+        selectedEvents: new Set(),
+        bond15: new Map()
+    };
+}
+let SELECTIONS = createDefaultSelections();
 let HISTORY_ITEMS = [];
 const ANNOUNCEMENT_VIEWED_AT_KEY = 'fgo-announcement-viewed-at';
 
@@ -453,6 +461,12 @@ function pruneInvalidSelectionsByServer() {
             changed = true;
         }
     }
+    for (const id of Array.from(SELECTIONS.bond15.keys())) {
+        if (!availableServants.has(id)) {
+            SELECTIONS.bond15.delete(id);
+            changed = true;
+        }
+    }
 
     if (changed) {
         renderSelectionList('ce', 'include');
@@ -461,12 +475,16 @@ function pruneInvalidSelectionsByServer() {
         renderSelectionList('ce', 'excludeSupport');
         renderSelectionList('svt', 'include');
         renderSelectionList('svt', 'exclude');
+        renderSelectionList('svt', 'bond15');
     }
 
     return changed;
 }
 
 function getSelectionKey(type, list) {
+    if (type === 'svt' && list === 'bond15') {
+        return 'bond15';
+    }
     if (type === 'ce' && list === 'supportLock') {
         return 'supportLockCe';
     }
@@ -477,6 +495,9 @@ function getSelectionKey(type, list) {
 }
 
 function getSelectionContainerId(type, list) {
+    if (type === 'svt' && list === 'bond15') {
+        return 'bond15-svt-list';
+    }
     if (type === 'ce' && list === 'supportLock') {
         return 'support-lock-ce-list';
     }
@@ -508,6 +529,7 @@ function saveState() {
             allowTraits: Array.from(SELECTIONS.allowTraits),
             crownClass: SELECTIONS.crownClass,
             selectedEvents: Array.from(SELECTIONS.selectedEvents),
+            bond15: Array.from(SELECTIONS.bond15.entries()),
         },
         ui: {
             collapsedSections: { ...UI_STATE.collapsedSections },
@@ -528,6 +550,8 @@ function loadState() {
     if (!saved) return;
     try {
         const state = JSON.parse(saved);
+        // 全量重置，避免旧state缺失的字段残留当前会话的值（如15绊配置）
+        SELECTIONS = createDefaultSelections();
         if (state.config) {
             if (state.config.costLimit !== undefined) document.getElementById('cost-limit').value = state.config.costLimit;
             if (state.config.svtLimit !== undefined) document.getElementById('svt-limit').value = state.config.svtLimit;
@@ -554,10 +578,12 @@ function loadState() {
             if (state.selections.allowTraits) SELECTIONS.allowTraits = new Set(state.selections.allowTraits);
             if (state.selections.crownClass !== undefined) SELECTIONS.crownClass = state.selections.crownClass;
             if (state.selections.selectedEvents) SELECTIONS.selectedEvents = new Set(state.selections.selectedEvents);
+            if (state.selections.bond15) SELECTIONS.bond15 = new Map(state.selections.bond15);
             normalizeSelectionConflicts();
             
             renderSelectionList('svt', 'include');
             renderSelectionList('svt', 'exclude');
+            renderSelectionList('svt', 'bond15');
             renderSelectionList('ce', 'include');
             renderSelectionList('ce', 'exclude');
             renderSelectionList('ce', 'supportLock');
@@ -589,12 +615,20 @@ function normalizeSelectionConflicts() {
     SELECTIONS.includeSvt.forEach((_, id) => SELECTIONS.excludeSvt.delete(id));
     SELECTIONS.includeCe.forEach(id => SELECTIONS.excludeCe.delete(id));
     SELECTIONS.supportLockCe.forEach(id => SELECTIONS.excludeSupportCe.delete(id));
+    // 排除优先于15绊配置
+    SELECTIONS.bond15.forEach((_, id) => {
+        if (SELECTIONS.excludeSvt.has(id)) SELECTIONS.bond15.delete(id);
+    });
 }
 
 function removeOppositeSelection(type, list, id) {
     if (type === 'svt') {
         if (list === 'include') SELECTIONS.excludeSvt.delete(id);
-        if (list === 'exclude') SELECTIONS.includeSvt.delete(id);
+        if (list === 'exclude') {
+            SELECTIONS.includeSvt.delete(id);
+            SELECTIONS.bond15.delete(id);
+        }
+        if (list === 'bond15') SELECTIONS.excludeSvt.delete(id);
         return;
     }
     if (list === 'include') SELECTIONS.excludeCe.delete(id);
@@ -635,6 +669,7 @@ async function initApp() {
                 // Update bonus display
                 try { renderSelectionList('svt', 'include'); } catch(e){}
                 try { renderSelectionList('svt', 'exclude'); } catch(e){}
+                try { renderSelectionList('svt', 'bond15'); } catch(e){}
                 saveState();
             });
             if (el.type === 'number' || el.type === 'text') {
@@ -1019,7 +1054,9 @@ function renderSelectionList(type, list) {
     const items = type === 'svt' ? getActiveServants() : ALL_DATA.craftEssences;
     
     const selection = (type === 'svt' && list === 'include') ? 
-        Array.from(SELECTIONS.includeSvt.keys()) : 
+        Array.from(SELECTIONS.includeSvt.keys()) :
+        (type === 'svt' && list === 'bond15') ?
+        Array.from(SELECTIONS.bond15.keys()) :
         SELECTIONS[key];
 
     selection.forEach(id => {
@@ -1044,6 +1081,25 @@ function renderSelectionList(type, list) {
             const div = createAvatar(id, name, img, null, () => removeItem(type, list, id), type === 'ce');
             if (type === 'svt') {
                 renderEventBonuses(div, item);
+            }
+            if (type === 'svt' && list === 'bond15') {
+                const badge = document.createElement('div');
+                badge.className = 'bond15-badge';
+                badge.textContent = '全队+25%';
+                div.appendChild(badge);
+                const toggle = document.createElement('label');
+                toggle.className = 'bond15-full-toggle';
+                toggle.title = '勾选表示该从者羁绊已到上限，自身不再获得羁绊';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = SELECTIONS.bond15.get(id) !== false;
+                checkbox.onclick = event => event.stopPropagation();
+                checkbox.onchange = () => {
+                    SELECTIONS.bond15.set(id, checkbox.checked);
+                    saveState();
+                };
+                toggle.append(checkbox, '已满');
+                div.appendChild(toggle);
             }
             container.appendChild(div);
         }
@@ -1094,6 +1150,10 @@ async function calculate() {
         }
         SELECTIONS.supportLockCe.forEach(id => params.append('includesupportce', id));
         SELECTIONS.excludeSupportCe.forEach(id => params.append('excludesupportce', id));
+        SELECTIONS.bond15.forEach((full, id) => {
+            params.append('bond15svt', id);
+            params.append('bond15full', full ? 'true' : 'false');
+        });
 
         const requestStarted = performance.now();
         let response;
@@ -1215,7 +1275,8 @@ function renderResults(teams, backendDuration, networkDuration) {
         
         const header = document.createElement('hgroup');
         header.style.marginBottom = '0.75rem';
-        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1}</h5><p><mark>总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost - crownCostBonus}</small></p>`;
+        const bond15Text = team.Bond15Bonus > 0 ? ` <small>| 15绊全队加成: +${team.Bond15Bonus}</small>` : '';
+        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1}</h5><p><mark>总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost - crownCostBonus}</small>${bond15Text}</p>`;
         teamDiv.appendChild(header);
 
         const svtTitle = document.createElement('div');
@@ -1247,6 +1308,12 @@ function renderResults(teams, backendDuration, networkDuration) {
                 const div = createAvatar(svt.id, name, detail.img, () => showSvtTraits(svt, diffKey));
 
                 renderEventBonuses(div, svt);
+                if (SELECTIONS.bond15.has(svtId)) {
+                    const badge = document.createElement('div');
+                    badge.className = 'bond15-badge';
+                    badge.textContent = SELECTIONS.bond15.get(svtId) !== false ? '15绊·已满' : '15绊';
+                    div.appendChild(badge);
+                }
                 
                 wrapper.appendChild(div);
 
@@ -1379,6 +1446,7 @@ function quickAdd(event, type, list, id, extra) {
     }
     renderSelectionList(type, list);
     if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
+    if (type === 'svt') renderSelectionList('svt', 'bond15');
     if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
     if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();
@@ -1572,7 +1640,8 @@ function restoreHistory(item) {
         loadState();
         renderEventSelection();
         renderExcludeSvtClassFilters();
-        saveState();
+        // 不在此处saveState：避免恢复历史时立刻把历史快照同步到云端覆盖当前配置。
+        // 历史state已写入localStorage，用户后续有任何操作才会自然保存并同步。
     }
     if (item.result) {
         try {

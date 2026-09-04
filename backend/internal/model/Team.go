@@ -1,10 +1,11 @@
 package model
 
 type SvtBonus struct {
-	Svt     *Servant
-	DiffKey string
-	Bonus   int
-	Cost    int
+	Svt        *Servant
+	DiffKey    string
+	Bonus      int
+	Cost       int
+	IsProvider bool
 }
 
 type Team struct {
@@ -14,6 +15,7 @@ type Team struct {
 	SupportCraftEssences []CraftEssence
 	TotalCost            int
 	TotalBond            int
+	Bond15Bonus          int
 }
 
 type TeamHeap []Team
@@ -49,6 +51,7 @@ type TeamResponse struct {
 	SupportCraftEssences []TeamResultCE `json:"SupportCraftEssences"`
 	TotalCost            int            `json:"TotalCost"`
 	TotalBond            int            `json:"TotalBond"`
+	Bond15Bonus          int            `json:"Bond15Bonus"`
 }
 
 type CeEffect struct {

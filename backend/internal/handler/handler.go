@@ -136,7 +136,11 @@ func (h *Handler) Calculate(c *gin.Context) {
 		return
 	}
 	if costLimit > h.cfg.MaxCost {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("总cost不能超过%d", h.cfg.MaxCost)})
+		msgcost := h.cfg.MaxCost
+		if len(allowTraits) == 0 {
+			msgcost -= 12
+		}
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("总cost不能超过%d", msgcost)})
 		return
 	}
 
@@ -163,6 +167,21 @@ func (h *Handler) Calculate(c *gin.Context) {
 	enableEventBonus := c.PostForm("enable_event_bonus") == "true"
 	selectedEvents := mapStr2Int(c.PostFormArray("selected_events"))
 
+	bond15Svt := mapStr2Int(c.PostFormArray("bond15svt"))
+	bond15FullStr := c.PostFormArray("bond15full")
+	// if len(bond15Svt) > h.cfg.MaxSvtLimit*20 {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "15绊从者数量过多"})
+	// 	return
+	// }
+	bond15Full := make([]bool, len(bond15Svt))
+	for i := range bond15Full {
+		// 缺省按已满处理（国服当前15绊即为上限）
+		bond15Full[i] = true
+		if i < len(bond15FullStr) {
+			bond15Full[i] = bond15FullStr[i] == "true"
+		}
+	}
+
 	results, duration := h.service.Optimize(
 		costLimit,
 		svtLimit,
@@ -180,6 +199,8 @@ func (h *Handler) Calculate(c *gin.Context) {
 		server,
 		enableEventBonus,
 		selectedEvents,
+		bond15Svt,
+		bond15Full,
 	)
 
 	c.JSON(http.StatusOK, gin.H{
