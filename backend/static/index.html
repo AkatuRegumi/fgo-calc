@@ -2,16 +2,26 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#13171f" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <title>FGO 最优羁绊组队求解器</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="preconnect" href="https://static.atlasacademy.io" crossorigin>
+    <link rel="stylesheet" href="/static/vendor/pico.min.css?v=2.1.1" />
+    <script src="/static/vendor/icons.js?v=20260904-2"></script>
     <style>
         :root {
             --pico-font-size: 100%;
             --pico-border-radius: 0.75rem;
             --avatar-size: 100px;
             --ce-height: 110px;
+            --app-success: #2e7d32;
+            --app-danger: #c62828;
+            --app-danger-bright: #e53935;
+            --app-remove: #f44336;
+            --app-remove-hover: #d32f2f;
+            --app-bond15: #e91e63;
+            --app-gold: #d4af37;
         }
         @media (max-width: 768px) {
             :root {
@@ -80,6 +90,14 @@
         .app-title h1 {
             margin-bottom: 0;
             font-weight: 800;
+            background: linear-gradient(120deg, var(--pico-primary) 25%, var(--app-gold) 85%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .app-title h1 svg {
+            stroke: var(--pico-primary);
+            vertical-align: -0.15em;
         }
         .data-updated-at {
             display: block;
@@ -95,7 +113,7 @@
         }
         .card-section {
             margin-bottom: 1.5rem;
-            box-shadow: var(--pico-card-sectionning-background-color);
+            box-shadow: 0 1px 3px rgba(16, 24, 40, 0.07), 0 6px 18px rgba(16, 24, 40, 0.05);
         }
         .announcement-card {
             padding-top: 0.85rem;
@@ -136,7 +154,7 @@
             height: 0.45rem;
             border: 2px solid var(--pico-card-background-color);
             border-radius: 50%;
-            background: #e53935;
+            background: var(--app-danger-bright);
             content: '';
         }
         .announcement-active-label {
@@ -201,10 +219,12 @@
             width: 100%;
             min-width: 0;
         }
-        .avatar-container:hover {
-            transform: translateY(-2px);
-            border-color: var(--pico-primary);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        @media (hover: hover) and (pointer: fine) {
+            .avatar-container:hover {
+                transform: translateY(-2px);
+                border-color: var(--pico-primary);
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            }
         }
         .modal-grid .avatar-container.is-selected {
             border-color: var(--pico-primary);
@@ -271,7 +291,7 @@
         .avatar-container .bond15-badge {
             font-size: 0.7rem;
             text-align: center;
-            color: #e91e63;
+            color: var(--app-bond15);
             font-weight: bold;
             margin-top: 2px;
         }
@@ -296,7 +316,7 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background-color: #f44336;
+            background-color: var(--app-remove);
             color: white;
             border: 2px solid white;
             cursor: pointer;
@@ -309,7 +329,7 @@
             transition: background-color 0.2s, transform 0.2s;
         }
         .avatar-container .remove-btn:hover {
-            background-color: #d32f2f;
+            background-color: var(--app-remove-hover);
             transform: scale(1.15);
         }
         .selection-grid {
@@ -361,6 +381,7 @@
             grid-template-columns: repeat(auto-fill, minmax(calc(var(--avatar-size) + 20px), 1fr));
             gap: 1rem;
             max-height: 50vh;
+            max-height: 50dvh;
             overflow-y: auto;
             padding: 0.5rem;
         }
@@ -408,12 +429,12 @@
             overflow-wrap: anywhere;
         }
         .svt-trait-diff-tag.is-added {
-            border-color: #2e7d32;
-            color: #2e7d32;
+            border-color: var(--app-success);
+            color: var(--app-success);
         }
         .svt-trait-diff-tag.is-removed {
-            border-color: #c62828;
-            color: #c62828;
+            border-color: var(--app-danger);
+            color: var(--app-danger);
         }
         .svt-trait-diff-empty {
             color: var(--pico-muted-color);
@@ -449,57 +470,73 @@
             transition: transform 0.1s;
             object-fit: contain;
         }
-        .class-icon-btn:hover {
-            transform: scale(1.1);
+        @media (hover: hover) and (pointer: fine) {
+            .class-icon-btn:hover {
+                transform: scale(1.1);
+            }
         }
         .crown-class-picker {
             position: relative;
-            max-width: 320px;
             margin-bottom: 1rem;
         }
-        .crown-class-picker button {
-            display: flex;
-            align-items: center;
+        .crown-class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
             gap: 0.5rem;
-            width: 100%;
+            max-width: 560px;
+            margin-top: 0.5rem;
+        }
+        .crown-class-chip {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
             margin: 0;
-            text-align: left;
-        }
-        .crown-class-picker button img,
-        .crown-class-option img {
-            width: 28px;
-            height: 28px;
-            object-fit: contain;
-        }
-        .crown-class-options {
-            position: absolute;
-            z-index: 20;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            max-height: 300px;
-            overflow-y: auto;
-            background: var(--pico-background-color);
+            padding: 0.55rem 0.25rem 0.45rem;
             border: 1px solid var(--pico-muted-border-color);
             border-radius: var(--pico-border-radius);
-            box-shadow: var(--pico-box-shadow);
-        }
-        .crown-class-option {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            width: 100%;
-            padding: 0.35rem 0.5rem;
-            border: 0;
-            border-radius: 0;
-            background: transparent;
-            color: var(--pico-color);
-            text-align: left;
+            background: var(--pico-card-background-color);
+            color: var(--pico-muted-color);
+            font-size: 0.7rem;
+            line-height: 1;
             cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s, color 0.15s, background-color 0.15s;
         }
-        .crown-class-option:hover,
-        .crown-class-option[aria-selected="true"] {
-            background: var(--pico-muted-border-color);
+        @media (hover: hover) and (pointer: fine) {
+            .crown-class-chip:hover {
+                transform: translateY(-1px);
+                border-color: var(--pico-primary);
+                color: var(--pico-primary);
+            }
+        }
+        .crown-class-chip.is-selected {
+            border-color: var(--pico-primary);
+            background: color-mix(in srgb, var(--pico-primary) 12%, var(--pico-card-background-color));
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--pico-primary) 25%, transparent);
+            color: var(--pico-primary);
+            font-weight: bold;
+        }
+        .crown-icon-cluster {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1px;
+            width: 34px;
+            height: 34px;
+        }
+        .crown-icon-cluster img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .crown-icon-cluster.is-single img {
+            grid-column: 1 / -1;
+            grid-row: 1 / -1;
+        }
+        .crown-hint {
+            display: block;
+            margin: 0.35rem 0 0;
+            color: var(--pico-muted-color);
+            font-size: 0.75rem;
         }
         .star-filter-label {
             display: inline-flex;
@@ -546,7 +583,7 @@
         }
         .event-bonus-container {
             margin-top: 4px;
-            width: 110%;
+            width: 100%;
             min-height: 32px;
         }
         .history-section-title {
@@ -618,7 +655,7 @@
         #flash-container {
             position: fixed;
             top: 1rem;
-            right: 1rem;
+            right: max(1rem, env(safe-area-inset-right));
             z-index: 10000;
             display: flex;
             width: min(24rem, calc(100vw - 2rem));
@@ -642,10 +679,10 @@
             pointer-events: auto;
         }
         .flash-message[data-type="success"] {
-            border-left-color: #2e7d32;
+            border-left-color: var(--app-success);
         }
         .flash-message[data-type="error"] {
-            border-left-color: #c62828;
+            border-left-color: var(--app-danger);
         }
         .flash-message > svg {
             width: 1.1rem;
@@ -717,8 +754,6 @@
                 height: 2.5rem;
             }
             #flash-container {
-                top: 0.5rem;
-                right: 0.5rem;
                 width: calc(100vw - 1rem);
             }
             .donate-grid {
@@ -840,6 +875,21 @@
             margin-right: 0.25rem;
             white-space: nowrap;
         }
+        .exclude-hidden-note {
+            grid-column: 1 / -1;
+            margin: 0;
+            padding: 0.5rem 0.75rem;
+            border: 1px dashed var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            background: transparent;
+            color: var(--pico-muted-color);
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        .exclude-hidden-note:hover {
+            border-color: var(--pico-primary);
+            color: var(--pico-primary);
+        }
         .exclude-filter-icon-btn {
             width: 26px;
             height: 26px;
@@ -847,8 +897,10 @@
             transition: transform 0.1s;
             object-fit: contain;
         }
-        .exclude-filter-icon-btn:hover {
-            transform: scale(1.08);
+        @media (hover: hover) and (pointer: fine) {
+            .exclude-filter-icon-btn:hover {
+                transform: scale(1.08);
+            }
         }
         .result-actions {
             display: flex;
@@ -864,7 +916,6 @@
             border-radius: 50%;
             padding: 0;
             margin: 0;
-            height: 24px;
             line-height: 1;
             display: flex;
             align-items: center;
@@ -895,6 +946,120 @@
                 grid-template-columns: repeat(2, 1fr);
             }
         }
+
+        /* --- 移动端与触控优化 --- */
+        button,
+        summary,
+        .avatar-container,
+        .class-icon-btn,
+        .exclude-filter-icon-btn,
+        .crown-class-chip,
+        .star-filter-label {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        dialog > article {
+            max-height: calc(100dvh - var(--pico-spacing) * 2);
+        }
+        .modal-grid {
+            overscroll-behavior: contain;
+        }
+        #flash-container {
+            top: max(1rem, env(safe-area-inset-top));
+        }
+        #calculate-btn {
+            z-index: 30;
+        }
+        @media (pointer: coarse) {
+            .class-icon-btn {
+                width: 40px;
+                height: 40px;
+            }
+            .exclude-filter-icon-btn {
+                width: 34px;
+                height: 34px;
+            }
+            .collapse-toggle {
+                min-width: 2.5rem;
+                height: 2.5rem;
+            }
+            .result-actions {
+                gap: 8px;
+            }
+            .result-actions button {
+                width: 32px;
+                height: 32px;
+            }
+            .result-actions button i,
+            .result-actions button svg {
+                width: 16px;
+                height: 16px;
+            }
+            .picker-check {
+                width: 1.6rem;
+                height: 1.6rem;
+            }
+            .avatar-container .remove-btn {
+                top: -10px;
+                right: -10px;
+                width: 30px;
+                height: 30px;
+            }
+            .flash-close {
+                width: 2.25rem;
+                height: 2.25rem;
+            }
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem max(0.5rem, env(safe-area-inset-right)) calc(4.5rem + env(safe-area-inset-bottom)) max(0.5rem, env(safe-area-inset-left));
+            }
+            #user-status-bar {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+                row-gap: 0.4rem;
+            }
+            #calculate-btn {
+                position: fixed;
+                left: max(0.5rem, env(safe-area-inset-left));
+                right: max(0.5rem, env(safe-area-inset-right));
+                bottom: max(0.75rem, env(safe-area-inset-bottom));
+                width: auto;
+                margin: 0;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+            }
+            article > footer:has(#calculate-btn) {
+                min-height: 0;
+                margin: 0;
+                padding: 0;
+                border-top: 0;
+            }
+        }
+        @media (max-width: 480px) {
+            dialog > article {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: auto 0 0;
+                border-radius: var(--pico-border-radius) var(--pico-border-radius) 0 0;
+            }
+            dialog {
+                align-items: flex-end;
+            }
+            .app-title h1 {
+                font-size: 1.35rem;
+            }
+            .section-header {
+                gap: 0.5rem;
+            }
+            .modal-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 0.6rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -907,7 +1072,7 @@
     <div id="flash-container" aria-live="polite" aria-atomic="true"></div>
     <main class="container">
         <div class="app-title">
-            <h1><i data-lucide="calculator"></i> FGO 最优羁绊组队求解器 v2.0</h1>
+            <h1><i data-lucide="calculator"></i> FGO 最优羁绊组队求解器 v2.1</h1>
             <small id="data-updated-at" class="data-updated-at" hidden></small>
         </div>
 
@@ -946,19 +1111,19 @@
             <div class="grid-config">
                 <label>
                     Cost 上限
-                    <input type="number" id="cost-limit" value="116">
+                    <input type="number" id="cost-limit" value="116" inputmode="numeric">
                 </label>
                 <label>
                     从者数量
-                    <input type="number" id="svt-limit" value="5" max="6" min="1">
+                    <input type="number" id="svt-limit" value="5" max="6" min="1" inputmode="numeric">
                 </label>
                 <label>
                     礼装数量
-                    <input type="number" id="ce-limit" value="5" max="6" min="1">
+                    <input type="number" id="ce-limit" value="5" max="6" min="1" inputmode="numeric">
                 </label>
                 <label>
                     基础羁绊
-                    <input type="number" id="base-bond" value="1000">
+                    <input type="number" id="base-bond" value="1000" inputmode="numeric">
                 </label>
                 <label>
                     服务器
@@ -971,19 +1136,19 @@
 
             <div class="crown-war-config">
                 <label style="margin-bottom: 0.5rem;">
-                    <input type="checkbox" id="enable-crown-war">
+                    <input type="checkbox" id="enable-crown-war" role="switch">
                     戴冠战
                 </label>
                 <div id="crown-class-picker" class="crown-class-picker" hidden></div>
             </div>
             
             <label style="margin-bottom: 0.5rem;">
-                <input type="checkbox" id="consider-support-ce" checked>
+                <input type="checkbox" id="consider-support-ce" role="switch" checked>
                 考虑助战礼装
             </label>
 
             <label style="margin-bottom: 0.5rem;">
-                <input type="checkbox" id="enable-event-bonus" onchange="toggleEventSelection()">   
+                <input type="checkbox" id="enable-event-bonus" role="switch" onchange="toggleEventSelection()">
                 计算活动羁绊加成
             </label>
 
@@ -1053,7 +1218,7 @@
                         <h6>锁定助战礼装</h6>
                         <button class="outline btn-add" onclick="openModal('ce', 'supportLock')"><i data-lucide="lock"></i> 添加</button>
                     </div>
-                    <small style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">最多可选 <span id="support-lock-limit-text">1</span> 个（与“考虑助战礼装”设置一致）</small>
+                    <small style="display: block; margin-bottom: 0.5rem; opacity: 0.8;">最多可选 <span id="support-lock-limit-text">1</span> 个</small>
                     <div class="selection-grid" id="support-lock-ce-list"></div>
                 </div>
                 <div>
@@ -1155,7 +1320,7 @@
 
             <div id="modal-grid" class="modal-grid"></div>
             <footer>
-                <button class="secondary" onclick="closeModal()">关闭</button>
+                <button id="modal-done-btn" class="secondary" onclick="closeModal()">完成</button>
             </footer>
         </article>
     </dialog>
@@ -1219,7 +1384,7 @@
         </article>
     </dialog>
 
-    <script src="/static/app.js?v=20260904-3"></script>
-    <script src="/static/picker.js?v=20260904-2"></script>
+    <script src="/static/app.js?v=20260904-6"></script>
+    <script src="/static/picker.js?v=20260904-5"></script>
 </body>
 </html>

@@ -144,7 +144,20 @@ function populateModalGrid(filter = '') {
         if (currentModal.type === 'svt') renderEventBonuses(avatar, item);
         grid.appendChild(avatar);
     });
-    refreshIcons();
+    refreshIcons(grid);
+    updateModalDoneButton();
+}
+
+function getCurrentSelectionSize() {
+    const {type, list} = currentModal;
+    if (type === 'svt' && list === 'include') return SELECTIONS.includeSvt.size;
+    if (type === 'svt' && list === 'bond15') return SELECTIONS.bond15.size;
+    return SELECTIONS[getSelectionKey(type, list)].size;
+}
+
+function updateModalDoneButton() {
+    const button = document.getElementById('modal-done-btn');
+    if (button) button.textContent = `完成（已选 ${getCurrentSelectionSize()}）`;
 }
 
 function togglePickerItem(id) {
@@ -193,6 +206,7 @@ function togglePickerItem(id) {
     }
     removeOppositeSelection(type, list, id);
     SELECTIONS[getSelectionKey(type, list)].add(id);
+    if (type === 'svt' && list === 'exclude') ensureExcludeSvtVisible(id);
     renderSelectionList(type, list);
     if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
     if (type === 'svt') renderSelectionList('svt', 'bond15');
@@ -202,6 +216,9 @@ function togglePickerItem(id) {
     populateModalGrid(document.getElementById('modal-search').value);
 }
 
+let modalSearchTimer = null;
 document.getElementById('modal-search').addEventListener('input', event => {
-    populateModalGrid(event.target.value);
+    clearTimeout(modalSearchTimer);
+    const value = event.target.value;
+    modalSearchTimer = setTimeout(() => populateModalGrid(value), 150);
 });

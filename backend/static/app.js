@@ -12,7 +12,6 @@ function createDefaultSelections() {
         excludeCe: new Set(),
         supportLockCe: new Set(),
         excludeSupportCe: new Set(),
-        allowTraits: new Set(),
         crownClass: '',
         selectedEvents: new Set(),
         bond15: new Map()
@@ -123,7 +122,7 @@ function showFlash(message, type = 'info', duration = 4000) {
     close.innerHTML = '<i data-lucide="x"></i>';
     flash.appendChild(close);
     container.appendChild(flash);
-    refreshIcons();
+    refreshIcons(flash);
 
     let removed = false;
     const remove = () => {
@@ -392,6 +391,18 @@ function getSupportLimitValue() {
     return document.getElementById('enable-crown-war')?.checked ? 2 : 1;
 }
 
+// 添加排除从者时，若当前职阶显示筛选会将其隐藏，则重置筛选以保证可见。
+// 筛选仅影响展示，SELECTIONS.excludeSvt 中的项始终参与计算。
+function ensureExcludeSvtVisible(id) {
+    if (EXCLUDE_SVT_CLASS_FILTER.size === 0) return;
+    const item = getActiveServants().find(svt => svt.id === id);
+    const detail = item && (item.diff.default || Object.values(item.diff)[0]);
+    if (detail && detail.traits && detail.traits.some(t => EXCLUDE_SVT_CLASS_FILTER.has(t))) return;
+    EXCLUDE_SVT_CLASS_FILTER.clear();
+    renderExcludeSvtClassFilters();
+    showFlash('已重置排除列表的职阶筛选，以显示新添加的从者。', 'info');
+}
+
 function isSupportCandidateCe(ce) {
     if (!ce) return false;
     const server = document.getElementById('server-select').value;
@@ -421,7 +432,7 @@ function enforceSupportLockLimit(showAlert = false) {
     SELECTIONS.supportLockCe = new Set(ids.slice(0, limit));
     renderSelectionList('ce', 'supportLock');
     if (showAlert) {
-        alert(`锁定助战礼装最多只能保留 ${limit} 个，已自动截断。`);
+        showFlash(`锁定助战礼装最多只能保留 ${limit} 个，已自动截断。`, 'info');
     }
     return true;
 }
@@ -526,7 +537,6 @@ function saveState() {
             excludeCe: Array.from(SELECTIONS.excludeCe),
             supportLockCe: Array.from(SELECTIONS.supportLockCe),
             excludeSupportCe: Array.from(SELECTIONS.excludeSupportCe),
-            allowTraits: Array.from(SELECTIONS.allowTraits),
             crownClass: SELECTIONS.crownClass,
             selectedEvents: Array.from(SELECTIONS.selectedEvents),
             bond15: Array.from(SELECTIONS.bond15.entries()),
@@ -549,7 +559,13 @@ function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
     try {
-        const state = JSON.parse(saved);
+        applyState(JSON.parse(saved));
+    } catch (e) {
+        console.error('Failed to load state:', e);
+    }
+}
+
+function applyState(state) {
         // 全量重置，避免旧state缺失的字段残留当前会话的值（如15绊配置）
         SELECTIONS = createDefaultSelections();
         if (state.config) {
@@ -575,7 +591,6 @@ function loadState() {
             if (state.selections.excludeCe) SELECTIONS.excludeCe = new Set(state.selections.excludeCe);
             if (state.selections.supportLockCe) SELECTIONS.supportLockCe = new Set(state.selections.supportLockCe);
             if (state.selections.excludeSupportCe) SELECTIONS.excludeSupportCe = new Set(state.selections.excludeSupportCe);
-            if (state.selections.allowTraits) SELECTIONS.allowTraits = new Set(state.selections.allowTraits);
             if (state.selections.crownClass !== undefined) SELECTIONS.crownClass = state.selections.crownClass;
             if (state.selections.selectedEvents) SELECTIONS.selectedEvents = new Set(state.selections.selectedEvents);
             if (state.selections.bond15) SELECTIONS.bond15 = new Map(state.selections.bond15);
@@ -606,9 +621,6 @@ function loadState() {
         renderCrownClassPicker();
         try { renderSelectionList('svt', 'exclude'); } catch(e){}
         Object.keys(UI_STATE.collapsedSections).forEach(applySectionCollapse);
-    } catch (e) {
-        console.error('Failed to load state:', e);
-    }
 }
 
 function normalizeSelectionConflicts() {
@@ -873,41 +885,33 @@ function renderCrownClassPicker() {
     container.innerHTML = '';
     if (!enabled) return;
 
-    const selected = CROWN_CLASSES.find(item => item.value === SELECTIONS.crownClass);
-    const trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = 'outline secondary';
-    trigger.setAttribute('aria-haspopup', 'listbox');
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.innerHTML = selected
-        ? `${crownClassIcons(selected)}<span>${selected.name}</span>`
-        : '<span>选择戴冠战职阶</span>';
-
-    const options = document.createElement('div');
-    options.className = 'crown-class-options';
-    options.setAttribute('role', 'listbox');
-    options.hidden = true;
+    const grid = document.createElement('div');
+    grid.className = 'crown-class-grid';
+    grid.setAttribute('role', 'radiogroup');
+    grid.setAttribute('aria-label', '戴冠战职阶');
 
     CROWN_CLASSES.forEach(item => {
-        const option = document.createElement('button');
-        option.type = 'button';
-        option.className = 'crown-class-option';
-        option.setAttribute('role', 'option');
-        option.setAttribute('aria-selected', String(item.value === SELECTIONS.crownClass));
-        option.innerHTML = `${crownClassIcons(item)}<span>${item.name}</span>`;
-        option.onclick = () => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'crown-class-chip';
+        chip.setAttribute('role', 'radio');
+        const selected = item.value === SELECTIONS.crownClass;
+        chip.setAttribute('aria-checked', String(selected));
+        chip.classList.toggle('is-selected', selected);
+        chip.innerHTML = `${crownClassIcons(item)}<span>${item.name}</span>`;
+        chip.onclick = () => {
             SELECTIONS.crownClass = item.value;
             renderCrownClassPicker();
             saveState();
         };
-        options.appendChild(option);
+        grid.appendChild(chip);
     });
 
-    trigger.onclick = () => {
-        options.hidden = !options.hidden;
-        trigger.setAttribute('aria-expanded', String(!options.hidden));
-    };
-    container.append(trigger, options);
+    const hint = document.createElement('small');
+    hint.className = 'crown-hint';
+    hint.textContent = '';
+
+    container.append(grid, hint);
 }
 
 function crownClassIcons(item) {
@@ -916,7 +920,9 @@ function crownClassIcons(item) {
         : item.value === 'EX2'
             ? ['Alterego', 'Foreigner', 'Pretender', 'Beast']
             : [item.value];
-    return names.map(name => `<img src="/static/fgo-icon/金卡${name}.png" alt="">`).join('');
+    const single = names.length === 1 ? ' is-single' : '';
+    const images = names.map(name => `<img src="/static/fgo-icon/金卡${name}.png" alt="" loading="lazy">`).join('');
+    return `<span class="crown-icon-cluster${single}">${images}</span>`;
 }
 
 function openSvtDiffModal(svt) {
@@ -937,7 +943,7 @@ function openSvtDiffModal(svt) {
         div.appendChild(createSvtTraitDiff(detail.traits || [], baseTraits, diffKey === baseEntry?.[0]));
         grid.appendChild(div);
     }
-    refreshIcons();
+    refreshIcons(grid);
     document.getElementById('svt-diff-modal').showModal();
 }
 
@@ -1059,12 +1065,14 @@ function renderSelectionList(type, list) {
         Array.from(SELECTIONS.bond15.keys()) :
         SELECTIONS[key];
 
+    let hiddenByFilter = 0;
     selection.forEach(id => {
         const item = items.find(i => i.id === id);
         if (item) {
             if (type === 'svt' && list === 'exclude' && EXCLUDE_SVT_CLASS_FILTER.size > 0) {
                 const detail = item.diff.default || Object.values(item.diff)[0];
                 if (!detail || !detail.traits || !detail.traits.some(t => EXCLUDE_SVT_CLASS_FILTER.has(t))) {
+                    hiddenByFilter += 1;
                     return;
                 }
             }
@@ -1104,7 +1112,20 @@ function renderSelectionList(type, list) {
             container.appendChild(div);
         }
     });
-    refreshIcons();
+    if (hiddenByFilter > 0) {
+        const note = document.createElement('button');
+        note.type = 'button';
+        note.className = 'exclude-hidden-note';
+        note.textContent = `还有 ${hiddenByFilter} 个已排除从者被职阶筛选隐藏，点击显示全部`;
+        note.onclick = () => {
+            EXCLUDE_SVT_CLASS_FILTER.clear();
+            renderExcludeSvtClassFilters();
+            renderSelectionList('svt', 'exclude');
+            saveState();
+        };
+        container.appendChild(note);
+    }
+    refreshIcons(container);
 }
 
 // --- 计算逻辑 ---
@@ -1116,7 +1137,10 @@ async function calculate() {
     try {
         const params = new URLSearchParams();
         const crownWarEnabled = document.getElementById('enable-crown-war').checked;
-        let allowTraits = SELECTIONS.allowTraits;
+        // 职阶筛选只在戴冠战开启时生效。
+        // 不再读取SELECTIONS.allowTraits：它没有UI入口，旧版本state里残留的值会导致
+        // 戴冠战关闭后仍被隐式施加职阶限制。
+        let allowTraits = new Set();
         if (crownWarEnabled) {
             const crownClass = CROWN_CLASSES.find(item => item.value === SELECTIONS.crownClass);
             if (!crownClass) {
@@ -1192,7 +1216,7 @@ async function calculate() {
         }
     } catch (error) {
         console.error('Calculation failed:', error);
-        alert(`计算失败: ${error.message}`);
+        showFlash(`计算失败: ${error.message}`, 'error', 6000);
     } finally {
         btn.removeAttribute('aria-busy');
         btn.textContent = '开始计算';
@@ -1260,7 +1284,7 @@ function renderResults(teams, backendDuration, networkDuration) {
         const networkText = networkDuration === undefined ? '' : ` | 网络延迟: ${Math.round(networkDuration)} ms`;
         p.innerHTML = `<i data-lucide="timer" style="width: 14px; vertical-align: middle;"></i> 后端计算: ${Math.round(backendDuration)} ms${networkText}`;
         list.appendChild(p);
-        refreshIcons();
+        refreshIcons(p);
     }
 
     if (!teams || teams.length === 0) {
@@ -1423,7 +1447,7 @@ function renderResults(teams, backendDuration, networkDuration) {
         list.appendChild(teamDiv);
     });
     container.hidden = false;
-    refreshIcons();
+    refreshIcons(list);
 }
 
 function quickAdd(event, type, list, id, extra) {
@@ -1435,7 +1459,7 @@ function quickAdd(event, type, list, id, extra) {
     } else if (key === 'supportLockCe') {
         const limit = getSupportLimitValue();
         if (!SELECTIONS[key].has(id) && SELECTIONS[key].size >= limit) {
-            alert(`锁定助战礼装数量不能超过 ${limit} 个`);
+            showFlash(`锁定助战礼装数量不能超过 ${limit} 个`, 'error');
             return;
         }
         removeOppositeSelection(type, list, id);
@@ -1443,6 +1467,7 @@ function quickAdd(event, type, list, id, extra) {
     } else {
         removeOppositeSelection(type, list, id);
         SELECTIONS[key].add(id);
+        if (key === 'excludeSvt') ensureExcludeSvtVisible(id);
     }
     renderSelectionList(type, list);
     if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
@@ -1504,7 +1529,7 @@ function renderHistoryList() {
     if (HISTORY_ITEMS.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">暂无历史记录。</p>';
     }
-    refreshIcons();
+    refreshIcons(container);
 }
 
 function renderHistorySection(container, title, items, icon) {
@@ -1662,9 +1687,32 @@ function closeDonateModal() {
     document.getElementById('donate-modal').close();
 }
 
-function refreshIcons() {
-    lucide.createIcons();
+function refreshIcons(root) {
+    lucide.createIcons(root ? {root} : undefined);
 }
+
+// 控制台调试：debug(state, result?) 将 saved state 应用到页面渲染；
+// result 可传 /api/calculate 的响应对象（{teams, duration}）或 teams 数组，传入时一并渲染结果区。
+function debug(state, result) {
+    if (!state || typeof state !== 'object') {
+        console.warn('debug(state, result?): state 需为 saved state 对象（{config, selections, ui}），可从 localStorage 或 /api/state 获取。');
+        return;
+    }
+    try {
+        applyState(state);
+    } catch (error) {
+        console.error('[debug] 应用 state 失败:', error);
+        return;
+    }
+    if (result !== undefined) {
+        const teams = Array.isArray(result) ? result : result?.teams;
+        const duration = Array.isArray(result) ? undefined : Number(result?.duration) || undefined;
+        renderResults(teams, duration);
+        document.getElementById('results-container')?.scrollIntoView({behavior: 'smooth'});
+    }
+    console.log('[debug] 已渲染', {state, result});
+}
+window.debug = debug;
 
 function createAvatar(id, name, imgSrc, clickHandler, removeHandler, isCe = false) {
     const div = document.createElement('div');
@@ -1676,6 +1724,8 @@ function createAvatar(id, name, imgSrc, clickHandler, removeHandler, isCe = fals
     img.src = imgSrc;
     img.alt = name;
     img.title = name;
+    img.loading = 'lazy';
+    img.decoding = 'async';
     if (isCe) img.className = 'ce-img';
     div.appendChild(img);
 
