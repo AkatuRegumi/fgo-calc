@@ -1213,8 +1213,9 @@ async function runDataSyncUpdate() {
         const response = await fetch('/api/data-sync/update', {method: 'POST', cache: 'no-store'});
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-            const detail = payload.detail ? `\n${payload.detail}` : '';
-            throw new Error((payload.error || `HTTP ${response.status}`) + detail);
+            const error = new Error(payload.error || `HTTP ${response.status}`);
+            error.detail = payload.detail || '';
+            throw error;
         }
         const fresh = await fetch(`/api/data?ts=${Date.now()}`, {cache: 'no-store'});
         if (!fresh.ok) throw new Error(`数据已更新，但重新读取失败：HTTP ${fresh.status}`);
@@ -1236,10 +1237,20 @@ async function runDataSyncUpdate() {
         updateOwnershipSummary();
         await checkDataSync(true);
     } catch (error) {
-        console.error('Data Sync failed:', error);
-        const msg = String(error.message || error);
-        if (remote) remote.innerHTML = '<strong>数据源：</strong>同步失败';
-        showFlash(`数据同步失败：${msg.length > 800 ? msg.slice(0, 800) + '…' : msg}`, 'error', 9000);
+        console.error('Data Sync failed:', error, error?.detail || '');
+        const msg = String(error.message || error).split(/\r?\n/, 1)[0];
+        const hasLocalData = Number(ALL_DATA?.servants?.length || 0) > 0 && Number(ALL_DATA?.craftEssences?.length || 0) > 0;
+        if (remote) {
+            remote.innerHTML = hasLocalData
+                ? '<strong>数据源：</strong>同步失败 · 已继续使用本地数据'
+                : '<strong>数据源：</strong>同步失败';
+        }
+        const concise = msg.length > 260 ? `${msg.slice(0, 257)}…` : msg;
+        showFlash(
+            hasLocalData ? `游戏数据同步失败，已继续使用本地数据：${concise}` : `数据同步失败：${concise}`,
+            hasLocalData ? 'info' : 'error',
+            9000
+        );
     } finally {
         if (btn) {
             btn.disabled = false;

@@ -23,7 +23,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__))+'/data')
 
 def _run_git(args):
     p = subprocess.run(
-        ["git", *args],
+        ["git", "-c", "http.version=HTTP/1.1", *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
@@ -57,6 +57,13 @@ def fetch_git_repo():
             return
         except Exception as e:
             if attempt == 2:
+                if os.path.isdir("chaldea-data"):
+                    try:
+                        head = _run_git(["-C", "chaldea-data", "rev-parse", "--short", "HEAD"])
+                    except Exception:
+                        head = "local cache"
+                    print(f"[data][WARN] Chaldea Data update failed after 3 attempts; using existing {head} instead: {e}")
+                    return
                 raise RuntimeError(f"Failed to update Chaldea Data after 3 attempts: {e}") from e
             print(f"[data] Git fetch failed ({attempt + 1}/3): {e}")
             time.sleep(2 ** attempt)

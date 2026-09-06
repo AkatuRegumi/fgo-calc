@@ -223,9 +223,9 @@ function populateModalGrid(filter = '') {
             prioritySelect.className = 'profile-mini-select';
             prioritySelect.title = '手动培养优先级';
             [
-                ['auto', '优先:自动'],
-                ['high', '优先:高'],
-                ['low', '优先:低']
+                ['auto', '自动'],
+                ['high', '高优'],
+                ['low', '低优']
             ].forEach(([value, label]) => {
                 const option = document.createElement('option');
                 option.value = value;
@@ -243,7 +243,7 @@ function populateModalGrid(filter = '') {
             const targetSelect = document.createElement('select');
             targetSelect.className = 'profile-mini-select';
             targetSelect.title = '长期培养目标';
-            [[10, '目标:绊10'], [15, '目标:绊15']].forEach(([value, label]) => {
+            [[10, '绊10'], [15, '绊15']].forEach(([value, label]) => {
                 const option = document.createElement('option');
                 option.value = String(value);
                 option.textContent = label;

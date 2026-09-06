@@ -66,7 +66,7 @@ def git_output(args, timeout=20):
         return None
     try:
         p = subprocess.run(
-            ['git', *args],
+            ['git', '-c', 'http.version=HTTP/1.1', *args],
             cwd=ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

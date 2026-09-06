@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.1 Hotfix
+
+- Fixed the three mini-selects in Servant Box cards rendering as blank under Pico CSS by overriding the framework's select right-padding and using compact labels.
+- Forced GitHub/Chaldea git probes to HTTP/1.1 to avoid the observed HTTP/2 reset path on some Windows networks.
+- If Chaldea Data cannot be refreshed but a local Chaldea cache exists, Data Sync now continues from that cache instead of aborting immediately.
+- Data Sync failures keep full diagnostics in logs/devtools but show a concise message in the UI and explicitly preserve already-loaded local data.
+
 ## v9 Upstream Rebase / GitHub Candidate
 
 - Tweaked the optimization-mode hint spacing for clearer visual separation from the selector.
