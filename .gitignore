@@ -1,11 +1,39 @@
-data/chaldea-data
+# Generated / downloaded FGO data cache
+data/chaldea-data/
+data/source_meta.json
+data/ce_sync_report.json
+data/data_sync_*.log
+
+# Local editor / notebook files
 .vscode/
+.idea/
 *.ipynb
-config.dev.json
-config.prod.json
-deploy.sh
+__pycache__/
+*.py[cod]
+
+# Local backend runtime/config
+backend/fgo-calc-local.exe
+backend/.local_build_version
+fgo-calc-local.exe
 fgo-calc-backend
-users.json
-users.db
-users.db-shm
-users.db-wal
+*.exe
+
+# Personal Box / Chaldea imports accidentally copied into the repository
+*box*.json
+*Box*.json
+*chaldea*.csv
+*Chaldea*.csv
+bond*.csv
+
+# Local packaging / deployment helpers
+deploy.sh
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Raw FGO login/sniffer responses (account-sensitive)
+*stream-response*.txt
+*toplogin*.txt
+*fgo-response*.txt
+*login-response*.txt
+response-body*.txt

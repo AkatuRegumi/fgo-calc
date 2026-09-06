@@ -1,96 +1,76 @@
-let CURRENT_USER = null;
 let ALL_DATA = { servants: [], craftEssences: [], traits: {} };
-// state版本：1=初版（无version字段），2=引入15绊配置。
-// 新增字段时递增版本，loadState会先全量重置再应用，旧state缺失的字段自然落到默认值，无需逐字段迁移。
-const STATE_VERSION = 2;
+let SELECTIONS = {
+    includeSvt: new Map(),
+    excludeSvt: new Set(),
+    includeCe: new Set(),
+    excludeCe: new Set(),
+    supportLockCe: new Set(),
+    excludeSupportCe: new Set(),
+    allowTraits: new Set(),
+    selectedEvents: new Set(),
+    ownedSvt: new Set(),
+    ownedCe: new Set(),
+    bond10Svt: new Set(),
+    bond15Svt: new Set()
+};
+let SERVANT_PROFILES = new Map();
+let BOX_IMPORT_META = { source: '', importedAt: '', matched: 0, skipped: 0 };
 
-function createDefaultSelections() {
+function createDefaultServantProfile(id) {
     return {
-        includeSvt: new Map(),
-        excludeSvt: new Set(),
-        includeCe: new Set(),
-        excludeCe: new Set(),
-        supportLockCe: new Set(),
-        excludeSupportCe: new Set(),
-        crownClass: '',
-        selectedEvents: new Set(),
-        bond15: new Map()
+        id,
+        bondRank: 0,
+        bondRankMax: 0,
+        bondTotal: 0,
+        bondNext: 0,
+        bondThresholds: {},
+        targetRank: 10,
+        role: 'normal',
+        priority: 'auto',
+        fixed: false,
+        imported: false
     };
 }
-let SELECTIONS = createDefaultSelections();
-let HISTORY_ITEMS = [];
-const ANNOUNCEMENT_VIEWED_AT_KEY = 'fgo-announcement-viewed-at';
 
-function parseAnnouncementDate(date) {
-    return new Date(`${date}T00:00:00`);
+function getServantProfile(id) {
+    const current = SERVANT_PROFILES.get(id);
+    if (current) return current;
+    const created = createDefaultServantProfile(id);
+    SERVANT_PROFILES.set(id, created);
+    return created;
 }
 
-function renderAnnouncements(announcements = []) {
-    const list = document.getElementById('announcement-list');
-    if (!list) return;
-    announcements = [...announcements]
-        .filter(item => !Number.isNaN(parseAnnouncementDate(item.date).getTime()))
-        .sort((a, b) => parseAnnouncementDate(b.date) - parseAnnouncementDate(a.date));
-    list.innerHTML = '';
-
-    announcements.forEach(item => {
-        const article = document.createElement('section');
-        article.className = 'announcement-item';
-        const title = document.createElement('h3');
-        title.textContent = item.title;
-        const time = document.createElement('time');
-        time.className = 'announcement-time';
-        time.dateTime = item.date;
-        time.textContent = parseAnnouncementDate(item.date).toLocaleDateString('zh-CN');
-        const content = document.createElement('p');
-        content.className = 'announcement-content';
-        content.textContent = item.content;
-        article.append(title, time, content);
-        list.appendChild(article);
-    });
-
-    if (announcements.length === 0) {
-        list.innerHTML = '<p class="announcement-content">暂无公告。</p>';
+function updateServantProfile(id, patch, persist = true) {
+    const current = {...getServantProfile(id), ...patch, id};
+    if (!['normal', 'driver', 'passenger'].includes(current.role)) current.role = 'normal';
+    if (!['auto', 'high', 'low'].includes(current.priority)) current.priority = 'auto';
+    current.targetRank = [10, 15].includes(Number(current.targetRank)) ? Number(current.targetRank) : 10;
+    current.fixed = !!current.fixed;
+    SERVANT_PROFILES.set(id, current);
+    if (persist) {
+        saveState();
+        updateOwnershipSummary();
     }
-    const latest = announcements[0] ? parseAnnouncementDate(announcements[0].date) : null;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const recentBoundary = new Date(today);
-    recentBoundary.setDate(recentBoundary.getDate() - 6);
-    if (latest) latest.setHours(0, 0, 0, 0);
-    let viewedAt = null;
-    try {
-        const storedViewedAt = localStorage.getItem(ANNOUNCEMENT_VIEWED_AT_KEY);
-        const parsedViewedAt = storedViewedAt ? new Date(storedViewedAt) : null;
-        if (parsedViewedAt && !Number.isNaN(parsedViewedAt.getTime())) viewedAt = parsedViewedAt;
-    } catch (error) {
-        console.error('Failed to read announcement view time:', error);
-    }
-    const isActive = latest
-        && latest >= recentBoundary
-        && latest <= today
-        && (!viewedAt || latest > viewedAt);
-    setAnnouncementActive(isActive);
-
-    const panel = document.getElementById('announcement-panel');
-    if (panel && !panel.dataset.viewTrackingReady) {
-        panel.dataset.viewTrackingReady = 'true';
-        panel.addEventListener('toggle', () => {
-            if (!panel.open) return;
-            try {
-                localStorage.setItem(ANNOUNCEMENT_VIEWED_AT_KEY, new Date().toISOString());
-            } catch (error) {
-                console.error('Failed to save announcement view time:', error);
-            }
-            setAnnouncementActive(false);
-        });
-    }
+    return current;
 }
 
-function setAnnouncementActive(isActive) {
-    document.getElementById('announcement-icon')?.classList.toggle('is-active', !!isActive);
-    const activeLabel = document.getElementById('announcement-active-label');
-    if (activeLabel) activeLabel.hidden = !isActive;
+function getProfileTargetTotal(profile) {
+    const thresholds = profile?.bondThresholds || {};
+    const target = Number(profile?.targetRank || 10);
+    const value = Number(thresholds[target] ?? thresholds[String(target)] ?? 0);
+    return Number.isFinite(value) && value > 0 ? value : 0;
+}
+
+function getProfileRemaining(profile) {
+    const targetTotal = getProfileTargetTotal(profile);
+    if (targetTotal > 0) return Math.max(0, targetTotal - Number(profile.bondTotal || 0));
+    if (Number(profile.bondNext || 0) > 0) return Number(profile.bondNext);
+    return null;
+}
+
+function formatNumber(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? Math.round(n).toLocaleString('zh-CN') : '-';
 }
 
 function getActiveServants() {
@@ -122,7 +102,7 @@ function showFlash(message, type = 'info', duration = 4000) {
     close.innerHTML = '<i data-lucide="x"></i>';
     flash.appendChild(close);
     container.appendChild(flash);
-    refreshIcons(flash);
+    refreshIcons();
 
     let removed = false;
     const remove = () => {
@@ -133,108 +113,6 @@ function showFlash(message, type = 'info', duration = 4000) {
     };
     close.onclick = remove;
     if (duration > 0) setTimeout(remove, duration);
-}
-
-function updateAuthUI() {
-    const welcome = document.getElementById('user-welcome');
-    const usernameSpan = document.getElementById('current-username');
-    const btnLogin = document.getElementById('btn-login-modal');
-    const btnLogout = document.getElementById('btn-logout');
-    const btnHistory = document.getElementById('btn-history');
-    
-    if (CURRENT_USER) {
-        usernameSpan.textContent = CURRENT_USER;
-        welcome.style.display = 'inline';
-        btnLogout.style.display = 'inline-block';
-        if (btnHistory) btnHistory.style.display = 'inline-block';
-        btnLogin.style.display = 'none';
-    } else {
-        welcome.style.display = 'none';
-        btnLogout.style.display = 'none';
-        if (btnHistory) btnHistory.style.display = 'none';
-        btnLogin.style.display = 'inline-block';
-    }
-}
-
-async function handleLogin() {
-    const user = document.getElementById('login-username').value.trim();
-    const pass = document.getElementById('login-password').value;
-    if (!user) return;
-    
-    const btn = document.getElementById('btn-submit-login');
-    btn.setAttribute('aria-busy', 'true');
-    btn.textContent = '请稍候...';
-    
-    try {
-        let res = await fetch('/api/login', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username: user, password: pass})
-        });
-        
-        let data = await res.json();
-        if (!res.ok) {
-            if (data.error === "user not found") {
-                res = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({username: user, password: pass})
-                });
-                data = await res.json();
-                if (!res.ok) throw new Error(data.error);
-                
-                showFlash('注册成功并已登录', 'success');
-                data.state = localStorage.getItem(STORAGE_KEY) || "";
-            } else {
-                throw new Error(data.error);
-            }
-        } else {
-            showFlash('登录成功', 'success');
-        }
-        
-        CURRENT_USER = data.username || user;
-        document.getElementById('login-modal').close();
-        updateAuthUI();
-        
-        if (data.state) {
-            localStorage.setItem(STORAGE_KEY, data.state);
-            loadState();
-            renderEventSelection();
-            renderExcludeSvtClassFilters();
-        } else {
-            syncState();
-        }
-    } catch (err) {
-        showFlash('登录失败: ' + err.message, 'error', 6000);
-    } finally {
-        btn.removeAttribute('aria-busy');
-        btn.textContent = '登录 / 注册';
-    }
-}
-
-async function logout() {
-    try {
-        await fetch('/api/logout', { method: 'POST' });
-    } catch(e) {}
-    CURRENT_USER = null;
-    updateAuthUI();
-    showFlash('已退出登录，当前为访客状态', 'info');
-}
-
-async function syncState() {
-    if (!CURRENT_USER) return;
-    const state = localStorage.getItem(STORAGE_KEY);
-    if (!state) return;
-    
-    try {
-        await fetch('/api/state', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({state: state})
-        });
-    } catch(e) {
-        console.error("Failed to sync state to server:", e);
-    }
 }
 
 const STAR_TRAITS = {
@@ -259,18 +137,6 @@ const CLASS_TRAITS = [
     { name: 'Beast', trait: [132, 129, 124] }
 ];
 
-const CROWN_CLASSES = [
-    { value: 'Saber', name: 'Saber', traits: [100] },
-    { value: 'Archer', name: 'Archer', traits: [102] },
-    { value: 'Lancer', name: 'Lancer', traits: [101] },
-    { value: 'Rider', name: 'Rider', traits: [103] },
-    { value: 'Caster', name: 'Caster', traits: [104] },
-    { value: 'Assassin', name: 'Assassin', traits: [105] },
-    { value: 'Berserker', name: 'Berserker', traits: [106] },
-    { value: 'EX1', name: 'EX1', traits: [108, 110, 115, 107] },
-    { value: 'EX2', name: 'EX2', traits: [109, 117, 120, 132, 129, 124] }
-];
-
 let FILTER_STATE = {
     stars: new Set(),
     classes: new Set()
@@ -291,6 +157,14 @@ let UI_STATE = {
         includeCe: false,
         excludeCe: false
     }
+};
+
+let OWNERSHIP_CONFIG = {
+    useOwnedServants: false,
+    useOwnedCes: false,
+    excludeBond10: true,
+    // 绊15默认允许参与求解：自身按已满羁绊0收益，作为「梦火の導き」+25%全队辅助。
+    excludeBond15: false
 };
 
 function applySectionCollapse(key) {
@@ -387,20 +261,9 @@ function renderExcludeSvtClassFilters() {
 }
 
 function getSupportLimitValue() {
-    if (!document.getElementById('consider-support-ce')?.checked) return 0;
-    return document.getElementById('enable-crown-war')?.checked ? 2 : 1;
-}
-
-// 添加排除从者时，若当前职阶显示筛选会将其隐藏，则重置筛选以保证可见。
-// 筛选仅影响展示，SELECTIONS.excludeSvt 中的项始终参与计算。
-function ensureExcludeSvtVisible(id) {
-    if (EXCLUDE_SVT_CLASS_FILTER.size === 0) return;
-    const item = getActiveServants().find(svt => svt.id === id);
-    const detail = item && (item.diff.default || Object.values(item.diff)[0]);
-    if (detail && detail.traits && detail.traits.some(t => EXCLUDE_SVT_CLASS_FILTER.has(t))) return;
-    EXCLUDE_SVT_CLASS_FILTER.clear();
-    renderExcludeSvtClassFilters();
-    showFlash('已重置排除列表的职阶筛选，以显示新添加的从者。', 'info');
+    const raw = parseInt(document.getElementById('support-limit').value, 10);
+    if (Number.isNaN(raw)) return 1;
+    return Math.max(0, raw);
 }
 
 function isSupportCandidateCe(ce) {
@@ -432,7 +295,7 @@ function enforceSupportLockLimit(showAlert = false) {
     SELECTIONS.supportLockCe = new Set(ids.slice(0, limit));
     renderSelectionList('ce', 'supportLock');
     if (showAlert) {
-        showFlash(`锁定助战礼装最多只能保留 ${limit} 个，已自动截断。`, 'info');
+        alert(`锁定助战礼装最多只能保留 ${limit} 个，已自动截断。`);
     }
     return true;
 }
@@ -472,12 +335,6 @@ function pruneInvalidSelectionsByServer() {
             changed = true;
         }
     }
-    for (const id of Array.from(SELECTIONS.bond15.keys())) {
-        if (!availableServants.has(id)) {
-            SELECTIONS.bond15.delete(id);
-            changed = true;
-        }
-    }
 
     if (changed) {
         renderSelectionList('ce', 'include');
@@ -486,16 +343,12 @@ function pruneInvalidSelectionsByServer() {
         renderSelectionList('ce', 'excludeSupport');
         renderSelectionList('svt', 'include');
         renderSelectionList('svt', 'exclude');
-        renderSelectionList('svt', 'bond15');
     }
 
     return changed;
 }
 
 function getSelectionKey(type, list) {
-    if (type === 'svt' && list === 'bond15') {
-        return 'bond15';
-    }
     if (type === 'ce' && list === 'supportLock') {
         return 'supportLockCe';
     }
@@ -506,9 +359,6 @@ function getSelectionKey(type, list) {
 }
 
 function getSelectionContainerId(type, list) {
-    if (type === 'svt' && list === 'bond15') {
-        return 'bond15-svt-list';
-    }
     if (type === 'ce' && list === 'supportLock') {
         return 'support-lock-ce-list';
     }
@@ -518,17 +368,588 @@ function getSelectionContainerId(type, list) {
     return `${list}-${type}-list`;
 }
 
+function getVisibleCraftEssences() {
+    return ALL_DATA.craftEssences.filter(isCeVisibleOnServer);
+}
+
+function updateOwnershipSummary() {
+    const activeServants = getActiveServants();
+    const activeServantIds = new Set(activeServants.map(item => item.id));
+    const visibleCes = getVisibleCraftEssences();
+    const visibleCeIds = new Set(visibleCes.map(item => item.id));
+
+    const ownedSvtCount = Array.from(SELECTIONS.ownedSvt).filter(id => activeServantIds.has(id)).length;
+    const bond10Count = Array.from(SELECTIONS.bond10Svt).filter(id => activeServantIds.has(id) && SELECTIONS.ownedSvt.has(id)).length;
+    const bond15Ids = new Set(Array.from(SELECTIONS.bond15Svt).filter(id => activeServantIds.has(id) && SELECTIONS.ownedSvt.has(id)));
+    SERVANT_PROFILES.forEach((profile, id) => {
+        if (activeServantIds.has(id) && SELECTIONS.ownedSvt.has(id) && Number(profile.bondRank || 0) >= 15) bond15Ids.add(id);
+    });
+    const bond15Count = bond15Ids.size;
+    const driverCount = Array.from(SELECTIONS.ownedSvt).filter(id => activeServantIds.has(id) && getServantProfile(id).role === 'driver').length;
+    const passengerCount = Array.from(SELECTIONS.ownedSvt).filter(id => activeServantIds.has(id) && getServantProfile(id).role === 'passenger').length;
+    const fixedCount = Array.from(SELECTIONS.ownedSvt).filter(id => activeServantIds.has(id) && getServantProfile(id).fixed).length;
+    const ownedCeCount = Array.from(SELECTIONS.ownedCe).filter(id => visibleCeIds.has(id)).length;
+
+    const svtSummary = document.getElementById('owned-svt-summary');
+    const bondSummary = document.getElementById('owned-svt-bond-summary');
+    const importSummary = document.getElementById('box-import-summary');
+    const ceSummary = document.getElementById('owned-ce-summary');
+    if (svtSummary) svtSummary.textContent = `${ownedSvtCount} / ${activeServants.length}`;
+    if (bondSummary) bondSummary.textContent = `羁绊10：${bond10Count} · 羁绊15：${bond15Count} · 司机：${driverCount} · 老板：${passengerCount} · 固定：${fixedCount}`;
+    if (importSummary) {
+        if (BOX_IMPORT_META.importedAt) {
+            const d = new Date(BOX_IMPORT_META.importedAt);
+            const snapshot = BOX_IMPORT_META.snapshotAt ? new Date(BOX_IMPORT_META.snapshotAt) : null;
+            const snapshotText = snapshot && !Number.isNaN(snapshot.getTime()) ? ` · 快照 ${snapshot.toLocaleString()}` : '';
+            importSummary.textContent = `最近同步：${BOX_IMPORT_META.source || '批量导入'} · ${Number.isNaN(d.getTime()) ? BOX_IMPORT_META.importedAt : d.toLocaleString()} · ${BOX_IMPORT_META.matched || 0}骑${snapshotText}`;
+        } else {
+            importSummary.textContent = '尚未导入精确羁绊数据';
+        }
+    }
+    if (ceSummary) ceSummary.textContent = `${ownedCeCount} / ${visibleCes.length}`;
+
+    const svtToggle = document.getElementById('use-owned-servants');
+    const ceToggle = document.getElementById('use-owned-ces');
+    const bond10Toggle = document.getElementById('exclude-bond10');
+    const bond15Toggle = document.getElementById('exclude-bond15');
+    if (svtToggle) svtToggle.checked = OWNERSHIP_CONFIG.useOwnedServants;
+    if (ceToggle) ceToggle.checked = OWNERSHIP_CONFIG.useOwnedCes;
+    if (bond10Toggle) bond10Toggle.checked = OWNERSHIP_CONFIG.excludeBond10;
+    if (bond15Toggle) bond15Toggle.checked = OWNERSHIP_CONFIG.excludeBond15;
+}
+
+function handleOwnershipToggle(kind, checked) {
+    if (kind === 'svt') OWNERSHIP_CONFIG.useOwnedServants = checked;
+    if (kind === 'ce') OWNERSHIP_CONFIG.useOwnedCes = checked;
+    saveState();
+    updateOwnershipSummary();
+}
+
+function handleBondExclusionToggle(level, checked) {
+    if (level === 10) OWNERSHIP_CONFIG.excludeBond10 = checked;
+    if (level === 15) OWNERSHIP_CONFIG.excludeBond15 = checked;
+    saveState();
+    updateOwnershipSummary();
+}
+
+function setServantBondStatus(id, status) {
+    SELECTIONS.ownedSvt.add(id);
+    SELECTIONS.bond10Svt.delete(id);
+    SELECTIONS.bond15Svt.delete(id);
+    if (status === 10) SELECTIONS.bond10Svt.add(id);
+    if (status === 15) SELECTIONS.bond15Svt.add(id);
+    const profile = getServantProfile(id);
+    if (!profile.imported && (status === 10 || status === 15)) {
+        SERVANT_PROFILES.set(id, {...profile, bondRank: status, bondRankMax: status, targetRank: status});
+    }
+    saveState();
+    updateOwnershipSummary();
+}
+
+function getServantBondStatus(id) {
+    if (SELECTIONS.bond15Svt.has(id)) return 15;
+    if (SELECTIONS.bond10Svt.has(id)) return 10;
+    return 0;
+}
+
+function serializeServantProfiles() {
+    return Array.from(SERVANT_PROFILES.entries())
+        .filter(([id]) => Number.isInteger(Number(id)))
+        .map(([id, profile]) => [Number(id), {
+            ...createDefaultServantProfile(Number(id)),
+            ...profile,
+            id: Number(id),
+            bondThresholds: {...(profile?.bondThresholds || {})}
+        }]);
+}
+
+function exportOwnership() {
+    const payload = {
+        format: 'fgo-calc-local-box-v9',
+        exportedAt: new Date().toISOString(),
+        servants: Array.from(SELECTIONS.ownedSvt).sort((a, b) => a - b),
+        bond10Servants: Array.from(SELECTIONS.bond10Svt).sort((a, b) => a - b),
+        bond15Servants: Array.from(SELECTIONS.bond15Svt).sort((a, b) => a - b),
+        craftEssences: Array.from(SELECTIONS.ownedCe).sort((a, b) => a - b),
+        servantProfiles: serializeServantProfiles(),
+        boxImportMeta: {...BOX_IMPORT_META}
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'fgo-box-v8.json';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+}
+
+function importOwnershipFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const payload = JSON.parse(String(reader.result || ''));
+            if (!Array.isArray(payload.servants) || !Array.isArray(payload.craftEssences)) {
+                throw new Error('Box JSON 缺少 servants / craftEssences 数组');
+            }
+            SELECTIONS.ownedSvt = new Set(payload.servants.filter(Number.isInteger));
+            SELECTIONS.bond10Svt = new Set((payload.bond10Servants || []).filter(Number.isInteger));
+            SELECTIONS.bond15Svt = new Set((payload.bond15Servants || []).filter(Number.isInteger));
+            for (const id of SELECTIONS.bond10Svt) SELECTIONS.ownedSvt.add(id);
+            for (const id of SELECTIONS.bond15Svt) {
+                SELECTIONS.ownedSvt.add(id);
+                SELECTIONS.bond10Svt.delete(id);
+            }
+            SELECTIONS.ownedCe = new Set(payload.craftEssences.filter(Number.isInteger));
+            if (Array.isArray(payload.servantProfiles)) {
+                SERVANT_PROFILES = new Map();
+                for (const entry of payload.servantProfiles) {
+                    if (!Array.isArray(entry) || entry.length < 2) continue;
+                    const id = Number(entry[0]);
+                    if (!Number.isInteger(id)) continue;
+                    const raw = entry[1] || {};
+                    SERVANT_PROFILES.set(id, {
+                        ...createDefaultServantProfile(id),
+                        ...raw,
+                        id,
+                        bondThresholds: {...(raw.bondThresholds || {})},
+                        fixed: !!raw.fixed
+                    });
+                }
+            }
+            if (payload.boxImportMeta && typeof payload.boxImportMeta === 'object') {
+                BOX_IMPORT_META = {...BOX_IMPORT_META, ...payload.boxImportMeta};
+            }
+            saveState();
+            updateOwnershipSummary();
+            showFlash('Box 导入成功', 'success');
+        } catch (error) {
+            showFlash('Box 导入失败: ' + error.message, 'error', 6000);
+        } finally {
+            input.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+function parseCsvRows(text) {
+    const rows = [];
+    let row = [];
+    let field = '';
+    let quoted = false;
+    const source = String(text || '').replace(/^\uFEFF/, '');
+    for (let i = 0; i < source.length; i++) {
+        const ch = source[i];
+        if (quoted) {
+            if (ch === '"') {
+                if (source[i + 1] === '"') {
+                    field += '"';
+                    i++;
+                } else {
+                    quoted = false;
+                }
+            } else {
+                field += ch;
+            }
+            continue;
+        }
+        if (ch === '"') {
+            quoted = true;
+        } else if (ch === ',') {
+            row.push(field);
+            field = '';
+        } else if (ch === '\n') {
+            row.push(field.replace(/\r$/, ''));
+            rows.push(row);
+            row = [];
+            field = '';
+        } else {
+            field += ch;
+        }
+    }
+    if (field.length > 0 || row.length > 0) {
+        row.push(field.replace(/\r$/, ''));
+        rows.push(row);
+    }
+    return rows.filter(r => r.some(cell => String(cell).trim() !== ''));
+}
+
+function parseCsvInt(value, fallback = 0) {
+    const normalized = String(value ?? '').trim().replace(/,/g, '');
+    if (!normalized) return fallback;
+    const n = Number.parseInt(normalized, 10);
+    return Number.isFinite(n) ? n : fallback;
+}
+
+function importChaldeaBondCsv(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const rows = parseCsvRows(reader.result);
+            if (rows.length < 2) throw new Error('CSV 没有可导入的数据');
+            const headers = rows[0].map(v => String(v).trim());
+            const indexOf = name => headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+            const required = ['svtId', 'Rank', 'RankMax', 'Total', 'Next'];
+            const missing = required.filter(name => indexOf(name) < 0);
+            if (missing.length) throw new Error(`不是 Chaldea 羁绊详情 CSV，缺少列：${missing.join(', ')}`);
+
+            const knownIds = new Set(ALL_DATA.servants.map(s => s.id));
+            const nextOwned = new Set();
+            const nextBond10 = new Set();
+            const nextBond15 = new Set();
+            let matched = 0;
+            let skipped = 0;
+            let active15To16 = 0;
+
+            for (const row of rows.slice(1)) {
+                const id = parseCsvInt(row[indexOf('svtId')], -1);
+                if (!knownIds.has(id)) {
+                    if (id > 0) skipped++;
+                    continue;
+                }
+                const bondRank = parseCsvInt(row[indexOf('Rank')], 0);
+                const bondRankMax = parseCsvInt(row[indexOf('RankMax')], 0);
+                const bondTotal = parseCsvInt(row[indexOf('Total')], 0);
+                const bondNext = parseCsvInt(row[indexOf('Next')], 0);
+                const previous = {...getServantProfile(id)};
+                const thresholds = {};
+                for (let lv = 5; lv <= 16; lv++) {
+                    const idx = indexOf(`Total(Lv${lv})`);
+                    if (idx >= 0) {
+                        const total = parseCsvInt(row[idx], 0);
+                        if (total > 0) thresholds[lv] = total;
+                    }
+                }
+                const autoTarget = bondRankMax > 10 ? 15 : 10;
+                SERVANT_PROFILES.set(id, {
+                    ...createDefaultServantProfile(id),
+                    ...previous,
+                    id,
+                    bondRank,
+                    bondRankMax,
+                    bondTotal,
+                    bondNext,
+                    bondThresholds: thresholds,
+                    targetRank: previous.imported ? previous.targetRank : autoTarget,
+                    imported: true
+                });
+                nextOwned.add(id);
+                if (bondRank >= 15 && bondRankMax <= 15) nextBond15.add(id);
+                else if (bondRank >= 10 && bondRankMax <= 10) nextBond10.add(id);
+                if (bondRank >= 15 && bondRankMax > 15) active15To16++;
+                matched++;
+            }
+            if (matched === 0) throw new Error('没有匹配到当前数据库中的从者 svtId');
+
+            // Chaldea 的 Bond CSV 是当前账号持有从者的完整集合，因此作为英灵 Box 的权威快照覆盖。
+            SELECTIONS.ownedSvt = nextOwned;
+            SELECTIONS.bond10Svt = nextBond10;
+            SELECTIONS.bond15Svt = nextBond15;
+            OWNERSHIP_CONFIG.useOwnedServants = true;
+            BOX_IMPORT_META = {
+                source: 'Chaldea Bond CSV',
+                importedAt: new Date().toISOString(),
+                matched,
+                skipped
+            };
+            saveState();
+            updateOwnershipSummary();
+            let message = `Chaldea 羁绊 CSV 导入成功：${matched}骑`;
+            if (skipped) message += `，${skipped}条当前数据库未识别`;
+            if (active15To16) message += `；另有${active15To16}骑为绊15→更高上限：自身继续培养，同时作为梦火+25%来源`;
+            showFlash(message, 'success', 7000);
+            if (currentModal.type === 'svt' && currentModal.list === 'owned') populateModalGrid(document.getElementById('modal-search').value);
+        } catch (error) {
+            showFlash('Chaldea CSV 导入失败: ' + error.message, 'error', 7000);
+        } finally {
+            input.value = '';
+        }
+    };
+    reader.readAsText(file);
+}
+
+
+function formatSnapshotTime(epochSeconds) {
+    const seconds = Number(epochSeconds || 0);
+    if (!Number.isFinite(seconds) || seconds <= 0) return '';
+    const date = new Date(seconds * 1000);
+    return Number.isNaN(date.getTime()) ? '' : date.toISOString();
+}
+
+function calculateImportedBondNext(previousProfile, bondRank, bondTotal) {
+    const thresholds = previousProfile?.bondThresholds || {};
+    const nextRank = Number(bondRank || 0) + 1;
+    const nextTotal = Number(thresholds[nextRank] ?? thresholds[String(nextRank)] ?? 0);
+    if (Number.isFinite(nextTotal) && nextTotal > Number(bondTotal || 0)) {
+        return Math.max(0, Math.round(nextTotal - Number(bondTotal || 0)));
+    }
+    return 0;
+}
+
+function importFgoResponseFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            if (!window.FgoResponseImport) throw new Error('FGO Response 解析模块未加载');
+            const payload = window.FgoResponseImport.unwrapResponseText(String(reader.result || ''));
+            const snapshot = window.FgoResponseImport.extractSnapshot(payload, {
+                servantIds: ALL_DATA.servants.map(item => item.id),
+                craftEssenceIds: ALL_DATA.craftEssences.map(item => item.id)
+            });
+
+            const snapshotIso = formatSnapshotTime(snapshot.serverTime);
+            const snapshotDate = snapshotIso ? new Date(snapshotIso) : null;
+            const now = Date.now();
+            const ageDays = snapshotDate ? Math.max(0, Math.floor((now - snapshotDate.getTime()) / 86400000)) : null;
+            const staleText = ageDays !== null && ageDays >= 7 ? `\n⚠ 这份抓包距现在约 ${ageDays} 天，导入会把 Box/羁绊回退到当时状态。` : '';
+            const ceText = snapshot.ceInventoryAvailable
+                ? `\n匹配到满破羁绊礼装：${snapshot.mlbCraftEssences.length}张${snapshot.nonMlbCraftEssences.length ? `（另有${snapshot.nonMlbCraftEssences.length}张未满破，不会计入20%库存）` : ''}`
+                : '\n未发现可用的礼装实例数据，本次不会覆盖礼装库存。';
+            const confirmText = `准备导入 FGO 登录快照：\n抓包时间：${snapshotDate ? snapshotDate.toLocaleString() : '未知'}\n已持有从者：${snapshot.servants.length}骑${ceText}${staleText}\n\n将覆盖“持有从者 + 当前羁绊进度”，但保留司机/老板、手动优先级、固定出场和已有羁绊阈值。原始登录响应不会保存到本工具。`;
+            if (!window.confirm(confirmText)) return;
+
+            const nextOwned = new Set();
+            const nextBond10 = new Set();
+            const nextBond15 = new Set();
+            let active15To16 = 0;
+
+            for (const item of snapshot.servants) {
+                const id = Number(item.id);
+                const previous = {...getServantProfile(id)};
+                const bondRank = Number(item.bondRank || 0);
+                const bondRankMax = Number(item.bondRankMax || 10);
+                const bondTotal = Number(item.bondTotal || 0);
+                const autoTarget = bondRankMax > 10 ? 15 : 10;
+                SERVANT_PROFILES.set(id, {
+                    ...createDefaultServantProfile(id),
+                    ...previous,
+                    id,
+                    bondRank,
+                    bondRankMax,
+                    bondTotal,
+                    bondNext: calculateImportedBondNext(previous, bondRank, bondTotal),
+                    bondThresholds: {...(previous.bondThresholds || {})},
+                    targetRank: previous.imported ? previous.targetRank : autoTarget,
+                    imported: true
+                });
+                nextOwned.add(id);
+                if (bondRank >= 15 && bondRankMax <= 15) nextBond15.add(id);
+                else if (bondRank >= 10 && bondRankMax <= 10) nextBond10.add(id);
+                if (bondRank >= 15 && bondRankMax > 15) active15To16++;
+            }
+
+            SELECTIONS.ownedSvt = nextOwned;
+            SELECTIONS.bond10Svt = nextBond10;
+            SELECTIONS.bond15Svt = nextBond15;
+            OWNERSHIP_CONFIG.useOwnedServants = true;
+
+            if (snapshot.ceInventoryAvailable) {
+                SELECTIONS.ownedCe = new Set(snapshot.mlbCraftEssences);
+                OWNERSHIP_CONFIG.useOwnedCes = true;
+            }
+
+            BOX_IMPORT_META = {
+                source: 'FGO / Stream Response',
+                importedAt: new Date().toISOString(),
+                snapshotAt: snapshotIso,
+                matched: snapshot.servants.length,
+                skipped: snapshot.unknownOwnedServants || 0,
+                ownedCes: snapshot.mlbCraftEssences.length
+            };
+            saveState();
+            updateOwnershipSummary();
+
+            let message = `FGO 登录快照导入成功：${snapshot.servants.length}骑`;
+            if (snapshot.ceInventoryAvailable) message += `，满破羁绊礼装${snapshot.mlbCraftEssences.length}张`;
+            if (snapshot.unknownOwnedServants) message += `；另有${snapshot.unknownOwnedServants}条从者ID未被当前主数据识别`;
+            if (active15To16) message += `；${active15To16}骑为绊15→更高上限：自身继续培养，同时作为梦火+25%来源`;
+            if (snapshot.grandRecords?.length) message += `；检测到${snapshot.grandRecords.length}条Grand登记记录`;
+            showFlash(message, 'success', 8000);
+            if (currentModal.type === 'svt' && currentModal.list === 'owned') populateModalGrid(document.getElementById('modal-search').value);
+        } catch (error) {
+            showFlash('FGO / Stream Response 导入失败: ' + error.message, 'error', 8000);
+        } finally {
+            input.value = '';
+        }
+    };
+    reader.onerror = () => {
+        showFlash('FGO / Stream Response 文件读取失败', 'error', 6000);
+        input.value = '';
+    };
+    reader.readAsText(file);
+}
+
+function isBond15ProviderId(id) {
+    if (SELECTIONS.bond15Svt.has(id)) return true;
+    const profile = SERVANT_PROFILES.get(id);
+    return Number(profile?.bondRank || 0) >= 15;
+}
+
+function getEffectiveExcludedServants() {
+    const excluded = new Set(SELECTIONS.excludeSvt);
+    if (!OWNERSHIP_CONFIG.useOwnedServants) return excluded;
+    for (const servant of getActiveServants()) {
+        if (!SELECTIONS.ownedSvt.has(servant.id)) {
+            excluded.add(servant.id);
+            continue;
+        }
+        if (OWNERSHIP_CONFIG.excludeBond10 && SELECTIONS.bond10Svt.has(servant.id)) excluded.add(servant.id);
+        if (OWNERSHIP_CONFIG.excludeBond15 && isBond15ProviderId(servant.id)) excluded.add(servant.id);
+    }
+    return excluded;
+}
+
+function getEffectiveExcludedCes() {
+    const excluded = new Set(SELECTIONS.excludeCe);
+    if (!OWNERSHIP_CONFIG.useOwnedCes) return excluded;
+    for (const ce of getVisibleCraftEssences()) {
+        if (!SELECTIONS.ownedCe.has(ce.id)) excluded.add(ce.id);
+    }
+    return excluded;
+}
+
+function validateOwnershipSelections() {
+    if (OWNERSHIP_CONFIG.useOwnedServants) {
+        const missing = Array.from(SELECTIONS.includeSvt.keys()).filter(id => !SELECTIONS.ownedSvt.has(id));
+        if (missing.length > 0) {
+            const names = missing.map(id => getActiveServants().find(item => item.id === id)?.name || String(id));
+            throw new Error(`必选从者不在“我的 Box”中：${names.join('、')}`);
+        }
+        const blockedBond10 = Array.from(SELECTIONS.includeSvt.keys()).filter(id => OWNERSHIP_CONFIG.excludeBond10 && SELECTIONS.bond10Svt.has(id));
+        const blockedBond15 = Array.from(SELECTIONS.includeSvt.keys()).filter(id => OWNERSHIP_CONFIG.excludeBond15 && isBond15ProviderId(id));
+        if (blockedBond10.length > 0 || blockedBond15.length > 0) {
+            const ids = [...blockedBond10, ...blockedBond15];
+            const names = ids.map(id => getActiveServants().find(item => item.id === id)?.name || String(id));
+            throw new Error(`必选从者被 Box 标记为已满羁绊并设置为排除：${names.join('、')}`);
+        }
+        const fixedIds = getFixedServantIds();
+        const manualExcludedFixed = fixedIds.filter(id => SELECTIONS.excludeSvt.has(id));
+        if (manualExcludedFixed.length > 0) {
+            const names = manualExcludedFixed.map(id => getActiveServants().find(item => item.id === id)?.name || String(id));
+            throw new Error(`固定出场从者同时被手动排除：${names.join('、')}`);
+        }
+        const blockedFixed10 = fixedIds.filter(id => OWNERSHIP_CONFIG.excludeBond10 && SELECTIONS.bond10Svt.has(id));
+        const blockedFixed15 = fixedIds.filter(id => OWNERSHIP_CONFIG.excludeBond15 && isBond15ProviderId(id));
+        if (blockedFixed10.length || blockedFixed15.length) {
+            const ids = [...blockedFixed10, ...blockedFixed15];
+            const names = ids.map(id => getActiveServants().find(item => item.id === id)?.name || String(id));
+            throw new Error(`固定出场从者被“满羁绊排除”挡住：${names.join('、')}。请关闭对应排除开关或取消固定。`);
+        }
+        const badClassFixed = fixedIds.filter(id => !servantMatchesAllowedTraits(getActiveServants().find(s => s.id === id)));
+        if (badClassFixed.length > 0) {
+            const names = badClassFixed.map(id => getActiveServants().find(item => item.id === id)?.name || String(id));
+            throw new Error(`固定出场从者不属于当前求解职阶：${names.join('、')}`);
+        }
+        const uniqueForced = new Set([...Array.from(SELECTIONS.includeSvt.keys()), ...fixedIds]);
+        const svtLimit = parseInt(document.getElementById('svt-limit').value || '0', 10);
+        if (uniqueForced.size > svtLimit) {
+            throw new Error(`必选 + 固定出场共 ${uniqueForced.size} 骑，超过从者数量 ${svtLimit}`);
+        }
+        const effectiveOwnedCount = getActiveServants().filter(servant => {
+            if (!SELECTIONS.ownedSvt.has(servant.id)) return false;
+            if (OWNERSHIP_CONFIG.excludeBond10 && SELECTIONS.bond10Svt.has(servant.id)) return false;
+            if (OWNERSHIP_CONFIG.excludeBond15 && isBond15ProviderId(servant.id)) return false;
+            return true;
+        }).length;
+        if (effectiveOwnedCount === 0) {
+            throw new Error('已启用“仅从我的英灵 Box 求解”，但当前服务器没有可继续获得羁绊的已登记从者');
+        }
+    }
+    if (OWNERSHIP_CONFIG.useOwnedCes) {
+        const missing = Array.from(SELECTIONS.includeCe).filter(id => !SELECTIONS.ownedCe.has(id));
+        if (missing.length > 0) {
+            const names = missing.map(id => ALL_DATA.craftEssences.find(item => item.id === id)?.name || String(id));
+            throw new Error(`必选礼装不在“我的礼装”中：${names.join('、')}`);
+        }
+        const activeOwnedCeCount = getVisibleCraftEssences().filter(ce => SELECTIONS.ownedCe.has(ce.id)).length;
+        if (activeOwnedCeCount === 0) {
+            throw new Error('已启用“仅使用我拥有的自备羁绊礼装”，但当前服务器没有已登记礼装');
+        }
+    }
+}
+
+function getFixedServantIds() {
+    if (!OWNERSHIP_CONFIG.useOwnedServants) return [];
+    const activeIds = new Set(getActiveServants().map(s => s.id));
+    return Array.from(SELECTIONS.ownedSvt).filter(id => activeIds.has(id) && getServantProfile(id).fixed);
+}
+
+function servantMatchesAllowedTraits(servant) {
+    if (!servant || SELECTIONS.allowTraits.size === 0) return true;
+    return Object.values(servant.diff || {}).some(detail => (detail.traits || []).some(t => SELECTIONS.allowTraits.has(t)));
+}
+
+function chooseFixedServantDiff(servant) {
+    if (!servant) return 'default';
+    const entries = Object.entries(servant.diff || {});
+    if (SELECTIONS.allowTraits.size === 0) return servant.diff?.default ? 'default' : (entries[0]?.[0] || 'default');
+    const matches = ([, detail]) => (detail.traits || []).some(t => SELECTIONS.allowTraits.has(t));
+    if (servant.diff?.default && matches(['default', servant.diff.default])) return 'default';
+    return entries.find(matches)?.[0] || (servant.diff?.default ? 'default' : (entries[0]?.[0] || 'default'));
+}
+
+function buildOptimizationProfiles() {
+    const activeIds = new Set(getActiveServants().map(s => s.id));
+    const ids = OWNERSHIP_CONFIG.useOwnedServants
+        ? Array.from(SELECTIONS.ownedSvt).filter(id => activeIds.has(id))
+        : Array.from(SERVANT_PROFILES.keys()).filter(id => activeIds.has(id));
+    return ids.map(id => {
+        const p = getServantProfile(id);
+        return {
+            id,
+            bondRank: Number(p.bondRank || 0),
+            bondRankMax: Number(p.bondRankMax || 0),
+            bondTotal: Number(p.bondTotal || 0),
+            bondNext: Number(p.bondNext || 0),
+            targetRank: Number(p.targetRank || 10),
+            targetTotal: getProfileTargetTotal(p),
+            role: p.role || 'normal',
+            priority: p.priority || 'auto'
+        };
+    });
+}
+
+function updateOptimizationModeNote() {
+    const mode = document.getElementById('optimization-mode')?.value || 'max';
+    const note = document.getElementById('optimization-mode-note');
+    if (!note) return;
+    const texts = {
+        max: '只最大化本场真实羁绊总量；司机/老板/当前羁绊进度不会影响排名。',
+        balanced: '长期均衡：低羁绊、平时只蹭后排的“老板”会升权；常用司机会降权。固定出场仍是硬约束。',
+        finish: '优先收尾：更偏向距离当前培养目标较近、但尚未完成的从者；司机/老板和手动优先级仍会叠加。'
+    };
+    note.textContent = texts[mode] || texts.max;
+}
+
+function handleOptimizationModeChange() {
+    updateOptimizationModeNote();
+    saveState();
+}
+
 function saveState() {
     const state = {
         config: {
             costLimit: document.getElementById('cost-limit').value,
             svtLimit: document.getElementById('svt-limit').value,
             ceLimit: document.getElementById('ce-limit').value,
-            considerSupportCe: document.getElementById('consider-support-ce').checked,
+            supportLimit: document.getElementById('support-limit').value,
+            grandMode: document.getElementById('grand-mode')?.checked || false,
             baseBond: document.getElementById('base-bond').value,
             server: document.getElementById('server-select').value,
             enableEventBonus: document.getElementById('enable-event-bonus').checked,
-            crownWar: document.getElementById('enable-crown-war').checked,
+            useOwnedServants: OWNERSHIP_CONFIG.useOwnedServants,
+            useOwnedCes: OWNERSHIP_CONFIG.useOwnedCes,
+            excludeBond10: OWNERSHIP_CONFIG.excludeBond10,
+            excludeBond15: OWNERSHIP_CONFIG.excludeBond15,
+            bond15GuidanceMode: 'optimize25',
+            optimizationMode: document.getElementById('optimization-mode')?.value || 'max',
         },
         selections: {
             includeSvt: Array.from(SELECTIONS.includeSvt.entries()),
@@ -537,52 +958,49 @@ function saveState() {
             excludeCe: Array.from(SELECTIONS.excludeCe),
             supportLockCe: Array.from(SELECTIONS.supportLockCe),
             excludeSupportCe: Array.from(SELECTIONS.excludeSupportCe),
-            crownClass: SELECTIONS.crownClass,
+            allowTraits: Array.from(SELECTIONS.allowTraits),
             selectedEvents: Array.from(SELECTIONS.selectedEvents),
-            bond15: Array.from(SELECTIONS.bond15.entries()),
+            ownedSvt: Array.from(SELECTIONS.ownedSvt),
+            ownedCe: Array.from(SELECTIONS.ownedCe),
+            bond10Svt: Array.from(SELECTIONS.bond10Svt),
+            bond15Svt: Array.from(SELECTIONS.bond15Svt),
         },
+        servantProfiles: serializeServantProfiles(),
+        boxImportMeta: {...BOX_IMPORT_META},
         ui: {
             collapsedSections: { ...UI_STATE.collapsedSections },
             excludeSvtClassFilters: Array.from(EXCLUDE_SVT_CLASS_FILTER)
         }
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    if (CURRENT_USER) {
-        clearTimeout(window.syncTimeout);
-        window.syncTimeout = setTimeout(() => {
-            syncState();
-        }, 1000);
-    }
 }
 
 function loadState() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return;
     try {
-        applyState(JSON.parse(saved));
-    } catch (e) {
-        console.error('Failed to load state:', e);
-    }
-}
-
-function applyState(state) {
-        // 全量重置，避免旧state缺失的字段残留当前会话的值（如15绊配置）
-        SELECTIONS = createDefaultSelections();
+        const state = JSON.parse(saved);
         if (state.config) {
             if (state.config.costLimit !== undefined) document.getElementById('cost-limit').value = state.config.costLimit;
             if (state.config.svtLimit !== undefined) document.getElementById('svt-limit').value = state.config.svtLimit;
             if (state.config.ceLimit !== undefined) document.getElementById('ce-limit').value = state.config.ceLimit;
-            if (state.config.considerSupportCe !== undefined) {
-                document.getElementById('consider-support-ce').checked = state.config.considerSupportCe;
-            } else if (state.config.supportLimit !== undefined) {
-                const legacyLimit = parseInt(state.config.supportLimit, 10);
-                document.getElementById('consider-support-ce').checked = !Number.isNaN(legacyLimit) && legacyLimit > 0;
-            }
+            if (state.config.supportLimit !== undefined) document.getElementById('support-limit').value = state.config.supportLimit;
+            if (state.config.grandMode !== undefined && document.getElementById('grand-mode')) document.getElementById('grand-mode').checked = !!state.config.grandMode;
             if (state.config.baseBond !== undefined) document.getElementById('base-bond').value = state.config.baseBond;
             if (state.config.server !== undefined) document.getElementById('server-select').value = state.config.server;
             if (state.config.enableEventBonus !== undefined) document.getElementById('enable-event-bonus').checked = state.config.enableEventBonus;
-            if (state.config.crownWar !== undefined) document.getElementById('enable-crown-war').checked = state.config.crownWar;
-            if (state.config.crownClass !== undefined && state.config.crownClass) SELECTIONS.crownClass = state.config.crownClass;
+            if (state.config.useOwnedServants !== undefined) OWNERSHIP_CONFIG.useOwnedServants = !!state.config.useOwnedServants;
+            if (state.config.useOwnedCes !== undefined) OWNERSHIP_CONFIG.useOwnedCes = !!state.config.useOwnedCes;
+            if (state.config.excludeBond10 !== undefined) OWNERSHIP_CONFIG.excludeBond10 = !!state.config.excludeBond10;
+            if (state.config.optimizationMode !== undefined && document.getElementById('optimization-mode')) {
+                document.getElementById('optimization-mode').value = ['max', 'balanced', 'finish'].includes(state.config.optimizationMode) ? state.config.optimizationMode : 'max';
+            }
+            // v3把绊15默认当作“已满直接排除”。v4起绊15是+25%梦火辅助，旧状态自动迁移为允许参与。
+            if (state.config.bond15GuidanceMode === 'optimize25' && state.config.excludeBond15 !== undefined) {
+                OWNERSHIP_CONFIG.excludeBond15 = !!state.config.excludeBond15;
+            } else {
+                OWNERSHIP_CONFIG.excludeBond15 = false;
+            }
         }
         if (state.selections) {
             if (state.selections.includeSvt) SELECTIONS.includeSvt = new Map(state.selections.includeSvt);
@@ -591,20 +1009,47 @@ function applyState(state) {
             if (state.selections.excludeCe) SELECTIONS.excludeCe = new Set(state.selections.excludeCe);
             if (state.selections.supportLockCe) SELECTIONS.supportLockCe = new Set(state.selections.supportLockCe);
             if (state.selections.excludeSupportCe) SELECTIONS.excludeSupportCe = new Set(state.selections.excludeSupportCe);
-            if (state.selections.crownClass !== undefined) SELECTIONS.crownClass = state.selections.crownClass;
+            if (state.selections.allowTraits) SELECTIONS.allowTraits = new Set(state.selections.allowTraits);
             if (state.selections.selectedEvents) SELECTIONS.selectedEvents = new Set(state.selections.selectedEvents);
-            if (state.selections.bond15) SELECTIONS.bond15 = new Map(state.selections.bond15);
-            normalizeSelectionConflicts();
-            
+            if (state.selections.ownedSvt) SELECTIONS.ownedSvt = new Set(state.selections.ownedSvt);
+            if (state.selections.ownedCe) SELECTIONS.ownedCe = new Set(state.selections.ownedCe);
+            if (state.selections.bond10Svt) SELECTIONS.bond10Svt = new Set(state.selections.bond10Svt);
+            if (state.selections.bond15Svt) SELECTIONS.bond15Svt = new Set(state.selections.bond15Svt);
+            for (const id of SELECTIONS.bond10Svt) SELECTIONS.ownedSvt.add(id);
+            for (const id of SELECTIONS.bond15Svt) {
+                SELECTIONS.ownedSvt.add(id);
+                SELECTIONS.bond10Svt.delete(id);
+            }
+
+            renderMainClassFilters();
             renderSelectionList('svt', 'include');
             renderSelectionList('svt', 'exclude');
-            renderSelectionList('svt', 'bond15');
             renderSelectionList('ce', 'include');
             renderSelectionList('ce', 'exclude');
             renderSelectionList('ce', 'supportLock');
             renderSelectionList('ce', 'excludeSupport');
             renderEventSelection();
         }
+        if (Array.isArray(state.servantProfiles)) {
+            SERVANT_PROFILES = new Map();
+            for (const entry of state.servantProfiles) {
+                if (!Array.isArray(entry) || entry.length < 2) continue;
+                const id = Number(entry[0]);
+                if (!Number.isInteger(id)) continue;
+                const raw = entry[1] || {};
+                SERVANT_PROFILES.set(id, {
+                    ...createDefaultServantProfile(id),
+                    ...raw,
+                    id,
+                    bondThresholds: {...(raw.bondThresholds || {})},
+                    fixed: !!raw.fixed
+                });
+            }
+        }
+        if (state.boxImportMeta && typeof state.boxImportMeta === 'object') {
+            BOX_IMPORT_META = {...BOX_IMPORT_META, ...state.boxImportMeta};
+        }
+        updateOptimizationModeNote();
         if (state.ui && state.ui.collapsedSections && typeof state.ui.collapsedSections === 'object') {
             Object.keys(UI_STATE.collapsedSections).forEach(key => {
                 if (typeof state.ui.collapsedSections[key] === 'boolean') {
@@ -618,46 +1063,201 @@ function applyState(state) {
             );
         }
         renderExcludeSvtClassFilters();
-        renderCrownClassPicker();
         try { renderSelectionList('svt', 'exclude'); } catch(e){}
         Object.keys(UI_STATE.collapsedSections).forEach(applySectionCollapse);
-}
-
-function normalizeSelectionConflicts() {
-    SELECTIONS.includeSvt.forEach((_, id) => SELECTIONS.excludeSvt.delete(id));
-    SELECTIONS.includeCe.forEach(id => SELECTIONS.excludeCe.delete(id));
-    SELECTIONS.supportLockCe.forEach(id => SELECTIONS.excludeSupportCe.delete(id));
-    // 排除优先于15绊配置
-    SELECTIONS.bond15.forEach((_, id) => {
-        if (SELECTIONS.excludeSvt.has(id)) SELECTIONS.bond15.delete(id);
-    });
-}
-
-function removeOppositeSelection(type, list, id) {
-    if (type === 'svt') {
-        if (list === 'include') SELECTIONS.excludeSvt.delete(id);
-        if (list === 'exclude') {
-            SELECTIONS.includeSvt.delete(id);
-            SELECTIONS.bond15.delete(id);
-        }
-        if (list === 'bond15') SELECTIONS.excludeSvt.delete(id);
-        return;
+        updateOwnershipSummary();
+    } catch (e) {
+        console.error('Failed to load state:', e);
     }
-    if (list === 'include') SELECTIONS.excludeCe.delete(id);
-    if (list === 'exclude') SELECTIONS.includeCe.delete(id);
-    if (list === 'supportLock') SELECTIONS.excludeSupportCe.delete(id);
-    if (list === 'excludeSupport') SELECTIONS.supportLockCe.delete(id);
+}
+
+function toggleGrandMode(enabled, persist = true) {
+    const ceLimit = document.getElementById('ce-limit');
+    const supportLimit = document.getElementById('support-limit');
+    const note = document.getElementById('grand-mode-note');
+
+    if (enabled) {
+        // 冠位模式：5个普通自备礼装位 + 自家Grand额外1个0 Cost报酬礼装位。
+        if (ceLimit) {
+            ceLimit.max = '5';
+            if (parseInt(ceLimit.value || '0', 10) > 5) ceLimit.value = '5';
+        }
+        // 助战Grand同时提供普通礼装 + 报酬アップ追加枠，共2个全队加成礼装。
+        if (supportLimit) {
+            supportLimit.value = '2';
+            supportLimit.readOnly = true;
+            supportLimit.title = '冠位戴冠战模式固定为2张（助战Grand普通枠 + 报酬アップ追加枠）';
+        }
+        if (note) note.textContent = '已开启：普通自备最多5张 + 自家Grand额外报酬礼装1张（0 Cost）+ 助战Grand 2张，共8个羁绊加成位。Cost请直接填游戏实际上限。';
+    } else {
+        if (supportLimit) {
+            supportLimit.readOnly = false;
+            supportLimit.title = '';
+            if (parseInt(supportLimit.value || '0', 10) > 1) supportLimit.value = '1';
+        }
+        if (note) note.textContent = '关闭时按普通编成计算。开启后：普通自备5张 + 自家Grand额外报酬礼装1张（0 Cost）+ 助战Grand 2张；必须选择对应职阶。';
+    }
+
+    refreshSupportLockLimitText();
+    enforceSupportLockLimit(true);
+    if (persist) saveState();
+}
+
+// --- 游戏数据同步（Atlas Academy + Chaldea Data） ---
+function dataSyncEscapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function formatSyncTime(ts) {
+    const value = Number(ts || 0);
+    if (!value) return '从未同步';
+    return new Date(value * 1000).toLocaleString('zh-CN', {hour12: false});
+}
+
+function summarizeAtlasInfo(info) {
+    if (!info) return '已连接';
+    if (typeof info === 'string' || typeof info === 'number') return String(info);
+    const candidates = ['version', 'appVer', 'appVersion', 'dataVer', 'dataVersion', 'timestamp', 'hash', 'commit'];
+    const parts = [];
+    for (const key of candidates) {
+        if (info[key] !== undefined && info[key] !== null && info[key] !== '') {
+            parts.push(`${key}=${info[key]}`);
+        }
+    }
+    if (parts.length) return parts.slice(0, 4).join(' · ');
+    try {
+        const text = JSON.stringify(info);
+        return text.length > 180 ? `${text.slice(0, 177)}…` : text;
+    } catch (_) {
+        return '已连接';
+    }
+}
+
+function renderDataSyncLocal() {
+    const local = document.getElementById('data-sync-local');
+    const ce = document.getElementById('data-sync-ce');
+    if (!local) return;
+    const meta = ALL_DATA?.dataSourceMeta || {};
+    const localTime = Number(meta.syncedAt || ALL_DATA?.dataUpdatedAt || 0);
+    const svtCount = Number(meta.servantCount || ALL_DATA?.servants?.length || 0);
+    const ceCount = Number(meta.ceCount || ALL_DATA?.craftEssences?.length || 0);
+    local.innerHTML = `<strong>本地数据：</strong>${formatSyncTime(localTime)} · 从者 ${svtCount} · 羁绊礼装 ${ceCount}`;
+    const ceSync = meta.ceSync || {};
+    if (ce) {
+        if (Array.isArray(ceSync.newAutoDetectedIds) && ceSync.newAutoDetectedIds.length) {
+            const details = Array.isArray(ceSync.newAutoDetected)
+                ? ceSync.newAutoDetected.map(item => `${dataSyncEscapeHtml(item.name || item.id)} (#${item.id})`).join('、')
+                : ceSync.newAutoDetectedIds.join(', ');
+            ce.innerHTML = `<strong>自动发现：</strong>${details} <span class="data-sync-badge">machine parsed</span>`;
+        } else if (ceSync.machineDetectedBondCeCount) {
+            ce.innerHTML = `<strong>礼装解析器：</strong>已识别 ${ceSync.machineDetectedBondCeCount} 个机器数据中的羁绊礼装效果`;
+        } else {
+            ce.textContent = '礼装解析器：等待首次 Data Sync';
+        }
+    }
+}
+
+async function checkDataSync(silent = false) {
+    const remote = document.getElementById('data-sync-remote');
+    const btn = document.getElementById('btn-data-sync-check');
+    if (btn) btn.disabled = true;
+    if (remote) remote.innerHTML = '<strong>数据源：</strong>正在检查 Chaldea Data / Atlas Academy…';
+    try {
+        const response = await fetch('/api/data-sync/status', {cache: 'no-store'});
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+        const changed = !!payload.updateAvailable;
+        if (remote) {
+            const remoteCommit = payload.remoteChaldeaCommit ? String(payload.remoteChaldeaCommit).slice(0, 8) : '';
+            const atlasText = payload.atlasAvailable === false
+                ? 'Atlas 不可达（JP同步不受影响）'
+                : `Atlas ${dataSyncEscapeHtml(summarizeAtlasInfo(payload.atlasJP))}`;
+            let sourceText;
+            if (remoteCommit) {
+                sourceText = `Chaldea Data ${dataSyncEscapeHtml(remoteCommit)} · ${atlasText}`;
+            } else if (payload.atlasAvailable !== false) {
+                sourceText = `${atlasText} · Git 检查不可用（Atlas 兜底）`;
+            } else {
+                sourceText = '上游检查暂不可用 · 本地数据仍可正常使用';
+            }
+            const badge = payload.updateSignal === 'offline'
+                ? '<span class="data-sync-badge">无法检查</span>'
+                : (changed ? '<span class="data-sync-badge">发现更新</span>' : '<span class="data-sync-badge">当前源已同步</span>');
+            remote.innerHTML = `<strong>数据源：</strong>${sourceText} ${badge}`;
+        }
+        const updateBtn = document.getElementById('btn-data-sync-update');
+        if (updateBtn) updateBtn.classList.toggle('secondary', !changed);
+        if (changed && !silent) showFlash('检测到数据源更新，可以直接一键同步。', 'success', 4500);
+        return payload;
+    } catch (error) {
+        if (remote) remote.innerHTML = `<strong>数据源：</strong>检查失败 · ${dataSyncEscapeHtml(String(error.message || error))}`;
+        if (!silent) showFlash(`数据源检查失败：${error.message || error}`, 'error', 6000);
+        return null;
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+}
+
+async function runDataSyncUpdate() {
+    const btn = document.getElementById('btn-data-sync-update');
+    const checkBtn = document.getElementById('btn-data-sync-check');
+    const remote = document.getElementById('data-sync-remote');
+    const oldText = btn?.innerHTML;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span aria-busy="true">正在同步完整数据…</span>';
+    }
+    if (checkBtn) checkBtn.disabled = true;
+    if (remote) remote.innerHTML = '<strong>数据源：</strong>正在同步 Chaldea Data、校验 Atlas 版本并重建索引，首次可能需要几分钟…';
+    try {
+        const response = await fetch('/api/data-sync/update', {method: 'POST', cache: 'no-store'});
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            const detail = payload.detail ? `\n${payload.detail}` : '';
+            throw new Error((payload.error || `HTTP ${response.status}`) + detail);
+        }
+        const fresh = await fetch(`/api/data?ts=${Date.now()}`, {cache: 'no-store'});
+        if (!fresh.ok) throw new Error(`数据已更新，但重新读取失败：HTTP ${fresh.status}`);
+        ALL_DATA = await fresh.json();
+        ALL_DATA.servants.sort((a, b) => a.id - b.id);
+        ALL_DATA.cnServants = ALL_DATA.cnServants || [];
+        ALL_DATA.cnServants.sort((a, b) => a.id - b.id);
+        ALL_DATA.craftEssences.sort((a, b) => a.id - b.id);
+        renderDataSyncLocal();
+        const newIds = payload?.ceSync?.newAutoDetectedIds || [];
+        const extra = newIds.length ? `；自动发现新羁绊礼装 ${newIds.length} 张` : '';
+        const cnFallback = payload?.cnSync?.fallback
+            ? '；Atlas CN 不可达，国服差异沿用上次缓存（不影响日服数据）'
+            : '';
+        showFlash(`游戏数据同步完成：从者 ${payload.servantCount ?? ALL_DATA.servants.length}，羁绊礼装 ${payload.ceCount ?? ALL_DATA.craftEssences.length}${extra}${cnFallback}。`, 'success', 8500);
+        renderMainClassFilters();
+        renderEventSelection();
+        pruneInvalidSelectionsByServer();
+        updateOwnershipSummary();
+        await checkDataSync(true);
+    } catch (error) {
+        console.error('Data Sync failed:', error);
+        const msg = String(error.message || error);
+        if (remote) remote.innerHTML = '<strong>数据源：</strong>同步失败';
+        showFlash(`数据同步失败：${msg.length > 800 ? msg.slice(0, 800) + '…' : msg}`, 'error', 9000);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            if (oldText) btn.innerHTML = oldText;
+        }
+        if (checkBtn) checkBtn.disabled = false;
+        lucide.createIcons();
+    }
 }
 
 // --- 数据加载与初始化 ---
 async function initApp() {
     lucide.createIcons();
-    renderAnnouncements();
     initCollapseToggles();
     renderExcludeSvtClassFilters();
-    
+
     // 为所有基础配置输入添加自动保存
-    ['cost-limit', 'svt-limit', 'ce-limit', 'consider-support-ce', 'base-bond', 'server-select', 'enable-event-bonus', 'enable-crown-war'].forEach(id => {
+    ['cost-limit', 'svt-limit', 'ce-limit', 'support-limit', 'base-bond', 'server-select', 'enable-event-bonus', 'grand-mode', 'optimization-mode'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.addEventListener('change', () => {
@@ -667,60 +1267,32 @@ async function initApp() {
                     if (pruneInvalidSelectionsByServer()) {
                         saveState();
                     }
+                    updateOwnershipSummary();
                 } else if (id === 'enable-event-bonus') {
                     renderEventSelection(el.checked);
-                } else if (id === 'consider-support-ce') {
+                } else if (id === 'support-limit') {
                     refreshSupportLockLimitText();
                     enforceSupportLockLimit(true);
-                }
-                if (id === 'enable-crown-war') {
-                    renderCrownClassPicker();
-                    refreshSupportLockLimitText();
-                    enforceSupportLockLimit(true);
+                } else if (id === 'optimization-mode') {
+                    updateOptimizationModeNote();
                 }
                 // Update bonus display
                 try { renderSelectionList('svt', 'include'); } catch(e){}
                 try { renderSelectionList('svt', 'exclude'); } catch(e){}
-                try { renderSelectionList('svt', 'bond15'); } catch(e){}
                 saveState();
             });
             if (el.type === 'number' || el.type === 'text') {
                 el.addEventListener('input', saveState);
+                if (id === 'support-limit') {
+                    el.addEventListener('input', refreshSupportLockLimitText);
+                }
             }
         }
     });
-
-    const [meResult, dataResult, announcementResult] = await Promise.allSettled([
-        fetch('/api/me'),
-        fetch('/api/data'),
-        fetch('/api/announcements')
-    ]);
-
-    if (meResult.status === 'fulfilled' && meResult.value.ok) {
-        try {
-            const data = await meResult.value.json();
-            CURRENT_USER = data.username;
-        } catch (error) {
-            console.error('Failed to parse user data:', error);
-        }
-    }
-    updateAuthUI();
-
-    if (announcementResult.status === 'fulfilled' && announcementResult.value.ok) {
-        try {
-            const data = await announcementResult.value.json();
-            renderAnnouncements(data.announcements || []);
-        } catch (error) {
-            console.error('Failed to parse announcements:', error);
-        }
-    } else if (announcementResult.status === 'rejected') {
-        console.error('Failed to load announcements:', announcementResult.reason);
-    }
-
     try {
-        if (dataResult.status === 'rejected') throw dataResult.reason;
-        if (!dataResult.value.ok) throw new Error(`Server error: ${dataResult.value.status}`);
-        ALL_DATA = await dataResult.value.json();
+        const dataResponse = await fetch('/api/data');
+        if (!dataResponse.ok) throw new Error(`Server error: ${dataResponse.status}`);
+        ALL_DATA = await dataResponse.json();
         if (ALL_DATA.dataUpdatedAt > 0) {
             const updatedAt = new Date(ALL_DATA.dataUpdatedAt * 1000);
             const label = document.getElementById('data-updated-at');
@@ -731,17 +1303,22 @@ async function initApp() {
         ALL_DATA.cnServants = ALL_DATA.cnServants || [];
         ALL_DATA.cnServants.sort((a, b) => a.id - b.id);
         ALL_DATA.craftEssences.sort((a, b) => a.id - b.id);
-       
+
        // 加载持久化状态
        loadState();
+       toggleGrandMode(document.getElementById('grand-mode')?.checked || false, false);
+       updateOptimizationModeNote();
        refreshSupportLockLimitText();
        const lockChanged = pruneInvalidSelectionsByServer() || enforceSupportLockLimit();
        if (lockChanged) {
            saveState();
        }
-       
-       renderCrownClassPicker();
+
+       renderMainClassFilters();
        renderEventSelection();
+       updateOwnershipSummary();
+       renderDataSyncLocal();
+       setTimeout(() => checkDataSync(true), 250);
     } catch (error) {
         console.error('Failed to load data:', error);
         showFlash('数据加载失败，请检查后端服务是否正常。', 'error', 6000);
@@ -810,7 +1387,7 @@ function renderEventSelection(autoSelect = false) {
     controls.style.marginBottom = '0.5rem';
     controls.style.display = 'flex';
     controls.style.gap = '8px';
-    
+
     const btnAll = document.createElement('button');
     btnAll.className = 'outline secondary';
     btnAll.style.padding = '2px 8px';
@@ -856,7 +1433,7 @@ function renderEventSelection(autoSelect = false) {
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.checked = SELECTIONS.selectedEvents.has(id);
-        
+
         input.onchange = (e) => {
             if (e.target.checked) SELECTIONS.selectedEvents.add(id);
             else SELECTIONS.selectedEvents.delete(id);
@@ -877,52 +1454,58 @@ function renderEventSelection(autoSelect = false) {
     });
 }
 
-function renderCrownClassPicker() {
-    const container = document.getElementById('crown-class-picker');
+function renderMainClassFilters() {
+    const container = document.getElementById('main-class-filters');
     if (!container) return;
-    const enabled = document.getElementById('enable-crown-war').checked;
-    container.hidden = !enabled;
     container.innerHTML = '';
-    if (!enabled) return;
 
-    const grid = document.createElement('div');
-    grid.className = 'crown-class-grid';
-    grid.setAttribute('role', 'radiogroup');
-    grid.setAttribute('aria-label', '戴冠战职阶');
+    // Bronze All (Clear)
+    const bronzeAll = document.createElement('img');
+    bronzeAll.src = '/static/fgo-icon/铜卡All.png';
+    bronzeAll.className = 'class-icon-btn';
+    bronzeAll.title = '全部取消';
+    bronzeAll.onclick = () => {
+        SELECTIONS.allowTraits.clear();
+        renderMainClassFilters();
+        saveState();
+    };
+    container.appendChild(bronzeAll);
 
-    CROWN_CLASSES.forEach(item => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'crown-class-chip';
-        chip.setAttribute('role', 'radio');
-        const selected = item.value === SELECTIONS.crownClass;
-        chip.setAttribute('aria-checked', String(selected));
-        chip.classList.toggle('is-selected', selected);
-        chip.innerHTML = `${crownClassIcons(item)}<span>${item.name}</span>`;
-        chip.onclick = () => {
-            SELECTIONS.crownClass = item.value;
-            renderCrownClassPicker();
+    // Gold All (Select All)
+    const goldAll = document.createElement('img');
+    goldAll.src = '/static/fgo-icon/金卡All.png';
+    goldAll.className = 'class-icon-btn';
+    goldAll.title = '全选';
+    goldAll.onclick = () => {
+        CLASS_TRAITS.forEach(c => {
+            if (Array.isArray(c.trait)) c.trait.forEach(t => SELECTIONS.allowTraits.add(t));
+            else SELECTIONS.allowTraits.add(c.trait);
+        });
+        renderMainClassFilters();
+        saveState();
+    };
+    container.appendChild(goldAll);
+
+    // Individual classes
+    CLASS_TRAITS.forEach(({name, trait}) => {
+        const isSelected = Array.isArray(trait) ? trait.every(t => SELECTIONS.allowTraits.has(t)) : SELECTIONS.allowTraits.has(trait);
+        const img = document.createElement('img');
+        img.className = 'class-icon-btn';
+        img.src = `/static/fgo-icon/${isSelected ? '金卡' : '铜卡'}${name}.png`;
+        img.title = name;
+        img.onclick = () => {
+            if (isSelected) {
+                if (Array.isArray(trait)) trait.forEach(t => SELECTIONS.allowTraits.delete(t));
+                else SELECTIONS.allowTraits.delete(trait);
+            } else {
+                if (Array.isArray(trait)) trait.forEach(t => SELECTIONS.allowTraits.add(t));
+                else SELECTIONS.allowTraits.add(trait);
+            }
+            renderMainClassFilters();
             saveState();
         };
-        grid.appendChild(chip);
+        container.appendChild(img);
     });
-
-    const hint = document.createElement('small');
-    hint.className = 'crown-hint';
-    hint.textContent = '';
-
-    container.append(grid, hint);
-}
-
-function crownClassIcons(item) {
-    const names = item.value === 'EX1'
-        ? ['Ruler', 'Avenger', 'MoonCancer', 'Shielder']
-        : item.value === 'EX2'
-            ? ['Alterego', 'Foreigner', 'Pretender', 'Beast']
-            : [item.value];
-    const single = names.length === 1 ? ' is-single' : '';
-    const images = names.map(name => `<img src="/static/fgo-icon/金卡${name}.png" alt="" loading="lazy">`).join('');
-    return `<span class="crown-icon-cluster${single}">${images}</span>`;
 }
 
 function openSvtDiffModal(svt) {
@@ -943,7 +1526,7 @@ function openSvtDiffModal(svt) {
         div.appendChild(createSvtTraitDiff(detail.traits || [], baseTraits, diffKey === baseEntry?.[0]));
         grid.appendChild(div);
     }
-    refreshIcons(grid);
+    refreshIcons();
     document.getElementById('svt-diff-modal').showModal();
 }
 
@@ -1003,7 +1586,7 @@ function showSvtTraits(svt, diffKey) {
     const detail = svt.diff[diffKey];
     const title = document.getElementById('svt-trait-display-title');
     const list = document.getElementById('svt-trait-display-list');
-    
+
     title.textContent = `${svt.name} (${detail.name}) 的特性`;
     list.innerHTML = '';
 
@@ -1012,7 +1595,7 @@ function showSvtTraits(svt, diffKey) {
             .map(id => ALL_DATA.traits[id])
             .filter(name => name && name.trim())
             .sort((a, b) => a.localeCompare(b, 'zh-Hans-CN'));
-        
+
         traitNames.forEach(name => {
             const p = document.createElement('p');
             p.textContent = name;
@@ -1032,10 +1615,8 @@ function closeSvtTraitDisplayModal() {
 
 // --- 列表管理 ---
 function addSvtWithDiff(id, diffKey) {
-    removeOppositeSelection('svt', 'include', id);
     SELECTIONS.includeSvt.set(id, diffKey);
     renderSelectionList('svt', 'include');
-    renderSelectionList('svt', 'exclude');
     saveState();
     closeSvtDiffModal();
     populateModalGrid(document.getElementById('modal-search').value);
@@ -1053,26 +1634,26 @@ function removeItem(type, list, id) {
 }
 
 function renderSelectionList(type, list) {
+    if (list === 'owned') {
+        updateOwnershipSummary();
+        return;
+    }
     const key = getSelectionKey(type, list);
     const container = document.getElementById(getSelectionContainerId(type, list));
     if (!container) return;
     container.innerHTML = '';
     const items = type === 'svt' ? getActiveServants() : ALL_DATA.craftEssences;
-    
-    const selection = (type === 'svt' && list === 'include') ? 
+
+    const selection = (type === 'svt' && list === 'include') ?
         Array.from(SELECTIONS.includeSvt.keys()) :
-        (type === 'svt' && list === 'bond15') ?
-        Array.from(SELECTIONS.bond15.keys()) :
         SELECTIONS[key];
 
-    let hiddenByFilter = 0;
     selection.forEach(id => {
         const item = items.find(i => i.id === id);
         if (item) {
             if (type === 'svt' && list === 'exclude' && EXCLUDE_SVT_CLASS_FILTER.size > 0) {
                 const detail = item.diff.default || Object.values(item.diff)[0];
                 if (!detail || !detail.traits || !detail.traits.some(t => EXCLUDE_SVT_CLASS_FILTER.has(t))) {
-                    hiddenByFilter += 1;
                     return;
                 }
             }
@@ -1090,42 +1671,10 @@ function renderSelectionList(type, list) {
             if (type === 'svt') {
                 renderEventBonuses(div, item);
             }
-            if (type === 'svt' && list === 'bond15') {
-                const badge = document.createElement('div');
-                badge.className = 'bond15-badge';
-                badge.textContent = '全队+25%';
-                div.appendChild(badge);
-                const toggle = document.createElement('label');
-                toggle.className = 'bond15-full-toggle';
-                toggle.title = '勾选表示该从者羁绊已到上限，自身不再获得羁绊';
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = SELECTIONS.bond15.get(id) !== false;
-                checkbox.onclick = event => event.stopPropagation();
-                checkbox.onchange = () => {
-                    SELECTIONS.bond15.set(id, checkbox.checked);
-                    saveState();
-                };
-                toggle.append(checkbox, '已满');
-                div.appendChild(toggle);
-            }
             container.appendChild(div);
         }
     });
-    if (hiddenByFilter > 0) {
-        const note = document.createElement('button');
-        note.type = 'button';
-        note.className = 'exclude-hidden-note';
-        note.textContent = `还有 ${hiddenByFilter} 个已排除从者被职阶筛选隐藏，点击显示全部`;
-        note.onclick = () => {
-            EXCLUDE_SVT_CLASS_FILTER.clear();
-            renderExcludeSvtClassFilters();
-            renderSelectionList('svt', 'exclude');
-            saveState();
-        };
-        container.appendChild(note);
-    }
-    refreshIcons(container);
+    refreshIcons();
 }
 
 // --- 计算逻辑 ---
@@ -1135,88 +1684,76 @@ async function calculate() {
     btn.textContent = '计算中...';
 
     try {
+        validateOwnershipSelections();
+        const effectiveExcludedServants = getEffectiveExcludedServants();
+        const effectiveExcludedCes = getEffectiveExcludedCes();
         const params = new URLSearchParams();
-        const crownWarEnabled = document.getElementById('enable-crown-war').checked;
-        // 职阶筛选只在戴冠战开启时生效。
-        // 不再读取SELECTIONS.allowTraits：它没有UI入口，旧版本state里残留的值会导致
-        // 戴冠战关闭后仍被隐式施加职阶限制。
-        let allowTraits = new Set();
-        if (crownWarEnabled) {
-            const crownClass = CROWN_CLASSES.find(item => item.value === SELECTIONS.crownClass);
-            if (!crownClass) {
-                throw new Error('请先选择戴冠战职阶');
-            }
-            allowTraits = new Set(crownClass.traits);
-        }
-        const rawCostLimit = parseInt(document.getElementById('cost-limit').value, 10);
-        const costLimit = crownWarEnabled && !Number.isNaN(rawCostLimit)
-            ? rawCostLimit + 12
-            : document.getElementById('cost-limit').value;
-        params.append('costlimit', costLimit);
+        params.append('costlimit', document.getElementById('cost-limit').value);
         params.append('svtlimit', document.getElementById('svt-limit').value);
         params.append('celimit', document.getElementById('ce-limit').value);
-        params.append('supportlimit', getSupportLimitValue());
+        params.append('supportlimit', document.getElementById('support-limit').value);
+        const grandMode = document.getElementById('grand-mode')?.checked || false;
+        if (grandMode && SELECTIONS.allowTraits.size === 0) {
+            throw new Error('冠位戴冠战模式必须选择对应职阶');
+        }
+        params.append('grandmode', grandMode);
         params.append('basebond', document.getElementById('base-bond').value);
         params.append('server', document.getElementById('server-select').value);
         params.append('enable_event_bonus', document.getElementById('enable-event-bonus').checked);
         SELECTIONS.selectedEvents.forEach(id => params.append('selected_events', id));
 
-        allowTraits.forEach(id => params.append('allowtraits', id));
+        SELECTIONS.allowTraits.forEach(id => params.append('allowtraits', id));
+        const forcedIds = new Set();
         SELECTIONS.includeSvt.forEach((diff, id) => {
             params.append('includesvt', id);
             params.append('includesvtdiff', diff);
+            forcedIds.add(id);
         });
-        SELECTIONS.excludeSvt.forEach(id => params.append('excludesvt', id));
+        for (const id of getFixedServantIds()) {
+            if (forcedIds.has(id)) continue;
+            const servant = getActiveServants().find(s => s.id === id);
+            params.append('includesvt', id);
+            params.append('includesvtdiff', chooseFixedServantDiff(servant));
+            forcedIds.add(id);
+        }
+        effectiveExcludedServants.forEach(id => params.append('excludesvt', id));
+        if (OWNERSHIP_CONFIG.useOwnedServants) {
+            const activeIds = new Set(getActiveServants().map(s => s.id));
+            SELECTIONS.bond10Svt.forEach(id => {
+                if (activeIds.has(id) && SELECTIONS.ownedSvt.has(id)) params.append('bond10svt', id);
+            });
+            if (!OWNERSHIP_CONFIG.excludeBond15) {
+                SELECTIONS.bond15Svt.forEach(id => {
+                    if (activeIds.has(id) && SELECTIONS.ownedSvt.has(id)) params.append('bond15svt', id);
+                });
+            }
+        }
+        params.append('optimizemode', document.getElementById('optimization-mode')?.value || 'max');
+        params.append('bondprofiles', JSON.stringify(buildOptimizationProfiles()));
         SELECTIONS.includeCe.forEach(id => params.append('includece', id));
-        SELECTIONS.excludeCe.forEach(id => params.append('excludece', id));
+        effectiveExcludedCes.forEach(id => params.append('excludece', id));
         if (SELECTIONS.supportLockCe.size > getSupportLimitValue()) {
             throw new Error('锁定助战礼装数量不能超过助战礼装数量');
         }
         SELECTIONS.supportLockCe.forEach(id => params.append('includesupportce', id));
         SELECTIONS.excludeSupportCe.forEach(id => params.append('excludesupportce', id));
-        SELECTIONS.bond15.forEach((full, id) => {
-            params.append('bond15svt', id);
-            params.append('bond15full', full ? 'true' : 'false');
-        });
 
         const requestStarted = performance.now();
-        let response;
-        try {
-            response = await fetch('/api/calculate', {
-                method: 'POST',
-                body: params
-            });
-        } catch (error) {
-            console.error('Failed to connect to calculation service:', error);
-            throw new Error('服务连接异常');
-        }
-
-        if (response.status !== 200 && response.status !== 400) {
-            throw new Error(`服务连接异常（HTTP ${response.status}）`);
-        }
-
-        let results;
-        try {
-            results = await response.json();
-        } catch (error) {
-            console.error('Failed to parse calculation response:', error);
-            throw new Error('服务状态异常');
-        }
-
-        if (response.status === 400) {
-            throw new Error(results.error || '请求参数错误');
-        }
-
+        const response = await fetch('/api/calculate', {
+            method: 'POST',
+            body: params
+        });
+        const results = await response.json();
         const requestDuration = performance.now() - requestStarted;
+        if (!response.ok) {
+            throw new Error(results.error || `Server error: ${response.statusText}`);
+        }
         const backendDuration = Number(results.duration) || 0;
         const networkDuration = Math.max(0, requestDuration - backendDuration);
         renderResults(results.teams, backendDuration, networkDuration);
-        if (CURRENT_USER) {
-            postHistory(results.teams);
-        }
     } catch (error) {
         console.error('Calculation failed:', error);
-        showFlash(`计算失败: ${error.message}`, 'error', 6000);
+        alert(`计算失败: ${error.message}`);
     } finally {
         btn.removeAttribute('aria-busy');
         btn.textContent = '开始计算';
@@ -1230,7 +1767,7 @@ function renderEventBonuses(div, svt) {
         let bonuses = svt.event_bonuses ? svt.event_bonuses[server] : [];
         let partyBonuses = svt.event_party_bonuses ? svt.event_party_bonuses[server] : [];
         let extraBonuses = svt.event_extra_bonuses ? svt.event_extra_bonuses[server] : [];
-        
+
         // Filter based on selected events
         bonuses = bonuses.filter(b => SELECTIONS.selectedEvents.has(b.id));
         partyBonuses = partyBonuses.filter(b => SELECTIONS.selectedEvents.has(b.id));
@@ -1239,7 +1776,7 @@ function renderEventBonuses(div, svt) {
         if ((bonuses && bonuses.length > 0) || (partyBonuses && partyBonuses.length > 0) || (extraBonuses && extraBonuses.length > 0)) {
             const bonusContainer = document.createElement('div');
             bonusContainer.className = 'event-bonus-container';
-            
+
             bonuses.forEach(b => {
                 const item = document.createElement('div');
                 item.className = 'event-bonus-item';
@@ -1250,10 +1787,11 @@ function renderEventBonuses(div, svt) {
             partyBonuses.forEach(b => {
                 const item = document.createElement('div');
                 item.className = 'event-bonus-item';
+                item.style.border = '1px solid var(--pico-primary)';
                 item.innerHTML = `<span class="event-bonus-val">全队 +${b.bonus}%</span><span class="event-bonus-name" title="${b.name}">${b.name}</span>`;
                 bonusContainer.appendChild(item);
             });
-            
+
             extraBonuses.forEach(b => {
                 const item = document.createElement('div');
                 item.className = 'event-bonus-item';
@@ -1274,7 +1812,6 @@ function renderResults(teams, backendDuration, networkDuration) {
     const container = document.getElementById('results-container');
     const list = document.getElementById('results-list');
     list.innerHTML = '';
-    const crownCostBonus = document.getElementById('enable-crown-war').checked ? 12 : 0;
 
     if (backendDuration !== undefined) {
         const p = document.createElement('p');
@@ -1284,7 +1821,7 @@ function renderResults(teams, backendDuration, networkDuration) {
         const networkText = networkDuration === undefined ? '' : ` | 网络延迟: ${Math.round(networkDuration)} ms`;
         p.innerHTML = `<i data-lucide="timer" style="width: 14px; vertical-align: middle;"></i> 后端计算: ${Math.round(backendDuration)} ms${networkText}`;
         list.appendChild(p);
-        refreshIcons(p);
+        refreshIcons();
     }
 
     if (!teams || teams.length === 0) {
@@ -1296,11 +1833,15 @@ function renderResults(teams, backendDuration, networkDuration) {
     teams.forEach((team, index) => {
         const teamDiv = document.createElement('div');
         teamDiv.className = 'team-result';
-        
+
         const header = document.createElement('hgroup');
         header.style.marginBottom = '0.75rem';
-        const bond15Text = team.Bond15Bonus > 0 ? ` <small>| 15绊全队加成: +${team.Bond15Bonus}</small>` : '';
-        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1}</h5><p><mark>总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost - crownCostBonus}</small>${bond15Text}</p>`;
+        const guidanceCount = Number(team.Bond15GuidanceCount || 0);
+        const guidanceText = guidanceCount > 0 ? ` <small>| 梦火の導き: ${guidanceCount}骑 / 全队 +${Number(team.Bond15GuidancePercent || guidanceCount * 25)}%</small>` : '';
+        const optimizationMode = team.OptimizationMode || document.getElementById('optimization-mode')?.value || 'max';
+        const modeLabels = {max: '单场最大', balanced: '长期均衡', finish: '优先收尾'};
+        const scoreText = optimizationMode === 'max' ? '' : ` <small>| 培养评分: ${Math.round(Number(team.OptimizationScore || 0))}</small>`;
+        header.innerHTML = `<h5><i data-lucide="award" style="width: 20px; vertical-align: middle; margin-right: 8px;"></i> 方案 ${index + 1} <small>· ${modeLabels[optimizationMode] || modeLabels.max}</small></h5><p><mark>真实总羁绊: ${team.TotalBond}</mark> <small>| 总Cost: ${team.TotalCost}</small>${scoreText}${guidanceText}</p>`;
         teamDiv.appendChild(header);
 
         const svtTitle = document.createElement('div');
@@ -1311,7 +1852,7 @@ function renderResults(teams, backendDuration, networkDuration) {
         const svtGrid = document.createElement('div');
         svtGrid.className = 'team-grid';
         teamDiv.appendChild(svtGrid);
-        
+
         const svtLimit = parseInt(document.getElementById('svt-limit').value, 10);
         for (let i = 0; i < svtLimit; i++) {
             const wrapper = document.createElement('div');
@@ -1332,13 +1873,44 @@ function renderResults(teams, backendDuration, networkDuration) {
                 const div = createAvatar(svt.id, name, detail.img, () => showSvtTraits(svt, diffKey));
 
                 renderEventBonuses(div, svt);
-                if (SELECTIONS.bond15.has(svtId)) {
-                    const badge = document.createElement('div');
-                    badge.className = 'bond15-badge';
-                    badge.textContent = SELECTIONS.bond15.get(svtId) !== false ? '15绊·已满' : '15绊';
-                    div.appendChild(badge);
+
+                const bondInfo = Array.isArray(team.ServantBondBonuses) ? team.ServantBondBonuses[i] : null;
+                if (bondInfo) {
+                    const contributionSpan = document.createElement('div');
+                    contributionSpan.className = 'contribution servant-bond-bonus';
+                    if (bondInfo.bond15GuidanceSource) {
+                        contributionSpan.textContent = '绊15辅助 · 梦火の導き 全队+25% · 自身已满0';
+                    } else if (bondInfo.bondCapped) {
+                        contributionSpan.textContent = '当前培养上限已满 · 自身羁绊0';
+                    } else {
+                        const percent = Number(bondInfo.bonusPercent || 0);
+                        const percentText = Number.isInteger(percent) ? String(percent) : percent.toFixed(1).replace(/\.0$/, '');
+                        const direct = Number(bondInfo.directBonus || 0);
+                        const directText = direct > 0 ? ` +${direct}固定` : direct < 0 ? ` ${direct}固定` : '';
+                        const guidance = Number(bondInfo.guidanceReceivedPercent || 0);
+                        const guidanceText = guidance > 0 ? `（梦火+${Number.isInteger(guidance) ? guidance : guidance.toFixed(1)}%）` : '';
+                        contributionSpan.textContent = `羁绊 +${percentText}%${directText}${guidanceText} · 实得 ${bondInfo.totalBond}`;
+                    }
+                    div.appendChild(contributionSpan);
                 }
-                
+
+                if (SELECTIONS.ownedSvt.has(svt.id) || SERVANT_PROFILES.has(svt.id)) {
+                    const profile = getServantProfile(svt.id);
+                    const profileLine = document.createElement('div');
+                    profileLine.className = 'servant-profile-line';
+                    const roleLabel = {normal: '普通', driver: '司机', passenger: '老板'}[profile.role] || '普通';
+                    const priorityLabel = {auto: '自动', high: '高优先', low: '低优先'}[profile.priority] || '自动';
+                    const rankText = profile.bondRank > 0 ? `绊${profile.bondRank}${profile.bondRankMax > 0 ? '/' + profile.bondRankMax : ''}` : '羁绊未导入';
+                    const remaining = getProfileRemaining(profile);
+                    const remainingText = remaining === null ? '' : ` · 距目标 ${formatNumber(remaining)}`;
+                    const fixedText = profile.fixed ? ' · 固定出场' : '';
+                    const score = Number(bondInfo?.optimizationScore || 0);
+                    const weight = Number(bondInfo?.preferenceWeight || 0);
+                    const scorePart = (team.OptimizationMode && team.OptimizationMode !== 'max' && score > 0) ? ` · 权重×${weight.toFixed(2)} / 评分${Math.round(score)}` : '';
+                    profileLine.textContent = `${roleLabel} · ${priorityLabel} · ${rankText}${remainingText}${fixedText}${scorePart}`;
+                    div.appendChild(profileLine);
+                }
+
                 wrapper.appendChild(div);
 
                 const actions = document.createElement('div');
@@ -1402,10 +1974,35 @@ function renderResults(teams, backendDuration, networkDuration) {
             ceGrid.appendChild(wrapper);
         }
 
+        if (team.GrandCraftEssence) {
+            const grandTitle = document.createElement('div');
+            grandTitle.className = 'team-section-title';
+            grandTitle.textContent = '自家Grand额外报酬礼装（0 Cost）';
+            teamDiv.appendChild(grandTitle);
+
+            const grandGrid = document.createElement('div');
+            grandGrid.className = 'team-grid';
+            teamDiv.appendChild(grandGrid);
+
+            const ceInfo = team.GrandCraftEssence;
+            const ce = ALL_DATA.craftEssences.find(c => c.id === ceInfo.id);
+            if (ce) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'result-item-wrapper';
+                const div = createAvatar(ce.id, ce.name, ce.img, null, null, true);
+                const contributionSpan = document.createElement('div');
+                contributionSpan.className = 'contribution';
+                contributionSpan.textContent = `羁绊 +${ceInfo.contribution} · 0 Cost`;
+                div.appendChild(contributionSpan);
+                wrapper.appendChild(div);
+                grandGrid.appendChild(wrapper);
+            }
+        }
+
         if (team.SupportCraftEssences && team.SupportCraftEssences.length > 0) {
             const supportTitle = document.createElement('div');
             supportTitle.className = 'team-section-title';
-            supportTitle.textContent = '建议助战礼装';
+            supportTitle.textContent = (document.getElementById('grand-mode')?.checked ? '建议助战Grand礼装（2张）' : '建议助战礼装');
             teamDiv.appendChild(supportTitle);
 
             const supportGrid = document.createElement('div');
@@ -1425,7 +2022,7 @@ function renderResults(teams, backendDuration, networkDuration) {
                 contributionSpan.className = 'contribution';
                 contributionSpan.textContent = `羁绊 +${ceInfo.contribution}`;
                 div.appendChild(contributionSpan);
-                
+
                 wrapper.appendChild(div);
 
                 const actions = document.createElement('div');
@@ -1447,235 +2044,26 @@ function renderResults(teams, backendDuration, networkDuration) {
         list.appendChild(teamDiv);
     });
     container.hidden = false;
-    refreshIcons(list);
+    refreshIcons();
 }
 
 function quickAdd(event, type, list, id, extra) {
     event.stopPropagation();
     const key = getSelectionKey(type, list);
     if (key === 'includeSvt') {
-        removeOppositeSelection(type, list, id);
         SELECTIONS[key].set(id, extra || 'default');
     } else if (key === 'supportLockCe') {
         const limit = getSupportLimitValue();
         if (!SELECTIONS[key].has(id) && SELECTIONS[key].size >= limit) {
-            showFlash(`锁定助战礼装数量不能超过 ${limit} 个`, 'error');
+            alert(`锁定助战礼装数量不能超过 ${limit} 个`);
             return;
         }
-        removeOppositeSelection(type, list, id);
         SELECTIONS[key].add(id);
     } else {
-        removeOppositeSelection(type, list, id);
         SELECTIONS[key].add(id);
-        if (key === 'excludeSvt') ensureExcludeSvtVisible(id);
     }
     renderSelectionList(type, list);
-    if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
-    if (type === 'svt') renderSelectionList('svt', 'bond15');
-    if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
-    if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();
-}
-
-async function postHistory(teams) {
-    const state = localStorage.getItem(STORAGE_KEY);
-    if (!state) return;
-    try {
-        await fetch('/api/history', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                state: state,
-                result: JSON.stringify(teams)
-            })
-        });
-    } catch (e) {
-        console.error("Failed to post history", e);
-    }
-}
-
-async function openHistoryModal() {
-    const container = document.getElementById('history-list-container');
-    container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">加载中...</p>';
-    const modal = document.getElementById('history-modal');
-    if (!modal.open) modal.showModal();
-
-    try {
-        const res = await fetch(`/api/history`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-
-        container.innerHTML = '';
-        if (!data.history || data.history.length === 0) {
-            HISTORY_ITEMS = [];
-            container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">暂无历史记录。</p>';
-            return;
-        }
-
-        HISTORY_ITEMS = data.history;
-        renderHistoryList();
-    } catch(err) {
-        container.innerHTML = `<p style="text-align: center; color: var(--pico-form-element-invalid-border-color);">加载失败: ${err.message}</p>`;
-    }
-}
-
-function renderHistoryList() {
-    const container = document.getElementById('history-list-container');
-    container.innerHTML = '';
-    const pinned = HISTORY_ITEMS.filter(item => item.pinned);
-    const recent = HISTORY_ITEMS.filter(item => !item.pinned);
-    if (pinned.length > 0) renderHistorySection(container, `已固定 (${pinned.length}/15)`, pinned, 'pin');
-    if (recent.length > 0) renderHistorySection(container, `最近记录 (${recent.length}/10)`, recent, 'history');
-    if (HISTORY_ITEMS.length === 0) {
-        container.innerHTML = '<p style="text-align: center; color: var(--pico-muted-color);">暂无历史记录。</p>';
-    }
-    refreshIcons(container);
-}
-
-function renderHistorySection(container, title, items, icon) {
-    const heading = document.createElement('div');
-    heading.className = 'history-section-title';
-    heading.innerHTML = `<i data-lucide="${icon}" style="width: 14px;"></i><span></span>`;
-    heading.querySelector('span').textContent = title;
-    container.appendChild(heading);
-
-    items.forEach(item => {
-        const entry = document.createElement('div');
-        entry.className = 'history-entry';
-
-        const main = document.createElement('div');
-        main.className = 'history-entry-main';
-        const open = document.createElement('button');
-        open.className = 'outline secondary history-entry-open';
-        const name = document.createElement('span');
-        name.className = 'history-entry-name';
-        name.textContent = item.name || new Date(item.timestamp).toLocaleString();
-        const time = document.createElement('span');
-        time.className = 'history-entry-time';
-        time.textContent = item.name ? new Date(item.timestamp).toLocaleString() : '点击查看方案';
-        open.append(name, time);
-        open.onclick = () => restoreHistory(item);
-        main.appendChild(open);
-
-        const actions = document.createElement('div');
-        actions.className = 'history-entry-actions';
-        actions.append(
-            createHistoryAction('pencil', '重命名', () => beginRenameHistory(item, main)),
-            createHistoryAction(item.pinned ? 'pin-off' : 'pin', item.pinned ? '取消固定' : '固定', () => toggleHistoryPinned(item))
-        );
-        entry.append(main, actions);
-        container.appendChild(entry);
-    });
-}
-
-function createHistoryAction(icon, title, handler) {
-    const button = document.createElement('button');
-    button.className = 'outline secondary';
-    button.type = 'button';
-    button.title = title;
-    button.setAttribute('aria-label', title);
-    button.innerHTML = `<i data-lucide="${icon}"></i>`;
-    button.onclick = handler;
-    return button;
-}
-
-async function toggleHistoryPinned(item) {
-    try {
-        const res = await fetch(`/api/history/${item.id}/pin`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({pinned: !item.pinned})
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            if (data.error === 'pinned history limit reached') throw new Error('最多只能固定 15 条记录');
-            throw new Error(data.error);
-        }
-        item.pinned = !item.pinned;
-        if (!item.pinned) {
-            const recent = HISTORY_ITEMS.filter(entry => !entry.pinned)
-                .sort((a, b) => b.timestamp - a.timestamp || b.id - a.id);
-            const retained = new Set(recent.slice(0, 10).map(entry => entry.id));
-            HISTORY_ITEMS = HISTORY_ITEMS.filter(entry => entry.pinned || retained.has(entry.id));
-        }
-        renderHistoryList();
-    } catch (err) {
-        showFlash(`操作失败: ${err.message}`, 'error', 6000);
-    }
-}
-
-function beginRenameHistory(item, main) {
-    if (main.querySelector('input')) return;
-    const open = main.querySelector('.history-entry-open');
-    const input = document.createElement('input');
-    input.className = 'history-entry-name-input';
-    input.type = 'text';
-    input.maxLength = 100;
-    input.value = item.name || '';
-    input.placeholder = new Date(item.timestamp).toLocaleString();
-    open.hidden = true;
-    main.prepend(input);
-    input.focus();
-    input.select();
-
-    let finished = false;
-    const finish = async save => {
-        if (finished) return;
-        finished = true;
-        if (save) await renameHistory(item, input.value);
-        input.remove();
-        open.hidden = false;
-    };
-    input.onkeydown = event => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            input.blur();
-        } else if (event.key === 'Escape') {
-            event.preventDefault();
-            finish(false);
-        }
-    };
-    input.onblur = () => finish(true);
-}
-
-async function renameHistory(item, name) {
-    const trimmedName = name.trim();
-    if ([...trimmedName].length > 100) {
-        showFlash('记录名称不能超过 100 个字符', 'error');
-        return;
-    }
-    try {
-        const res = await fetch(`/api/history/${item.id}/name`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: trimmedName})
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        item.name = trimmedName;
-        renderHistoryList();
-    } catch (err) {
-        showFlash(`重命名失败: ${err.message}`, 'error', 6000);
-    }
-}
-
-function restoreHistory(item) {
-    if (item.state) {
-        localStorage.setItem(STORAGE_KEY, item.state);
-        loadState();
-        renderEventSelection();
-        renderExcludeSvtClassFilters();
-        // 不在此处saveState：避免恢复历史时立刻把历史快照同步到云端覆盖当前配置。
-        // 历史state已写入localStorage，用户后续有任何操作才会自然保存并同步。
-    }
-    if (item.result) {
-        try {
-            const teams = JSON.parse(item.result);
-            renderResults(teams);
-        } catch(e) {}
-    }
-    document.getElementById('history-modal').close();
-    window.scrollTo({ top: document.getElementById('results-container').offsetTop - 50, behavior: 'smooth' });
 }
 
 // --- 辅助函数 ---
@@ -1687,32 +2075,9 @@ function closeDonateModal() {
     document.getElementById('donate-modal').close();
 }
 
-function refreshIcons(root) {
-    lucide.createIcons(root ? {root} : undefined);
+function refreshIcons() {
+    lucide.createIcons();
 }
-
-// 控制台调试：debug(state, result?) 将 saved state 应用到页面渲染；
-// result 可传 /api/calculate 的响应对象（{teams, duration}）或 teams 数组，传入时一并渲染结果区。
-function debug(state, result) {
-    if (!state || typeof state !== 'object') {
-        console.warn('debug(state, result?): state 需为 saved state 对象（{config, selections, ui}），可从 localStorage 或 /api/state 获取。');
-        return;
-    }
-    try {
-        applyState(state);
-    } catch (error) {
-        console.error('[debug] 应用 state 失败:', error);
-        return;
-    }
-    if (result !== undefined) {
-        const teams = Array.isArray(result) ? result : result?.teams;
-        const duration = Array.isArray(result) ? undefined : Number(result?.duration) || undefined;
-        renderResults(teams, duration);
-        document.getElementById('results-container')?.scrollIntoView({behavior: 'smooth'});
-    }
-    console.log('[debug] 已渲染', {state, result});
-}
-window.debug = debug;
 
 function createAvatar(id, name, imgSrc, clickHandler, removeHandler, isCe = false) {
     const div = document.createElement('div');
@@ -1724,8 +2089,6 @@ function createAvatar(id, name, imgSrc, clickHandler, removeHandler, isCe = fals
     img.src = imgSrc;
     img.alt = name;
     img.title = name;
-    img.loading = 'lazy';
-    img.decoding = 'async';
     if (isCe) img.className = 'ce-img';
     div.appendChild(img);
 

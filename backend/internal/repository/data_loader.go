@@ -1,19 +1,18 @@
 package repository
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fgo-calc-backend/internal/model"
-	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
-	"time"
+	"sync"
 )
 
 type Repository struct {
+	dataMu        sync.RWMutex
 	servants      []model.Servant
 	cnServants    []model.Servant
 	cnOverrides   []model.Servant
@@ -23,9 +22,7 @@ type Repository struct {
 	ceEffects     map[string]map[int]map[int]map[string]model.CeEffect
 	dominateMap   map[int]int
 	dataUpdatedAt int64
-	announcements []model.Announcement
 
-	db      *sql.DB
 	dataDir string
 }
 
@@ -36,19 +33,31 @@ func NewRepository(dataDir string) (*Repository, error) {
 	if err := repo.loadData(dataDir); err != nil {
 		return nil, err
 	}
-	if err := repo.initUserStore(); err != nil {
-		return nil, err
-	}
 	repo.precompute()
 	repo.clearInternalData()
 	return repo, nil
 }
 
-func (r *Repository) Close() error {
-	if r.db == nil {
-		return nil
+func (r *Repository) ReloadData() error {
+	fresh := &Repository{dataDir: r.dataDir}
+	if err := fresh.loadData(r.dataDir); err != nil {
+		return err
 	}
-	return r.db.Close()
+	fresh.precompute()
+	fresh.clearInternalData()
+
+	r.dataMu.Lock()
+	defer r.dataMu.Unlock()
+	r.servants = fresh.servants
+	r.cnServants = fresh.cnServants
+	r.cnOverrides = fresh.cnOverrides
+	r.cnUnavailable = fresh.cnUnavailable
+	r.craftEssences = fresh.craftEssences
+	r.traits = fresh.traits
+	r.ceEffects = fresh.ceEffects
+	r.dominateMap = fresh.dominateMap
+	r.dataUpdatedAt = fresh.dataUpdatedAt
+	return nil
 }
 
 func (r *Repository) clearInternalData() {
@@ -69,11 +78,6 @@ func (r *Repository) loadData(dataDir string) error {
 	if updatedAt, err := os.ReadFile(filepath.Join(dataDir, "update.txt")); err == nil {
 		r.dataUpdatedAt, _ = strconv.ParseInt(strings.TrimSpace(string(updatedAt)), 10, 64)
 	}
-	announcements, err := loadAnnouncements(filepath.Join(dataDir, "announcement.txt"))
-	if err != nil {
-		return err
-	}
-	r.announcements = announcements
 
 	svtFile, err := os.Open(filepath.Join(dataDir, "servants.json"))
 	if err != nil {
@@ -139,43 +143,6 @@ func (r *Repository) loadData(dataDir string) error {
 	}
 
 	return nil
-}
-
-func loadAnnouncements(path string) ([]model.Announcement, error) {
-	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
-		return []model.Announcement{}, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	content := strings.ReplaceAll(string(data), "\r\n", "\n")
-	blocks := strings.Split(content, "------")
-	announcements := make([]model.Announcement, 0, len(blocks))
-	for i, block := range blocks {
-		block = strings.TrimSpace(block)
-		if block == "" {
-			continue
-		}
-		lines := strings.Split(block, "\n")
-		if len(lines) < 3 {
-			return nil, fmt.Errorf("announcement block %d must contain title, date and content", i+1)
-		}
-		title := strings.TrimSpace(lines[0])
-		date := strings.TrimSpace(lines[1])
-		body := strings.TrimSpace(strings.Join(lines[2:], "\n"))
-		if title == "" || body == "" {
-			return nil, fmt.Errorf("announcement block %d has an empty title or content", i+1)
-		}
-		if _, err := time.Parse("2006-01-02", date); err != nil {
-			return nil, fmt.Errorf("announcement block %d has invalid date %q: %w", i+1, date, err)
-		}
-		announcements = append(announcements, model.Announcement{Title: title, Date: date, Content: body})
-	}
-	sort.SliceStable(announcements, func(i, j int) bool {
-		return announcements[i].Date > announcements[j].Date
-	})
-	return announcements, nil
 }
 
 func (r *Repository) precompute() {
@@ -275,33 +242,47 @@ func (r *Repository) buildDominateMap() {
 }
 
 func (r *Repository) GetServants(server string) []model.Servant {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	if server == "CN" {
 		return r.cnServants
 	}
 	return r.servants
 }
 
-func (r *Repository) GetCNOverrides() []model.Servant { return r.cnOverrides }
+func (r *Repository) GetCNOverrides() []model.Servant {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
+	return r.cnOverrides
+}
 
-func (r *Repository) GetCNUnavailable() []int { return r.cnUnavailable }
+func (r *Repository) GetCNUnavailable() []int {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
+	return r.cnUnavailable
+}
 
 func (r *Repository) GetCraftEssences() []model.CraftEssence {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	return r.craftEssences
 }
 
 func (r *Repository) GetTraits() map[int]string {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	return r.traits
 }
 
 func (r *Repository) GetDataUpdatedAt() int64 {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	return r.dataUpdatedAt
 }
 
-func (r *Repository) GetAnnouncements() []model.Announcement {
-	return r.announcements
-}
-
 func (r *Repository) GetCeEffects(server string) map[int]map[int]map[string]model.CeEffect {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	if server == "CN" {
 		return r.ceEffects["CN"]
 	}
@@ -309,5 +290,7 @@ func (r *Repository) GetCeEffects(server string) map[int]map[int]map[string]mode
 }
 
 func (r *Repository) GetDominateMap() map[int]int {
+	r.dataMu.RLock()
+	defer r.dataMu.RUnlock()
 	return r.dominateMap
 }

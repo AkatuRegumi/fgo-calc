@@ -2,8 +2,8 @@ let currentModal = {type: '', list: ''};
 
 function openModal(type, list) {
     currentModal = {type, list};
-    if (type === 'svt' && list === 'bond15') {
-        document.getElementById('modal-title').textContent = '选择15绊从者';
+    if (list === 'owned') {
+        document.getElementById('modal-title').textContent = type === 'svt' ? '管理我的英灵 Box / 羁绊培养档案' : '管理我拥有的羁绊礼装';
     } else if (type === 'ce' && list === 'supportLock') {
         document.getElementById('modal-title').textContent = '选择锁定助战礼装';
     } else if (type === 'ce' && list === 'excludeSupport') {
@@ -12,6 +12,12 @@ function openModal(type, list) {
         document.getElementById('modal-title').textContent = `选择${list === 'include' ? '必选' : '排除'}${type === 'svt' ? '从者' : '礼装'}`;
     }
     document.getElementById('modal-search').value = '';
+
+    const batchActions = document.getElementById('modal-batch-actions');
+    if (batchActions) batchActions.style.display = list === 'owned' ? 'flex' : 'none';
+    document.querySelectorAll('.bond-batch-action').forEach(button => {
+        button.style.display = (type === 'svt' && list === 'owned') ? 'inline-flex' : 'none';
+    });
 
     const filterContainer = document.getElementById('modal-filter-container');
     if (type === 'svt') {
@@ -100,16 +106,12 @@ function renderClassFilters() {
 function isPickerItemSelected(id) {
     const {type, list} = currentModal;
     if (type === 'svt' && list === 'include') return SELECTIONS.includeSvt.has(id);
-    if (type === 'svt' && list === 'bond15') return SELECTIONS.bond15.has(id);
     return SELECTIONS[getSelectionKey(type, list)].has(id);
 }
 
-function populateModalGrid(filter = '') {
-    const grid = document.getElementById('modal-grid');
-    grid.innerHTML = '';
+function getFilteredModalItems(filter = '') {
     const items = currentModal.type === 'svt' ? getActiveServants() : ALL_DATA.craftEssences;
-
-    items.filter(item => {
+    return items.filter(item => {
         if (!item.name?.toLowerCase().includes(filter.toLowerCase())) return false;
         if (currentModal.type === 'svt') {
             const detail = item.diff.default || Object.values(item.diff)[0];
@@ -122,7 +124,14 @@ function populateModalGrid(filter = '') {
             if ((currentModal.list === 'supportLock' || currentModal.list === 'excludeSupport') && !isSupportCandidateCe(item)) return false;
         }
         return true;
-    }).forEach(item => {
+    });
+}
+
+function populateModalGrid(filter = '') {
+    const grid = document.getElementById('modal-grid');
+    grid.innerHTML = '';
+
+    getFilteredModalItems(filter).forEach(item => {
         const detail = currentModal.type === 'svt' ? item.diff.default || Object.values(item.diff)[0] : null;
         const image = currentModal.type === 'svt' ? detail?.img || '' : item.img;
         const selected = isPickerItemSelected(item.id);
@@ -142,44 +151,149 @@ function populateModalGrid(filter = '') {
         check.innerHTML = '<i data-lucide="check"></i>';
         avatar.appendChild(check);
         if (currentModal.type === 'svt') renderEventBonuses(avatar, item);
+
+        if (currentModal.type === 'svt' && currentModal.list === 'owned') {
+            const status = getServantBondStatus(item.id);
+            if (status === 10 || status === 15) {
+                const badge = document.createElement('span');
+                badge.className = `bond-status-badge bond-${status}`;
+                badge.textContent = `绊${status}`;
+                avatar.appendChild(badge);
+            }
+
+            const controls = document.createElement('div');
+            controls.className = 'bond-status-controls';
+            [
+                {value: 0, label: '未满'},
+                {value: 10, label: '绊10'},
+                {value: 15, label: '绊15'}
+            ].forEach(option => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'bond-status-btn';
+                button.textContent = option.label;
+                button.classList.toggle('is-active', selected && status === option.value);
+                button.onclick = event => {
+                    event.stopPropagation();
+                    setServantBondStatus(item.id, option.value);
+                    populateModalGrid(document.getElementById('modal-search').value);
+                };
+                controls.appendChild(button);
+            });
+            avatar.appendChild(controls);
+
+            const profile = getServantProfile(item.id);
+            if (profile.imported || profile.bondRank > 0) {
+                const progress = document.createElement('div');
+                progress.className = 'bond-profile-progress';
+                const rankText = `Lv.${profile.bondRank || 0}${profile.bondRankMax ? '/' + profile.bondRankMax : ''}`;
+                const nextText = profile.bondNext > 0 ? ` · Next ${formatNumber(profile.bondNext)}` : '';
+                const remaining = getProfileRemaining(profile);
+                const remainingText = remaining === null ? '' : ` · 距目标 ${formatNumber(remaining)}`;
+                progress.textContent = `${rankText} · Total ${formatNumber(profile.bondTotal)}${nextText}${remainingText}`;
+                avatar.appendChild(progress);
+            }
+
+            const profileControls = document.createElement('div');
+            profileControls.className = 'servant-profile-controls';
+            profileControls.onclick = event => event.stopPropagation();
+
+            const roleSelect = document.createElement('select');
+            roleSelect.className = 'profile-mini-select';
+            roleSelect.title = '角色定位：司机会降低长期培养权重，老板会提高';
+            [
+                ['normal', '普通'],
+                ['driver', '司机'],
+                ['passenger', '老板']
+            ].forEach(([value, label]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                roleSelect.appendChild(option);
+            });
+            roleSelect.value = profile.role || 'normal';
+            roleSelect.onchange = event => {
+                event.stopPropagation();
+                SELECTIONS.ownedSvt.add(item.id);
+                updateServantProfile(item.id, {role: roleSelect.value});
+                populateModalGrid(document.getElementById('modal-search').value);
+            };
+
+            const prioritySelect = document.createElement('select');
+            prioritySelect.className = 'profile-mini-select';
+            prioritySelect.title = '手动培养优先级';
+            [
+                ['auto', '优先:自动'],
+                ['high', '优先:高'],
+                ['low', '优先:低']
+            ].forEach(([value, label]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = label;
+                prioritySelect.appendChild(option);
+            });
+            prioritySelect.value = profile.priority || 'auto';
+            prioritySelect.onchange = event => {
+                event.stopPropagation();
+                SELECTIONS.ownedSvt.add(item.id);
+                updateServantProfile(item.id, {priority: prioritySelect.value});
+                populateModalGrid(document.getElementById('modal-search').value);
+            };
+
+            const targetSelect = document.createElement('select');
+            targetSelect.className = 'profile-mini-select';
+            targetSelect.title = '长期培养目标';
+            [[10, '目标:绊10'], [15, '目标:绊15']].forEach(([value, label]) => {
+                const option = document.createElement('option');
+                option.value = String(value);
+                option.textContent = label;
+                targetSelect.appendChild(option);
+            });
+            targetSelect.value = String(profile.targetRank || 10);
+            targetSelect.onchange = event => {
+                event.stopPropagation();
+                SELECTIONS.ownedSvt.add(item.id);
+                updateServantProfile(item.id, {targetRank: Number(targetSelect.value)});
+                populateModalGrid(document.getElementById('modal-search').value);
+            };
+
+            const fixedLabel = document.createElement('label');
+            fixedLabel.className = 'profile-fixed-label';
+            fixedLabel.title = '固定出场是硬约束；适合当前周回必须使用的司机/打手';
+            const fixedInput = document.createElement('input');
+            fixedInput.type = 'checkbox';
+            fixedInput.checked = !!profile.fixed;
+            fixedInput.onchange = event => {
+                event.stopPropagation();
+                SELECTIONS.ownedSvt.add(item.id);
+                updateServantProfile(item.id, {fixed: fixedInput.checked});
+                populateModalGrid(document.getElementById('modal-search').value);
+            };
+            fixedLabel.append(fixedInput, '固定');
+
+            profileControls.append(roleSelect, prioritySelect, targetSelect, fixedLabel);
+            avatar.appendChild(profileControls);
+        }
         grid.appendChild(avatar);
     });
-    refreshIcons(grid);
-    updateModalDoneButton();
-}
-
-function getCurrentSelectionSize() {
-    const {type, list} = currentModal;
-    if (type === 'svt' && list === 'include') return SELECTIONS.includeSvt.size;
-    if (type === 'svt' && list === 'bond15') return SELECTIONS.bond15.size;
-    return SELECTIONS[getSelectionKey(type, list)].size;
-}
-
-function updateModalDoneButton() {
-    const button = document.getElementById('modal-done-btn');
-    if (button) button.textContent = `完成（已选 ${getCurrentSelectionSize()}）`;
+    refreshIcons();
 }
 
 function togglePickerItem(id) {
     const {type, list} = currentModal;
     const selected = isPickerItemSelected(id);
     if (selected) {
-        if (type === 'svt' && list === 'include') SELECTIONS.includeSvt.delete(id);
-        else if (type === 'svt' && list === 'bond15') SELECTIONS.bond15.delete(id);
-        else SELECTIONS[getSelectionKey(type, list)].delete(id);
+        if (type === 'svt' && list === 'include') {
+            SELECTIONS.includeSvt.delete(id);
+        } else {
+            SELECTIONS[getSelectionKey(type, list)].delete(id);
+            if (type === 'svt' && list === 'owned') {
+                SELECTIONS.bond10Svt.delete(id);
+                SELECTIONS.bond15Svt.delete(id);
+                updateOwnershipSummary();
+            }
+        }
         renderSelectionList(type, list);
-        saveState();
-        populateModalGrid(document.getElementById('modal-search').value);
-        return;
-    }
-
-    if (type === 'svt' && list === 'bond15') {
-        removeOppositeSelection(type, list, id);
-        // 国服当前15绊即为上限，默认按已满处理；日服用户可在列表中取消勾选
-        const defaultFull = document.getElementById('server-select').value !== 'JP';
-        SELECTIONS.bond15.set(id, defaultFull);
-        renderSelectionList(type, list);
-        renderSelectionList('svt', 'exclude');
         saveState();
         populateModalGrid(document.getElementById('modal-search').value);
         return;
@@ -204,21 +318,53 @@ function togglePickerItem(id) {
             return;
         }
     }
-    removeOppositeSelection(type, list, id);
     SELECTIONS[getSelectionKey(type, list)].add(id);
-    if (type === 'svt' && list === 'exclude') ensureExcludeSvtVisible(id);
     renderSelectionList(type, list);
-    if (type === 'svt') renderSelectionList('svt', list === 'include' ? 'exclude' : 'include');
-    if (type === 'svt') renderSelectionList('svt', 'bond15');
-    if (type === 'ce' && (list === 'include' || list === 'exclude')) renderSelectionList('ce', list === 'include' ? 'exclude' : 'include');
-    if (type === 'ce' && (list === 'supportLock' || list === 'excludeSupport')) renderSelectionList('ce', list === 'supportLock' ? 'excludeSupport' : 'supportLock');
     saveState();
     populateModalGrid(document.getElementById('modal-search').value);
 }
 
-let modalSearchTimer = null;
+function setOwnedForCurrentFilter(selected) {
+    if (currentModal.list !== 'owned') return;
+    const key = getSelectionKey(currentModal.type, currentModal.list);
+    const set = SELECTIONS[key];
+    const filter = document.getElementById('modal-search').value;
+    for (const item of getFilteredModalItems(filter)) {
+        if (selected) {
+            set.add(item.id);
+        } else {
+            set.delete(item.id);
+            if (currentModal.type === 'svt') {
+                SELECTIONS.bond10Svt.delete(item.id);
+                SELECTIONS.bond15Svt.delete(item.id);
+            }
+        }
+    }
+    saveState();
+    updateOwnershipSummary();
+    populateModalGrid(filter);
+}
+
+
+function setBondStatusForCurrentFilter(status) {
+    if (currentModal.type !== 'svt' || currentModal.list !== 'owned') return;
+    const filter = document.getElementById('modal-search').value;
+    for (const item of getFilteredModalItems(filter)) {
+        SELECTIONS.ownedSvt.add(item.id);
+        SELECTIONS.bond10Svt.delete(item.id);
+        SELECTIONS.bond15Svt.delete(item.id);
+        if (status === 10) SELECTIONS.bond10Svt.add(item.id);
+        if (status === 15) SELECTIONS.bond15Svt.add(item.id);
+        const profile = getServantProfile(item.id);
+        if (!profile.imported && (status === 10 || status === 15)) {
+            SERVANT_PROFILES.set(item.id, {...profile, bondRank: status, bondRankMax: status, targetRank: status});
+        }
+    }
+    saveState();
+    updateOwnershipSummary();
+    populateModalGrid(filter);
+}
+
 document.getElementById('modal-search').addEventListener('input', event => {
-    clearTimeout(modalSearchTimer);
-    const value = event.target.value;
-    modalSearchTimer = setTimeout(() => populateModalGrid(value), 150);
+    populateModalGrid(event.target.value);
 });

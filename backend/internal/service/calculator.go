@@ -97,6 +97,7 @@ func (s *CalculatorService) GetSupportCombinations(supportLimit int, serverType 
 	for _, id := range excludeSupportCe {
 		excludeSet[id] = true
 	}
+	// Explicit include wins over exclusion, matching the upstream contract.
 	for _, id := range includeSupportCe {
 		delete(excludeSet, id)
 	}
@@ -234,6 +235,7 @@ func (s *CalculatorService) GetCombination(num int, includeCe []int, excludeCe [
 	for _, id := range excludeCe {
 		excludeSet[id] = true
 	}
+	// Explicit include wins over exclusion, matching the upstream contract.
 	for _, id := range includeCe {
 		delete(excludeSet, id)
 	}
@@ -356,7 +358,75 @@ func (s *CalculatorService) getEventMultiplier(svt *model.Servant, serverType st
 	return multiplier
 }
 
-func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, supportLimit int, includeSupportCe []int, excludeSupportCe []int, allowTraits []int, includeSvt []int, includeSvtDiff []string, excludeSvt []int, includeCe []int, excludeCe []int, baseBond int, serverType string, enableEventBonus bool, selectedEventIds []int, bond15Svt []int, bond15Full []bool) ([]model.TeamResponse, time.Duration) {
+func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, supportLimit int, includeSupportCe []int, excludeSupportCe []int, allowTraits []int, includeSvt []int, includeSvtDiff []string, excludeSvt []int, includeCe []int, excludeCe []int, baseBond int, serverType string, enableEventBonus bool, selectedEventIds []int) ([]model.TeamResponse, time.Duration) {
+	return s.OptimizeAdvanced(costLimit, svtLimit, ceLimit, supportLimit, includeSupportCe, excludeSupportCe, allowTraits, includeSvt, includeSvtDiff, excludeSvt, includeCe, excludeCe, baseBond, serverType, enableEventBonus, selectedEventIds, false, nil)
+}
+
+func (s *CalculatorService) OptimizeAdvanced(costLimit int, svtLimit int, ceLimit int, supportLimit int, includeSupportCe []int, excludeSupportCe []int, allowTraits []int, includeSvt []int, includeSvtDiff []string, excludeSvt []int, includeCe []int, excludeCe []int, baseBond int, serverType string, enableEventBonus bool, selectedEventIds []int, grandMode bool, bond15Svt []int) ([]model.TeamResponse, time.Duration) {
+	return s.OptimizeAdvancedWithProfile(costLimit, svtLimit, ceLimit, supportLimit, includeSupportCe, excludeSupportCe, allowTraits, includeSvt, includeSvtDiff, excludeSvt, includeCe, excludeCe, baseBond, serverType, enableEventBonus, selectedEventIds, grandMode, bond15Svt, nil, "max", nil)
+}
+
+func normalizeOptimizationMode(mode string) string {
+	switch mode {
+	case "balanced", "finish":
+		return mode
+	default:
+		return "max"
+	}
+}
+
+func preferenceWeight(profile model.ServantOptimizationProfile, mode string) float64 {
+	if mode == "max" {
+		return 1.0
+	}
+	roleWeight := 1.0
+	switch profile.Role {
+	case "driver":
+		roleWeight = 0.55
+	case "passenger":
+		roleWeight = 1.25
+	}
+	priorityWeight := 1.0
+	switch profile.Priority {
+	case "high":
+		priorityWeight = 1.35
+	case "low":
+		priorityWeight = 0.70
+	}
+
+	progressKnown := false
+	progress := 0.0
+	if profile.TargetTotal > 0 && profile.BondTotal >= 0 {
+		progressKnown = true
+		progress = float64(profile.BondTotal) / float64(profile.TargetTotal)
+	} else if profile.TargetRank > 0 && profile.BondRank > 0 {
+		progressKnown = true
+		progress = float64(profile.BondRank) / float64(profile.TargetRank)
+	}
+	if progress < 0 {
+		progress = 0
+	}
+	if progress > 1 {
+		progress = 1
+	}
+
+	progressWeight := 1.0
+	if progressKnown {
+		if progress >= 1.0 {
+			// 已达到当前培养目标时不再把它当成“老板”优先投喂；固定出场仍由硬约束保证。
+			progressWeight = 0.15
+		} else if mode == "balanced" {
+			// 越缺羁绊越值得占用稀缺后排位：低进度约1.35，接近目标约0.90。
+			progressWeight = 1.35 - 0.45*progress
+		} else {
+			// 收尾模式反过来偏向接近目标但尚未完成的从者。
+			progressWeight = 0.85 + 0.85*progress
+		}
+	}
+	return roleWeight * priorityWeight * progressWeight
+}
+
+func (s *CalculatorService) OptimizeAdvancedWithProfile(costLimit int, svtLimit int, ceLimit int, supportLimit int, includeSupportCe []int, excludeSupportCe []int, allowTraits []int, includeSvt []int, includeSvtDiff []string, excludeSvt []int, includeCe []int, excludeCe []int, baseBond int, serverType string, enableEventBonus bool, selectedEventIds []int, grandMode bool, bond15Svt []int, bond10Svt []int, optimizationMode string, optimizationProfiles []model.ServantOptimizationProfile) ([]model.TeamResponse, time.Duration) {
 	startTime := time.Now()
 	log.Println("Optimize called with costLimit:", costLimit, "svtLimit:", svtLimit, "ceLimit:", ceLimit)
 
@@ -364,18 +434,74 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	for _, id := range selectedEventIds {
 		selectedEvents[id] = true
 	}
+	optimizationMode = normalizeOptimizationMode(optimizationMode)
+	profileBySvt := make(map[int]model.ServantOptimizationProfile, len(optimizationProfiles))
+	for _, profile := range optimizationProfiles {
+		profileBySvt[profile.Id] = profile
+	}
+
+	// Bond 15 has two distinct states:
+	//   capped: bond is currently at its maximum, earns 0 but provides party +25%;
+	//   active: JP 15->16 (or later equivalent), still earns bond and also provides +25%.
+	// The existing Box bond15 list represents capped/manual Bond 15 entries. Imported
+	// profile data lets us infer active 15->16 providers without another UI list.
+	bond15CappedSet := make(map[int]bool, len(bond15Svt))
+	for _, id := range bond15Svt {
+		bond15CappedSet[id] = true
+	}
+	bond15ActiveSet := make(map[int]bool)
+	bond15ProviderSet := make(map[int]bool)
+	for id := range bond15CappedSet {
+		bond15ProviderSet[id] = true
+	}
+	for _, profile := range optimizationProfiles {
+		if profile.BondRank >= 15 && profile.BondRankMax > 15 && !bond15CappedSet[profile.Id] {
+			bond15ActiveSet[profile.Id] = true
+			bond15ProviderSet[profile.Id] = true
+		}
+	}
+	bond10Set := make(map[int]bool, len(bond10Svt))
+	for _, id := range bond10Svt {
+		if !bond15ProviderSet[id] {
+			bond10Set[id] = true
+		}
+	}
+	weightFor := func(id int) float64 {
+		profile, ok := profileBySvt[id]
+		if !ok {
+			return 1.0
+		}
+		return preferenceWeight(profile, optimizationMode)
+	}
+	scoreFor := func(id int, actualBond int) int64 {
+		return int64(math.Round(float64(actualBond) * weightFor(id) * 1000.0))
+	}
 
 	if len(includeSvt) > svtLimit {
 		return []model.TeamResponse{}, 0
 	}
-	if len(includeCe) > ceLimit {
+	maxSelfCeCount := ceLimit
+	if grandMode {
+		// 冠位枠では通常の自備礼装に加えて「報酬アップ礼装」を1枚追加装備できる。
+		// この追加枠はCost 0として扱う。
+		maxSelfCeCount++
+	}
+	if len(includeCe) > maxSelfCeCount {
 		return []model.TeamResponse{}, 0
 	}
 	if len(includeSupportCe) > supportLimit {
 		return []model.TeamResponse{}, 0
 	}
 
+	// Upstream removed the old Cost-based minimum-CE heuristic because it could prune
+	// legal/global-optimal combinations. Only explicit required CEs constrain the minimum.
 	mince := len(includeCe)
+	if mince < 0 {
+		mince = 0
+	}
+	if mince > ceLimit {
+		mince = ceLimit
+	}
 
 	// Prepare Support CE Pool
 	supportPool := s.GetSupportCombinations(supportLimit, serverType, includeSupportCe, excludeSupportCe)
@@ -383,10 +509,15 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 		return []model.TeamResponse{}, 0
 	}
 
-	// Prepare User CE Pool
+	// Prepare User CE Pool. ceLimit is the number of ordinary self-owned CE slots.
+	// In Grand mode one additional reward-up CE is always available on the Grand servant at zero Cost.
 	userCePool := [][]model.CraftEssence{}
 	for i := mince; i <= ceLimit; i++ {
-		combs := s.GetCombination(i, includeCe, excludeCe, serverType)
+		totalCeCount := i
+		if grandMode {
+			totalCeCount++
+		}
+		combs := s.GetCombination(totalCeCount, includeCe, excludeCe, serverType)
 		userCePool = append(userCePool, combs...)
 	}
 
@@ -416,72 +547,9 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 		}
 	}
 
-	// 15绊配置：已满（full）的从者自身不再获得羁绊，仅提供全队+25%；
-	// 未满（如日服已开放16绊）的从者正常获得羁绊，同时提供全队+25%。
-	// 被排除或不在候选池中的从者天然不参与，无需特判。
-	bond15FullSet := map[int]bool{}
-	bond15NotFullSet := map[int]bool{}
-	for i, id := range bond15Svt {
-		full := true
-		if i < len(bond15Full) {
-			full = bond15Full[i]
-		}
-		if full {
-			bond15FullSet[id] = true
-			delete(bond15NotFullSet, id)
-		} else {
-			bond15NotFullSet[id] = true
-			delete(bond15FullSet, id)
-		}
-	}
-
-	// 已满15绊的“纯buff位”候选：彼此同质（收益0，仅cost不同），按cost升序预排序，
-	// 出解阶段按个数p取cost最低的p个补入。必选项和活动全局buff提供者不列入：
-	// 前者作为mandatory处理，后者由partyBonusStates枚举其入队状态。
-	type bond15Provider struct {
-		svt     *model.Servant
-		diffKey string
-		cost    int
-	}
-	bond15Providers := []bond15Provider{}
-	for i := range svtPool {
-		svt := &svtPool[i]
-		if !bond15FullSet[svt.Id] || includeSvtSet[svt.Id] {
-			continue
-		}
-		if enableEventBonus && s.getEventPartyBonus(svt, serverType, selectedEvents) > 0 {
-			continue
-		}
-		bestKey := ""
-		bestCost := math.MaxInt32
-		for key, detail := range svt.Diff {
-			if detail.Cost < bestCost {
-				bestCost = detail.Cost
-				bestKey = key
-			}
-		}
-		bond15Providers = append(bond15Providers, bond15Provider{svt: svt, diffKey: bestKey, cost: bestCost})
-	}
-	sort.Slice(bond15Providers, func(i, j int) bool {
-		if bond15Providers[i].cost != bond15Providers[j].cost {
-			return bond15Providers[i].cost < bond15Providers[j].cost
-		}
-		return bond15Providers[i].svt.Id < bond15Providers[j].svt.Id
-	})
-	providerCostPrefix := make([]int, len(bond15Providers)+1)
-	for i, provider := range bond15Providers {
-		providerCostPrefix[i+1] = providerCostPrefix[i] + provider.cost
-	}
-
-	// 未满15绊从者保留在常规候选池中，仅额外标记provider身份，用DP的q维记录入队数量
-	bond15NotFullCount := 0
-	for i := range svtPool {
-		if bond15NotFullSet[svtPool[i].Id] {
-			bond15NotFullCount++
-		}
-	}
-	qSize := min(svtLimit, bond15NotFullCount) + 1
-
+	// Some events have servants whose presence grants a party-wide bond bonus.
+	// Enumerate only those provider-presence states so the ordinary servant DP never
+	// silently selects a provider without also applying its party effect.
 	type partyBonusState struct {
 		selected map[int]bool
 		bonus    int
@@ -512,14 +580,13 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 					return
 				}
 			}
-			stateSelected := make(map[int]bool, len(selected))
+			copySelected := make(map[int]bool, len(selected))
 			for id := range selected {
-				stateSelected[id] = true
+				copySelected[id] = true
 			}
-			partyBonusStates = append(partyBonusStates, partyBonusState{selected: stateSelected, bonus: bonus})
+			partyBonusStates = append(partyBonusStates, partyBonusState{selected: copySelected, bonus: bonus})
 			return
 		}
-
 		provider := partyBonusProviders[index]
 		if !includeSvtSet[provider.id] {
 			buildPartyBonusStates(index+1, selected, bonus)
@@ -599,15 +666,22 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 		defer wg.Done()
 		type pathSelection [6]uint16
 		type teamCandidate struct {
-			count   int
-			q       int
-			p       int
-			cost    int
-			bond    int
-			bonus15 int
+			normalCount     int
+			activeProviders int
+			cappedProviders int
+			dpCost          int
+			cost            int
+			bond            int
+			score           int64
 		}
 		isBetterCandidate := func(a, b teamCandidate) bool {
-			return a.bond > b.bond || (a.bond == b.bond && a.cost > b.cost)
+			if a.score != b.score {
+				return a.score > b.score
+			}
+			if a.bond != b.bond {
+				return a.bond > b.bond
+			}
+			return a.cost > b.cost
 		}
 		addCandidate := func(candidates []teamCandidate, candidate teamCandidate) []teamCandidate {
 			if len(candidates) < OPTIMIZE_LIMIT {
@@ -624,61 +698,63 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 			}
 			return candidates
 		}
+		isBetterTeam := func(a, b model.Team) bool {
+			if a.OptimizationScore != b.OptimizationScore {
+				return a.OptimizationScore > b.OptimizationScore
+			}
+			if a.TotalBond != b.TotalBond {
+				return a.TotalBond > b.TotalBond
+			}
+			return a.TotalCost > b.TotalCost
+		}
 		addLocalTeam := func(teams []model.Team, team model.Team) []model.Team {
 			if len(teams) < OPTIMIZE_LIMIT {
 				return append(teams, team)
 			}
 			worst := 0
 			for i := 1; i < len(teams); i++ {
-				if teams[worst].TotalBond > teams[i].TotalBond ||
-					(teams[worst].TotalBond == teams[i].TotalBond && teams[worst].TotalCost > teams[i].TotalCost) {
+				if isBetterTeam(teams[worst], teams[i]) {
 					worst = i
 				}
 			}
-			if team.TotalBond > teams[worst].TotalBond ||
-				(team.TotalBond == teams[worst].TotalBond && team.TotalCost > teams[worst].TotalCost) {
+			if isBetterTeam(team, teams[worst]) {
 				teams[worst] = team
 			}
 			return teams
 		}
 
-		// Pre-allocate DP tables for reuse
+		// DP dimensions: selected servant count, active Bond-15 provider count, Cost.
+		// We enumerate the FINAL total provider count (0..6), so the +25% bucket is
+		// fixed during each DP run. This preserves exact additive-percent rounding while
+		// still supporting JP 15->16 providers that earn bond themselves.
 		maxSvt := svtLimit + 1
 		maxCost := costLimit + 1
-		dp := make([][][]int, maxSvt)
-		nextDP := make([][][]int, maxSvt)
-		for i := range dp {
-			dp[i] = make([][]int, qSize)
-			nextDP[i] = make([][]int, qSize)
-			for q := 0; q < qSize; q++ {
-				dp[i][q] = make([]int, maxCost)
-				nextDP[i][q] = make([]int, maxCost)
-			}
-		}
+		maxQ := svtLimit + 1
+		const NEG_SCORE int64 = -1 << 62
+		dpScore := make([][][]int64, maxSvt)
+		nextDPScore := make([][][]int64, maxSvt)
+		dpBond := make([][][]int, maxSvt)
+		nextDPBond := make([][][]int, maxSvt)
 		paths := make([][][]pathSelection, maxSvt)
 		nextPaths := make([][][]pathSelection, maxSvt)
-		for i := range paths {
-			paths[i] = make([][]pathSelection, qSize)
-			nextPaths[i] = make([][]pathSelection, qSize)
-			for q := 0; q < qSize; q++ {
-				paths[i][q] = make([]pathSelection, maxCost)
-				nextPaths[i][q] = make([]pathSelection, maxCost)
-			}
-		}
-		// 出解阶段的cost维前缀最优表（bond相同取cost较高者，与候选比较规则一致）
-		prefBond := make([][][]int, maxSvt)
-		prefJ := make([][][]int, maxSvt)
-		for i := range prefBond {
-			prefBond[i] = make([][]int, qSize)
-			prefJ[i] = make([][]int, qSize)
-			for q := 0; q < qSize; q++ {
-				prefBond[i][q] = make([]int, maxCost)
-				prefJ[i][q] = make([]int, maxCost)
+		for k := 0; k < maxSvt; k++ {
+			dpScore[k] = make([][]int64, maxQ)
+			nextDPScore[k] = make([][]int64, maxQ)
+			dpBond[k] = make([][]int, maxQ)
+			nextDPBond[k] = make([][]int, maxQ)
+			paths[k] = make([][]pathSelection, maxQ)
+			nextPaths[k] = make([][]pathSelection, maxQ)
+			for q := 0; q < maxQ; q++ {
+				dpScore[k][q] = make([]int64, maxCost)
+				nextDPScore[k][q] = make([]int64, maxCost)
+				dpBond[k][q] = make([]int, maxCost)
+				nextDPBond[k][q] = make([]int, maxCost)
+				paths[k][q] = make([]pathSelection, maxCost)
+				nextPaths[k][q] = make([]pathSelection, maxCost)
 			}
 		}
 
-		// Reusable slices to avoid allocation
-		optionalBonusesBuf := make([]model.SvtBonus, len(svtPool)*4) // *4 for multiple diffs estimate
+		optionalBonusesBuf := make([]model.SvtBonus, len(svtPool)*4)
 		userEffectTotals := make([]map[string]SimpleEffect, len(svtPool))
 		for svtIdx, svt := range svtPool {
 			userEffectTotals[svtIdx] = make(map[string]SimpleEffect, len(svt.Diff))
@@ -688,18 +764,40 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 			localTeams := make([]model.Team, 0, OPTIMIZE_LIMIT)
 
 			for _, job := range batch {
-				ceCombo := job.UserCEs
+				allSelfCEs := job.UserCEs
+				normalCEs := allSelfCEs
+				var grandExtraCE *model.CraftEssence
 
-				ceCost := 0
-				// Pre-calculate dense IDs for this combo
-				userCeDense := make([]int, len(ceCombo))
-				for k, ce := range ceCombo {
-					ceCost += ce.Cost
-					userCeDense[k] = ceIdToDense[ce.Id]
+				grandExtraIndex := -1
+				if grandMode && len(allSelfCEs) > 0 {
+					grandExtraIndex = 0
+					for i := 1; i < len(allSelfCEs); i++ {
+						if allSelfCEs[i].Cost > allSelfCEs[grandExtraIndex].Cost ||
+							(allSelfCEs[i].Cost == allSelfCEs[grandExtraIndex].Cost && allSelfCEs[i].Id < allSelfCEs[grandExtraIndex].Id) {
+							grandExtraIndex = i
+						}
+					}
+					extra := allSelfCEs[grandExtraIndex]
+					grandExtraCE = &extra
+					normalCEs = make([]model.CraftEssence, 0, len(allSelfCEs)-1)
+					for i, ce := range allSelfCEs {
+						if i != grandExtraIndex {
+							normalCEs = append(normalCEs, ce)
+						}
+					}
 				}
 
+				ceCost := 0
+				for _, ce := range normalCEs {
+					ceCost += ce.Cost
+				}
 				if ceCost > costLimit {
 					continue
+				}
+
+				userCeDense := make([]int, len(allSelfCEs))
+				for k, ce := range allSelfCEs {
+					userCeDense[k] = ceIdToDense[ce.Id]
 				}
 				for svtIdx := range svtPool {
 					for key, effSlice := range svtDiffEffects[svtIdx] {
@@ -716,31 +814,26 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 				for supportIdx, supportCombo := range supportPool {
 					supportCeDense := supportDense[supportIdx]
 					supportIsTeatime := supportTeatime[supportIdx]
-					for _, partyState := range partyBonusStates {
 
+					for _, partyState := range partyBonusStates {
 						mandatoryBonuses := []model.SvtBonus{}
 						optionalBonuses := optionalBonusesBuf[:0]
-
-						currentSvtLimit := svtLimit
-						currentCostLimit := costLimit - ceCost
 						validJob := true
-						mandatoryProviders := 0
-						mandatoryFull := 0
 
 						for svtIdx := 0; svtIdx < len(svtPool); svtIdx++ {
 							svt := &svtPool[svtIdx]
-							isPartyBonusProvider := enableEventBonus && s.getEventPartyBonus(svt, serverType, selectedEvents) > 0
-							if isPartyBonusProvider && !partyState.selected[svt.Id] {
+							isPartyProvider := enableEventBonus && s.getEventPartyBonus(svt, serverType, selectedEvents) > 0
+							if isPartyProvider && !partyState.selected[svt.Id] {
 								continue
 							}
-							isBond15Full := bond15FullSet[svt.Id]
-							isBond15NotFull := bond15NotFullSet[svt.Id]
+							isBond15Capped := bond15CappedSet[svt.Id]
+							isBond15Active := bond15ActiveSet[svt.Id]
+							isBond10 := bond10Set[svt.Id]
 
 							getTotalEffect := func(diffKey string, effSlice []SimpleEffect) (float64, int) {
 								total := userEffectTotals[svtIdx][diffKey]
 								tPercent := total.Percent
 								tDirect := total.Direct
-								// Support CEs
 								for k, idx := range supportCeDense {
 									if supportIsTeatime[k] {
 										tPercent += 15.0
@@ -753,369 +846,346 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 								return tPercent, tDirect
 							}
 
-							if includeSvtSet[svt.Id] || partyState.selected[svt.Id] {
-								// Mandatory
-								if isBond15Full {
-									// 已满15绊：自身不再获得羁绊，仅占位并提供全队+25%
-									diffKey := ""
-									if k, ok := includeSvtDiffMap[svt.Id]; ok {
-										diffKey = k
-									}
-									detail, ok := svt.Diff[diffKey]
-									if !ok {
-										bestFullCost := math.MaxInt32
-										for key, d := range svt.Diff {
-											if d.Cost < bestFullCost {
-												bestFullCost = d.Cost
-												diffKey = key
-											}
-										}
-										detail = svt.Diff[diffKey]
-									}
-									mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
-										Svt:     svt,
-										DiffKey: diffKey,
-										Bonus:   0,
-										Cost:    detail.Cost,
-									})
-									mandatoryProviders++
-									mandatoryFull++
-									continue
+							applyEventEffects := func(percent float64) float64 {
+								if !enableEventBonus {
+									return percent
 								}
-								if isBond15NotFull {
-									mandatoryProviders++
+								percent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+								percent += float64(partyState.bonus)
+								multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
+								if multiplier > 0 {
+									percent += math.Round((multiplier - 1.0) * 100.0)
 								}
-								diffKey := ""
-								if includeSvtSet[svt.Id] {
-									diffKey = "default"
-									if k, ok := includeSvtDiffMap[svt.Id]; ok {
-										diffKey = k
+								return percent
+							}
+
+							chooseCheapestDetail := func(preferred string) (string, int, bool) {
+								if preferred != "" {
+									if detail, ok := svt.Diff[preferred]; ok {
+										return preferred, detail.Cost, true
 									}
 								}
-
-								if detail, ok := svt.Diff[diffKey]; ok {
-									// Lookup effect slice
-									effSlice := svtDiffEffects[svtIdx][diffKey]
-									totalPercent, totalDirect := getTotalEffect(diffKey, effSlice)
-
-									if enableEventBonus {
-										totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
-										totalPercent += float64(partyState.bonus)
-
-										// convert independent multiplier to additive percentage
-										multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-										if multiplier > 0 {
-											totalPercent += math.Round((multiplier - 1.0) * 100.0)
-										}
-									}
-									bonus := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
-									// if enableEventBonus {
-									// 	bonus = int(float64(bonus) * s.getEventMultiplier(svt, serverType, selectedEvents))
-									// }
-									mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
-										Svt:        svt,
-										DiffKey:    diffKey,
-										Bonus:      bonus,
-										Cost:       detail.Cost,
-										IsProvider: isBond15NotFull,
-									})
-								} else {
-									// Fallback logic
-									bestBonus := -1
-									bestDiffKey := "default"
-									bestCost := svt.Diff["default"].Cost
-
-									for key, detail := range svt.Diff {
-										effSlice := svtDiffEffects[svtIdx][key]
-										totalPercent, totalDirect := getTotalEffect(key, effSlice)
-
-										if enableEventBonus {
-											totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
-											totalPercent += float64(partyState.bonus)
-
-											// convert independent multiplier to additive percentage
-											multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-											if multiplier > 0 {
-												totalPercent += math.Round((multiplier - 1.0) * 100.0)
-											}
-										}
-										b := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
-										// if enableEventBonus {
-										// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
-										// }
-										if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
-											bestBonus = b
-											bestDiffKey = key
-											bestCost = detail.Cost
-										}
-									}
-									mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
-										Svt:        svt,
-										DiffKey:    bestDiffKey,
-										Bonus:      bestBonus,
-										Cost:       bestCost,
-										IsProvider: isBond15NotFull,
-									})
-								}
-							} else {
-								// Optional
-								if isBond15Full {
-									// 已满15绊自身无收益，不作为常规候选，统一在出解阶段按个数补入
-									continue
-								}
-								bestBonus := -1
-								bestDiffKey := "default"
-								bestCost := svt.Diff["default"].Cost
-
+								bestKey := ""
+								bestCost := int(^uint(0) >> 1)
 								for key, detail := range svt.Diff {
-									effSlice := svtDiffEffects[svtIdx][key]
-									totalPercent, totalDirect := getTotalEffect(key, effSlice)
-
-									if enableEventBonus {
-										totalPercent += float64(s.getEventBonus(svt, serverType, selectedEvents))
-										totalPercent += float64(partyState.bonus)
-
-										// convert independent multiplier to additive percentage
-										multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
-										if multiplier > 0 {
-											totalPercent += math.Round((multiplier - 1.0) * 100.0)
-										}
-									}
-									b := int(float64(baseBond)*totalPercent/100.0) + totalDirect + baseBond
-									// if enableEventBonus {
-									// 	b = int(float64(b) * s.getEventMultiplier(svt, serverType, selectedEvents))
-									// }
-									if b > bestBonus || (b == bestBonus && detail.Cost < bestCost) {
-										bestBonus = b
-										bestDiffKey = key
+									if detail.Cost < bestCost || (detail.Cost == bestCost && (bestKey == "" || key < bestKey)) {
+										bestKey = key
 										bestCost = detail.Cost
 									}
 								}
-								optionalBonuses = append(optionalBonuses, model.SvtBonus{
-									Svt:        svt,
-									DiffKey:    bestDiffKey,
-									Bonus:      bestBonus,
-									Cost:       bestCost,
-									IsProvider: isBond15NotFull,
-								})
+								return bestKey, bestCost, bestKey != ""
+							}
+
+							mandatory := includeSvtSet[svt.Id] || partyState.selected[svt.Id]
+							if mandatory {
+								preferred := ""
+								if includeSvtSet[svt.Id] {
+									preferred = "default"
+									if k, ok := includeSvtDiffMap[svt.Id]; ok {
+										preferred = k
+									}
+								}
+								if isBond15Capped || isBond10 {
+									diffKey, detailCost, ok := chooseCheapestDetail(preferred)
+									if ok {
+										mandatoryBonuses = append(mandatoryBonuses, model.SvtBonus{
+											Svt: svt, DiffKey: diffKey, Bonus: 0, Cost: detailCost,
+											Bond15: isBond15Capped, BondCapped: true,
+										})
+									}
+									continue
+								}
+
+								selectBest := func() model.SvtBonus {
+									best := model.SvtBonus{Svt: svt, DiffKey: "default", Bonus: -1, Cost: svt.Diff["default"].Cost, Bond15: isBond15Active}
+									for key, detail := range svt.Diff {
+										if preferred != "" && key != preferred {
+											continue
+										}
+										effSlice := svtDiffEffects[svtIdx][key]
+										percent, direct := getTotalEffect(key, effSlice)
+										percent = applyEventEffects(percent)
+										b := baseBond + int(float64(baseBond)*percent/100.0) + direct
+										if b > best.Bonus || (b == best.Bonus && detail.Cost < best.Cost) {
+											best = model.SvtBonus{Svt: svt, DiffKey: key, Bonus: b, Cost: detail.Cost, Percent: percent, Direct: direct, Bond15: isBond15Active}
+										}
+									}
+									return best
+								}
+								mandatoryBonuses = append(mandatoryBonuses, selectBest())
+							} else {
+								if isBond15Capped {
+									diffKey, detailCost, ok := chooseCheapestDetail("")
+									if ok {
+										optionalBonuses = append(optionalBonuses, model.SvtBonus{Svt: svt, DiffKey: diffKey, Bonus: 0, Cost: detailCost, Bond15: true, BondCapped: true})
+									}
+									continue
+								}
+								if isBond10 {
+									continue
+								}
+								best := model.SvtBonus{Svt: svt, DiffKey: "default", Bonus: -1, Cost: svt.Diff["default"].Cost, Bond15: isBond15Active}
+								for key, detail := range svt.Diff {
+									effSlice := svtDiffEffects[svtIdx][key]
+									percent, direct := getTotalEffect(key, effSlice)
+									percent = applyEventEffects(percent)
+									b := baseBond + int(float64(baseBond)*percent/100.0) + direct
+									if b > best.Bonus || (b == best.Bonus && detail.Cost < best.Cost) {
+										best = model.SvtBonus{Svt: svt, DiffKey: key, Bonus: b, Cost: detail.Cost, Percent: percent, Direct: direct, Bond15: isBond15Active}
+									}
+								}
+								optionalBonuses = append(optionalBonuses, best)
 							}
 						}
 
-						// Sum Mandatory Costs
 						mandatoryCost := 0
-						mandatoryBond := 0
+						mandatoryCappedProviders := 0
+						mandatoryActiveProviders := 0
 						for _, mb := range mandatoryBonuses {
 							mandatoryCost += mb.Cost
-							mandatoryBond += mb.Bonus
+							if mb.Bond15 {
+								if mb.BondCapped {
+									mandatoryCappedProviders++
+								} else {
+									mandatoryActiveProviders++
+								}
+							}
 						}
-						mandatoryEarners := len(mandatoryBonuses) - mandatoryFull
-
-						currentCostLimit = costLimit - ceCost - mandatoryCost
-						currentSvtLimit = svtLimit - len(mandatoryBonuses)
-
+						currentCostLimit := costLimit - ceCost - mandatoryCost
+						currentSvtLimit := svtLimit - len(mandatoryBonuses)
 						if currentCostLimit < 0 || currentSvtLimit < 0 {
 							validJob = false
 						}
-
 						if !validJob {
 							continue
 						}
 
-						// DP
-						const NEG = -1 << 60
-						providerCount := 0
-						for _, item := range optionalBonuses {
-							if item.IsProvider {
-								providerCount++
-							}
-						}
-						qMax := min(currentSvtLimit, providerCount)
-						// Reset DP tables
-						for i := 0; i <= currentSvtLimit; i++ {
-							for q := 0; q <= qMax; q++ {
-								for j := 0; j <= currentCostLimit; j++ {
-									dp[i][q][j] = NEG
-									paths[i][q][j] = pathSelection{}
+						optionalNormal := make([]model.SvtBonus, 0, len(optionalBonuses))
+						optionalCapped := make([]model.SvtBonus, 0, len(optionalBonuses))
+						activeOptionalCount := 0
+						for _, sb := range optionalBonuses {
+							if sb.Bond15 && sb.BondCapped {
+								optionalCapped = append(optionalCapped, sb)
+							} else {
+								optionalNormal = append(optionalNormal, sb)
+								if sb.Bond15 {
+									activeOptionalCount++
 								}
 							}
 						}
-						dp[0][0][0] = 0
-
-						costGroups := make([][]int, currentCostLimit+1)
-						for itemIdx, item := range optionalBonuses {
-							if item.Cost > currentCostLimit {
-								continue
+						sort.Slice(optionalCapped, func(i, j int) bool {
+							if optionalCapped[i].Cost != optionalCapped[j].Cost {
+								return optionalCapped[i].Cost < optionalCapped[j].Cost
 							}
-							group := costGroups[item.Cost]
-							insertAt := len(group)
-							for i, existingIdx := range group {
-								if item.Bonus > optionalBonuses[existingIdx].Bonus {
-									insertAt = i
-									break
-								}
-							}
-							if insertAt >= currentSvtLimit {
-								continue
-							}
-							group = append(group, 0)
-							copy(group[insertAt+1:], group[insertAt:])
-							group[insertAt] = itemIdx
-							if len(group) > currentSvtLimit {
-								group = group[:currentSvtLimit]
-							}
-							costGroups[item.Cost] = group
-						}
-						// 每个cost组内按收益降序排列，记录前t个物品中未满15绊provider的数量
-						costGroupProviders := make([][]int, currentCostLimit+1)
-						for cost, group := range costGroups {
-							if len(group) == 0 {
-								continue
-							}
-							prov := make([]int, len(group)+1)
-							for take, itemIdx := range group {
-								prov[take+1] = prov[take]
-								if optionalBonuses[itemIdx].IsProvider {
-									prov[take+1]++
-								}
-							}
-							costGroupProviders[cost] = prov
+							return optionalCapped[i].Svt.Id < optionalCapped[j].Svt.Id
+						})
+						maxCapped := min(len(optionalCapped), currentSvtLimit)
+						cappedPrefixCost := make([]int, maxCapped+1)
+						for i := 1; i <= maxCapped; i++ {
+							cappedPrefixCost[i] = cappedPrefixCost[i-1] + optionalCapped[i-1].Cost
 						}
 
-						for cost, group := range costGroups {
-							if len(group) == 0 {
-								continue
-							}
-							prov := costGroupProviders[cost]
-							for k := 0; k <= currentSvtLimit; k++ {
-								for q := 0; q <= qMax; q++ {
-									for j := 0; j <= currentCostLimit; j++ {
-										nextDP[k][q][j] = NEG
-										nextPaths[k][q][j] = pathSelection{}
-									}
-								}
-							}
-							for k := 0; k <= currentSvtLimit; k++ {
-								for q := 0; q <= qMax; q++ {
-									for j := 0; j <= currentCostLimit; j++ {
-										if dp[k][q][j] == NEG {
-											continue
-										}
-										bond := dp[k][q][j]
-										selection := paths[k][q][j]
-										maxTake := min(len(group), currentSvtLimit-k)
-										for take := 0; take <= maxTake; take++ {
-											newQ := q + prov[take]
-											if newQ > qMax {
-												break
-											}
-											newCost := j + take*cost
-											if newCost > currentCostLimit {
-												break
-											}
-											if take > 0 {
-												itemIdx := group[take-1]
-												bond += optionalBonuses[itemIdx].Bonus
-												selection[k+take-1] = uint16(itemIdx + 1)
-											}
-											if bond > nextDP[k+take][newQ][newCost] {
-												nextDP[k+take][newQ][newCost] = bond
-												nextPaths[k+take][newQ][newCost] = selection
-											}
-										}
-									}
-								}
-							}
-							dp, nextDP = nextDP, dp
-							paths, nextPaths = nextPaths, paths
-						}
-
-						// 出解：先对每个(人数k, 未满15绊数q)在cost维求前缀最优，
-						// 再枚举补入p个已满15绊位（彼此同质，取cost最低的p个）。
-						// 15绊全队收益 = 吃羁绊人数E × int(base×25%×P)，
-						// 其中 E = 必选收益人数+k，P = 必选15绊数+q+p，只依赖计数，
-						// 与cost无关，因此对每个(k,q,p)取cost维前缀最优是精确的。
-						for k := 0; k <= currentSvtLimit; k++ {
-							for q := 0; q <= qMax; q++ {
-								best := NEG
-								bestJ := 0
-								for j := 0; j <= currentCostLimit; j++ {
-									if dp[k][q][j] != NEG && dp[k][q][j] >= best {
-										best = dp[k][q][j]
-										bestJ = j
-									}
-									prefBond[k][q][j] = best
-									prefJ[k][q][j] = bestJ
-								}
-							}
-						}
-
-						candidates := make([]teamCandidate, 0, OPTIMIZE_LIMIT)
-						for k := 0; k <= currentSvtLimit; k++ {
-							earners := mandatoryEarners + k
-							if earners == 0 {
-								// 纯已满15绊的队伍没有任何羁绊收益
-								continue
-							}
-							for q := 0; q <= qMax; q++ {
-								for p := 0; p <= len(bond15Providers) && p+k <= currentSvtLimit; p++ {
-									jLimit := currentCostLimit - providerCostPrefix[p]
-									if jLimit < 0 {
-										break
-									}
-									best := prefBond[k][q][jLimit]
-									if best == NEG {
-										continue
-									}
-									providers := mandatoryProviders + q + p
-									bonus15 := 0
-									if providers > 0 {
-										bonus15 = earners * int(float64(baseBond)*25.0*float64(providers)/100.0)
-									}
-									candidates = addCandidate(candidates, teamCandidate{
-										count:   k,
-										q:       q,
-										p:       p,
-										cost:    ceCost + mandatoryCost + prefJ[k][q][jLimit] + providerCostPrefix[p],
-										bond:    mandatoryBond + best + bonus15,
-										bonus15: bonus15,
-									})
-								}
-							}
-						}
-
-						for _, candidate := range candidates {
-							team := model.Team{
-								CraftEssences:        ceCombo,
-								SupportCraftEssences: supportCombo,
-								TotalBond:            candidate.bond,
-								TotalCost:            candidate.cost,
-								Bond15Bonus:          candidate.bonus15,
-							}
-							for _, sb := range mandatoryBonuses {
-								team.Servants = append(team.Servants, sb.Svt)
-								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
-							}
-							j := candidate.cost - ceCost - mandatoryCost - providerCostPrefix[candidate.p]
-							selection := paths[candidate.count][candidate.q][j]
-							for i := 0; i < candidate.count; i++ {
-								itemIdx := int(selection[i]) - 1
-								if itemIdx < 0 {
+						mandatoryProviders := mandatoryCappedProviders + mandatoryActiveProviders
+						maxTotalProviders := min(svtLimit, mandatoryProviders+maxCapped+activeOptionalCount)
+						for totalProviders := mandatoryProviders; totalProviders <= maxTotalProviders; totalProviders++ {
+							guidancePercent := float64(totalProviders * 25)
+							mandatoryAdjustedBond := 0
+							mandatoryAdjustedScore := int64(0)
+							for _, mb := range mandatoryBonuses {
+								if mb.BondCapped {
 									continue
 								}
-								sb := optionalBonuses[itemIdx]
-								team.Servants = append(team.Servants, sb.Svt)
-								team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+								actual := baseBond + int(float64(baseBond)*(mb.Percent+guidancePercent)/100.0) + mb.Direct
+								mandatoryAdjustedBond += actual
+								mandatoryAdjustedScore += scoreFor(mb.Svt.Id, actual)
 							}
-							for i := 0; i < candidate.p; i++ {
-								provider := bond15Providers[i]
-								team.Servants = append(team.Servants, provider.svt)
-								team.DiffChoice = append(team.DiffChoice, provider.diffKey)
+
+							qMax := min(currentSvtLimit, activeOptionalCount)
+							for k := 0; k <= currentSvtLimit; k++ {
+								for q := 0; q <= qMax; q++ {
+									for j := 0; j <= currentCostLimit; j++ {
+										dpScore[k][q][j] = NEG_SCORE
+										dpBond[k][q][j] = 0
+										paths[k][q][j] = pathSelection{}
+									}
+								}
 							}
-							localTeams = addLocalTeam(localTeams, team)
+							dpScore[0][0][0] = 0
+
+							adjustedBonuses := make([]int, len(optionalNormal))
+							adjustedScores := make([]int64, len(optionalNormal))
+							providerGroups := make([][]int, currentCostLimit+1)
+							normalGroups := make([][]int, currentCostLimit+1)
+							for itemIdx, item := range optionalNormal {
+								if item.Cost > currentCostLimit {
+									continue
+								}
+								actual := baseBond + int(float64(baseBond)*(item.Percent+guidancePercent)/100.0) + item.Direct
+								adjustedBonuses[itemIdx] = actual
+								adjustedScores[itemIdx] = scoreFor(item.Svt.Id, actual)
+								if item.Bond15 {
+									providerGroups[item.Cost] = append(providerGroups[item.Cost], itemIdx)
+								} else {
+									normalGroups[item.Cost] = append(normalGroups[item.Cost], itemIdx)
+								}
+							}
+							betterIdx := func(a, b int) bool {
+								if adjustedScores[a] != adjustedScores[b] {
+									return adjustedScores[a] > adjustedScores[b]
+								}
+								if adjustedBonuses[a] != adjustedBonuses[b] {
+									return adjustedBonuses[a] > adjustedBonuses[b]
+								}
+								return optionalNormal[a].Svt.Id < optionalNormal[b].Svt.Id
+							}
+							for cost := 0; cost <= currentCostLimit; cost++ {
+								sort.Slice(providerGroups[cost], func(i, j int) bool { return betterIdx(providerGroups[cost][i], providerGroups[cost][j]) })
+								sort.Slice(normalGroups[cost], func(i, j int) bool { return betterIdx(normalGroups[cost][i], normalGroups[cost][j]) })
+								if len(providerGroups[cost]) > currentSvtLimit {
+									providerGroups[cost] = providerGroups[cost][:currentSvtLimit]
+								}
+								if len(normalGroups[cost]) > currentSvtLimit {
+									normalGroups[cost] = normalGroups[cost][:currentSvtLimit]
+								}
+							}
+
+							for cost := 0; cost <= currentCostLimit; cost++ {
+								pg := providerGroups[cost]
+								ng := normalGroups[cost]
+								if len(pg) == 0 && len(ng) == 0 {
+									continue
+								}
+								pScore := make([]int64, len(pg)+1)
+								pBond := make([]int, len(pg)+1)
+								nScore := make([]int64, len(ng)+1)
+								nBond := make([]int, len(ng)+1)
+								for i, idx := range pg {
+									pScore[i+1] = pScore[i] + adjustedScores[idx]
+									pBond[i+1] = pBond[i] + adjustedBonuses[idx]
+								}
+								for i, idx := range ng {
+									nScore[i+1] = nScore[i] + adjustedScores[idx]
+									nBond[i+1] = nBond[i] + adjustedBonuses[idx]
+								}
+
+								for k := 0; k <= currentSvtLimit; k++ {
+									for q := 0; q <= qMax; q++ {
+										for j := 0; j <= currentCostLimit; j++ {
+											nextDPScore[k][q][j] = NEG_SCORE
+											nextDPBond[k][q][j] = 0
+											nextPaths[k][q][j] = pathSelection{}
+										}
+									}
+								}
+								for k := 0; k <= currentSvtLimit; k++ {
+									for q := 0; q <= qMax; q++ {
+										for j := 0; j <= currentCostLimit; j++ {
+											if dpScore[k][q][j] == NEG_SCORE {
+												continue
+											}
+											baseScore := dpScore[k][q][j]
+											baseBondValue := dpBond[k][q][j]
+											baseSelection := paths[k][q][j]
+											maxTakeP := min(len(pg), currentSvtLimit-k)
+											for takeP := 0; takeP <= maxTakeP; takeP++ {
+												if q+takeP > qMax {
+													break
+												}
+												maxTakeN := min(len(ng), currentSvtLimit-k-takeP)
+												for takeN := 0; takeN <= maxTakeN; takeN++ {
+													take := takeP + takeN
+													newCost := j + take*cost
+													if newCost > currentCostLimit {
+														break
+													}
+													newK := k + take
+													newQ := q + takeP
+													newScore := baseScore + pScore[takeP] + nScore[takeN]
+													newBond := baseBondValue + pBond[takeP] + nBond[takeN]
+													oldScore := nextDPScore[newK][newQ][newCost]
+													oldBond := nextDPBond[newK][newQ][newCost]
+													if newScore > oldScore || (newScore == oldScore && newBond > oldBond) {
+														sel := baseSelection
+														pos := k
+														for x := 0; x < takeP; x++ {
+															sel[pos] = uint16(pg[x] + 1)
+															pos++
+														}
+														for x := 0; x < takeN; x++ {
+															sel[pos] = uint16(ng[x] + 1)
+															pos++
+														}
+														nextDPScore[newK][newQ][newCost] = newScore
+														nextDPBond[newK][newQ][newCost] = newBond
+														nextPaths[newK][newQ][newCost] = sel
+													}
+												}
+											}
+										}
+									}
+								}
+								dpScore, nextDPScore = nextDPScore, dpScore
+								dpBond, nextDPBond = nextDPBond, dpBond
+								paths, nextPaths = nextPaths, paths
+							}
+
+							candidates := make([]teamCandidate, 0, OPTIMIZE_LIMIT)
+							for k := 0; k <= currentSvtLimit; k++ {
+								for q := 0; q <= qMax; q++ {
+									p := totalProviders - mandatoryProviders - q
+									if p < 0 || p > maxCapped || p+k > currentSvtLimit {
+										continue
+									}
+									providerCost := cappedPrefixCost[p]
+									for j := 0; j <= currentCostLimit-providerCost; j++ {
+										if dpScore[k][q][j] == NEG_SCORE {
+											continue
+										}
+										totalCount := len(mandatoryBonuses) + p + k
+										if totalCount == 0 {
+											continue
+										}
+										candidates = addCandidate(candidates, teamCandidate{
+											normalCount: k, activeProviders: q, cappedProviders: p, dpCost: j,
+											cost:  ceCost + mandatoryCost + providerCost + j,
+											bond:  mandatoryAdjustedBond + dpBond[k][q][j],
+											score: mandatoryAdjustedScore + dpScore[k][q][j],
+										})
+									}
+								}
+							}
+
+							for _, candidate := range candidates {
+								team := model.Team{
+									CraftEssences: normalCEs, GrandCraftEssence: grandExtraCE,
+									SupportCraftEssences: supportCombo,
+									TotalBond:            candidate.bond, OptimizationScore: candidate.score, TotalCost: candidate.cost,
+								}
+								for _, sb := range mandatoryBonuses {
+									team.Servants = append(team.Servants, sb.Svt)
+									team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+								}
+								for i := 0; i < candidate.cappedProviders; i++ {
+									sb := optionalCapped[i]
+									team.Servants = append(team.Servants, sb.Svt)
+									team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+								}
+								selection := paths[candidate.normalCount][candidate.activeProviders][candidate.dpCost]
+								for i := 0; i < candidate.normalCount; i++ {
+									itemIdx := int(selection[i]) - 1
+									if itemIdx < 0 {
+										continue
+									}
+									sb := optionalNormal[itemIdx]
+									team.Servants = append(team.Servants, sb.Svt)
+									team.DiffChoice = append(team.DiffChoice, sb.DiffKey)
+								}
+								localTeams = addLocalTeam(localTeams, team)
+							}
 						}
 					}
 				}
-			} // end batch loop
+			}
 
 			if len(localTeams) > 0 {
 				resultsChan <- localTeams
@@ -1161,7 +1231,10 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 				heap.Push(h, team)
 			} else {
 				top := (*h)[0]
-				if team.TotalBond > top.TotalBond || (team.TotalBond == top.TotalBond && team.TotalCost > top.TotalCost) {
+				better := team.OptimizationScore > top.OptimizationScore ||
+					(team.OptimizationScore == top.OptimizationScore && team.TotalBond > top.TotalBond) ||
+					(team.OptimizationScore == top.OptimizationScore && team.TotalBond == top.TotalBond && team.TotalCost > top.TotalCost)
+				if better {
 					(*h)[0] = team
 					heap.Fix(h, 0)
 				}
@@ -1181,25 +1254,110 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 	for i := 0; i < limit; i++ {
 		team := sortedTeams[i]
 		svtIds := make([]int, len(team.Servants))
-		for k, s := range team.Servants {
-			svtIds[k] = s.Id
+		guidanceCount := 0
+		partyEventPercent := 0.0
+		for k, svt := range team.Servants {
+			svtIds[k] = svt.Id
+			if bond15ProviderSet[svt.Id] {
+				guidanceCount++
+			}
+			if enableEventBonus {
+				partyEventPercent += float64(s.getEventPartyBonus(svt, serverType, selectedEvents))
+			}
 		}
+		guidancePercent := float64(guidanceCount * 25)
 
 		response := model.TeamResponse{
-			Servants:             svtIds,
-			DiffChoice:           team.DiffChoice,
-			TotalCost:            team.TotalCost,
-			TotalBond:            team.TotalBond,
-			Bond15Bonus:          team.Bond15Bonus,
-			CraftEssences:        make([]model.TeamResultCE, len(team.CraftEssences)),
-			SupportCraftEssences: make([]model.TeamResultCE, len(team.SupportCraftEssences)),
+			Servants:              svtIds,
+			DiffChoice:            team.DiffChoice,
+			ServantBondBonuses:    make([]model.TeamResultServantBond, len(team.Servants)),
+			Bond15GuidanceCount:   guidanceCount,
+			Bond15GuidancePercent: guidancePercent,
+			OptimizationMode:      optimizationMode,
+			OptimizationScore:     float64(team.OptimizationScore) / 1000.0,
+			TotalCost:             team.TotalCost,
+			TotalBond:             team.TotalBond,
+			CraftEssences:         make([]model.TeamResultCE, len(team.CraftEssences)),
+			SupportCraftEssences:  make([]model.TeamResultCE, len(team.SupportCraftEssences)),
+		}
+
+		for k, svt := range team.Servants {
+			diffKey := team.DiffChoice[k]
+			if bond15CappedSet[svt.Id] {
+				response.ServantBondBonuses[k] = model.TeamResultServantBond{
+					Id:                   svt.Id,
+					BonusPercent:         0,
+					DirectBonus:          0,
+					TotalBond:            0,
+					Bond15GuidanceSource: true,
+					BondCapped:           true,
+				}
+				continue
+			}
+			if bond10Set[svt.Id] {
+				response.ServantBondBonuses[k] = model.TeamResultServantBond{
+					Id:         svt.Id,
+					TotalBond:  0,
+					BondCapped: true,
+				}
+				continue
+			}
+			percent := 0.0
+			direct := 0
+
+			addCeEffect := func(ce model.CraftEssence, support bool) {
+				if support && ce.Id == TEATIME_ID {
+					percent += 15.0
+					return
+				}
+				if m1, ok := ceEffects[ce.Id]; ok {
+					if m2, ok2 := m1[svt.Id]; ok2 {
+						if eff, ok3 := m2[diffKey]; ok3 {
+							percent += eff.Percent
+							direct += eff.Direct
+						}
+					}
+				}
+			}
+
+			for _, ce := range team.CraftEssences {
+				addCeEffect(ce, false)
+			}
+			if team.GrandCraftEssence != nil {
+				addCeEffect(*team.GrandCraftEssence, false)
+			}
+			for _, ce := range team.SupportCraftEssences {
+				addCeEffect(ce, true)
+			}
+
+			if enableEventBonus {
+				percent += float64(s.getEventBonus(svt, serverType, selectedEvents))
+				percent += partyEventPercent
+				multiplier := s.getEventMultiplier(svt, serverType, selectedEvents)
+				if multiplier > 0 {
+					percent += math.Round((multiplier - 1.0) * 100.0)
+				}
+			}
+			percent += guidancePercent
+
+			totalBond := baseBond + int(float64(baseBond)*percent/100.0) + direct
+			weight := weightFor(svt.Id)
+			response.ServantBondBonuses[k] = model.TeamResultServantBond{
+				Id:                      svt.Id,
+				BonusPercent:            percent,
+				DirectBonus:             direct,
+				TotalBond:               totalBond,
+				Bond15GuidanceSource:    bond15ProviderSet[svt.Id],
+				GuidanceReceivedPercent: guidancePercent,
+				PreferenceWeight:        weight,
+				OptimizationScore:       float64(scoreFor(svt.Id, totalBond)) / 1000.0,
+			}
 		}
 
 		for j, ce := range team.CraftEssences {
 			totalContribution := 0
 			for k, svt := range team.Servants {
-				if bond15FullSet[svt.Id] {
-					// 已满15绊从者自身无收益，不计入礼装贡献
+				if bond15CappedSet[svt.Id] || bond10Set[svt.Id] {
 					continue
 				}
 				diffKey := team.DiffChoice[k]
@@ -1217,11 +1375,33 @@ func (s *CalculatorService) Optimize(costLimit int, svtLimit int, ceLimit int, s
 			}
 		}
 
+		if team.GrandCraftEssence != nil {
+			ce := team.GrandCraftEssence
+			totalContribution := 0
+			for k, svt := range team.Servants {
+				if bond15CappedSet[svt.Id] || bond10Set[svt.Id] {
+					continue
+				}
+				diffKey := team.DiffChoice[k]
+				if m1, ok := ceEffects[ce.Id]; ok {
+					if m2, ok2 := m1[svt.Id]; ok2 {
+						if eff, ok3 := m2[diffKey]; ok3 {
+							totalContribution += int(float64(baseBond)*eff.Percent/100.0) + eff.Direct
+						}
+					}
+				}
+			}
+			response.GrandCraftEssence = &model.TeamResultCE{
+				Id:           ce.Id,
+				Contribution: totalContribution,
+			}
+		}
+
 		// Fill Support CE details in response
 		for j, ce := range team.SupportCraftEssences {
 			totalContribution := 0
 			for k, svt := range team.Servants {
-				if bond15FullSet[svt.Id] {
+				if bond15CappedSet[svt.Id] || bond10Set[svt.Id] {
 					continue
 				}
 				diffKey := team.DiffChoice[k]
