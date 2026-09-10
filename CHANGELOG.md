@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.2 Windows Portable
+
+- Added a GitHub Actions Windows portable build using Go 1.25.1 from `backend/go.mod`.
+- The release package includes a precompiled `fgo-calc-local.exe`, static assets, current game data, update scripts, license/docs, and a one-click launcher.
+- Added a portable smoke test that starts the packaged backend and verifies `http://127.0.0.1:30006/test` before publishing the artifact.
+- Normal Windows use no longer requires Go or a local compile step; users only need to download, extract, and run `Start FGO Calc.bat`.
+- Python 3.10+ and Git remain optional dependencies used only by Data Sync / game-data updates.
+- Added `SHA256SUMS.txt` for the generated Windows ZIP.
+
 ## v1.0.1 Hotfix
 
 - Fixed the three mini-selects in Servant Box cards rendering as blank under Pico CSS by overriding the framework's select right-padding and using compact labels.
