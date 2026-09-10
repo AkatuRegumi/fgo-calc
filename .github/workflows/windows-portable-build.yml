@@ -3,6 +3,8 @@ name: Build Windows Portable
 on:
   workflow_dispatch:
   push:
+    branches:
+      - master
     tags:
       - "v*"
 
