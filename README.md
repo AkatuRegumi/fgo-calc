@@ -8,6 +8,21 @@
 
 > 详细功能与本地运行说明见 `README_LOCAL_BOX.md`。本 fork 已移除上游登录/注册与服务器端用户数据库，默认只监听 `127.0.0.1`。FGO/Stream `toplogin` Response 仅在浏览器本地解析，原始抓包不会上传到后端；抓包可能包含账号敏感字段，请勿提交到公开仓库。
 
+## Windows 推荐使用方式
+
+Windows 普通用户推荐直接下载 Releases 中的 **Windows Portable** 便携包：
+
+1. 下载 `FGO_Calc_Local_Box_Windows.zip`。
+2. 完整解压到普通文件夹。
+3. 双击 `Start FGO Calc.bat`。
+4. 浏览器会自动打开本地页面 `http://127.0.0.1:30006`。
+
+便携版已包含预编译 Go 后端，**正常使用不需要安装 Go、编译器或其他开发环境**。
+
+Release 自带一份可直接使用的游戏数据。只有需要执行“检查更新 / 更新游戏数据”时，才额外需要 Python 3.10+ 与 Git for Windows；未安装它们不会影响使用 Release 自带数据进行计算。
+
+> 本项目不提供在线账号或云服务。Windows 便携版仍然只在用户自己的电脑上运行，并只监听 `127.0.0.1`。
+
 
 ## 项目结构
 
@@ -140,7 +155,9 @@ $\Delta_{max} = (\text{助战数} \times 0.2 \times \text{人数} - 0.15 \times 
 
 
 
-## Deployment
+## 源码运行 / 开发者构建
+
+Windows 便携版用户不需要执行下面这些命令。以下流程仅用于从源码生成数据和自行构建后端：
 
 ```shell
 python3 data.py
