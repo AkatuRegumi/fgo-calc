@@ -137,6 +137,40 @@ func runDataSyncScript(root string, checkOnly bool) (map[string]any, string, err
 	return payload, text, nil
 }
 
+func optionalDataSyncUnavailable(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := strings.ToLower(err.Error())
+	for _, marker := range []string{
+		"python was not found in path",
+		"python 3 was not found in path",
+		"exit status 9009",
+		"not recognized as an internal or external command",
+		"the system cannot find the file specified",
+	} {
+		if strings.Contains(message, marker) {
+			return true
+		}
+	}
+	return false
+}
+
+func optionalDataSyncStatusPayload(reason string) gin.H {
+	return gin.H{
+		"ok":                    true,
+		"source":                "Bundled release data",
+		"connected":             false,
+		"atlasAvailable":        false,
+		"atlasError":            "",
+		"updateAvailable":       false,
+		"updateSignal":          "offline",
+		"optionalSyncAvailable": false,
+		"optionalSyncReason":    reason,
+		"optionalSyncNeeds":     []string{"Python 3.10+", "Git"},
+	}
+}
+
 func (h *Handler) DataSyncStatus(c *gin.Context) {
 	if !loopbackRequest(c) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Data Sync is only available from localhost"})
@@ -149,6 +183,10 @@ func (h *Handler) DataSyncStatus(c *gin.Context) {
 	}
 	payload, _, err := runDataSyncScript(root, true)
 	if err != nil {
+		if optionalDataSyncUnavailable(err) {
+			c.JSON(http.StatusOK, optionalDataSyncStatusPayload(err.Error()))
+			return
+		}
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}

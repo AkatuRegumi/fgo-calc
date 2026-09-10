@@ -7,6 +7,7 @@
 - Added a portable smoke test that starts the packaged backend and verifies `http://127.0.0.1:30006/test` before publishing the artifact.
 - Normal Windows use no longer requires Go or a local compile step; users only need to download, extract, and run `Start FGO Calc.bat`.
 - Python 3.10+ and Git remain optional dependencies used only by Data Sync / game-data updates.
+- On clean Windows systems without Python, the automatic Data Sync status check now falls back to the bundled dataset as a normal offline state instead of showing a failure; Windows exit status 9009 is treated as an unavailable optional sync environment.
 - Added `SHA256SUMS.txt` for the generated Windows ZIP.
 
 ## v1.0.1 Hotfix
