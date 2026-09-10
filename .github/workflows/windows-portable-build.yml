@@ -1,0 +1,105 @@
+name: Build Windows Portable
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Test backend
+        shell: pwsh
+        working-directory: backend
+        run: go test ./...
+
+      - name: Build backend
+        shell: pwsh
+        working-directory: backend
+        run: go build -trimpath -mod=readonly -o fgo-calc-local.exe .
+
+      - name: Assemble portable package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $packageRoot = Join-Path $PWD "dist\FGO_Calc_Local_Box_Windows"
+          $backendRoot = Join-Path $packageRoot "backend"
+          New-Item -ItemType Directory -Force -Path $backendRoot | Out-Null
+
+          Copy-Item "run_portable.bat" (Join-Path $packageRoot "Start FGO Calc.bat")
+          Copy-Item "README_PORTABLE_WINDOWS.txt" $packageRoot
+          Copy-Item "update_data.bat" $packageRoot
+          Copy-Item "update_data.py" $packageRoot
+          Copy-Item "data.py" $packageRoot
+          Copy-Item "ce.py" $packageRoot
+          Copy-Item "LICENSE" $packageRoot
+          Copy-Item "CHANGELOG.md" $packageRoot
+          Copy-Item "README.md" $packageRoot
+          Copy-Item "README_LOCAL_BOX.md" $packageRoot
+
+          Copy-Item "backend\fgo-calc-local.exe" $backendRoot
+          Copy-Item "backend\static" $backendRoot -Recurse
+          Copy-Item "data" $packageRoot -Recurse
+
+          @'
+          {
+            "port": "127.0.0.1:30006",
+            "data_dir": "../data",
+            "max_cost": 999,
+            "max_svt_limit": 6,
+            "max_ce_limit": 12,
+            "max_support_limit": 2
+          }
+          '@ | Set-Content -Path (Join-Path $backendRoot "config.portable.json") -Encoding utf8NoBOM
+
+          $zipPath = Join-Path $PWD "dist\FGO_Calc_Local_Box_Windows.zip"
+          if (Test-Path $zipPath) { Remove-Item $zipPath -Force }
+          Compress-Archive -Path $packageRoot -DestinationPath $zipPath -CompressionLevel Optimal
+
+          $hash = (Get-FileHash $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  FGO_Calc_Local_Box_Windows.zip" | Set-Content -Path "dist\SHA256SUMS.txt" -Encoding ascii
+
+      - name: Portable smoke test
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $backendRoot = Join-Path $PWD "dist\FGO_Calc_Local_Box_Windows\backend"
+          $exe = Join-Path $backendRoot "fgo-calc-local.exe"
+          $proc = Start-Process -FilePath $exe -ArgumentList "-config", "config.portable.json" -WorkingDirectory $backendRoot -PassThru
+          try {
+            $ok = $false
+            for ($i = 0; $i -lt 30; $i++) {
+              Start-Sleep -Milliseconds 500
+              try {
+                $resp = Invoke-WebRequest -UseBasicParsing "http://127.0.0.1:30006/test" -TimeoutSec 2
+                if ($resp.StatusCode -eq 200) {
+                  $ok = $true
+                  break
+                }
+              } catch {
+              }
+            }
+            if (-not $ok) { throw "Portable backend did not become healthy on 127.0.0.1:30006" }
+          } finally {
+            if (-not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
+          }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: FGO_Calc_Local_Box_Windows
+          path: |
+            dist/FGO_Calc_Local_Box_Windows.zip
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
