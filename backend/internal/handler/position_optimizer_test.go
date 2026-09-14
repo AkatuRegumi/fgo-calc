@@ -30,7 +30,7 @@ func TestPositionOptimizerPrefersSupportBackWhenEqual(t *testing.T) {
 		},
 		SupportCraftEssences: []model.TeamResultCE{{Id: 1}},
 	}
-	result := ApplyPositionOptimization([]model.TeamResponse{team}, 1000)[0]
+	result := ApplyPositionOptimization([]model.TeamResponse{team}, 1000, "auto")[0]
 	if result.TotalBond != 5600 {
 		t.Fatalf("total bond: got %d, want 5600", result.TotalBond)
 	}
@@ -54,7 +54,7 @@ func TestPositionOptimizerCanPreferSupportFront(t *testing.T) {
 		},
 		SupportCraftEssences: []model.TeamResultCE{{Id: 1}},
 	}
-	result := ApplyPositionOptimization([]model.TeamResponse{team}, 1000)[0]
+	result := ApplyPositionOptimization([]model.TeamResponse{team}, 1000, "auto")[0]
 	if result.SupportPosition != "front" {
 		t.Fatalf("support position: got %q, want front", result.SupportPosition)
 	}
@@ -63,5 +63,25 @@ func TestPositionOptimizerCanPreferSupportFront(t *testing.T) {
 	}
 	if result.PositionBondGain <= 0 {
 		t.Fatalf("expected positive position gain, got %d", result.PositionBondGain)
+	}
+}
+
+func TestPositionOptimizerCanForceSupportFront(t *testing.T) {
+	team := model.TeamResponse{
+		Servants: []int{1, 2, 3, 4, 5},
+		ServantBondBonuses: []model.TeamResultServantBond{
+			bondInfo(1, 0), bondInfo(2, 0), bondInfo(3, 0), bondInfo(4, 0), bondInfo(5, 0),
+		},
+		SupportCraftEssences: []model.TeamResultCE{{Id: 1}},
+	}
+	result := ApplyPositionOptimization([]model.TeamResponse{team}, 1000, "front")[0]
+	if result.SupportPosition != "front" {
+		t.Fatalf("forced support position: got %q, want front", result.SupportPosition)
+	}
+	if len(result.FrontlineServants) != 2 {
+		t.Fatalf("frontline self-servant count: got %d, want 2", len(result.FrontlineServants))
+	}
+	if result.TotalBond != 5600 {
+		t.Fatalf("forced front total bond: got %d, want 5600", result.TotalBond)
 	}
 }
