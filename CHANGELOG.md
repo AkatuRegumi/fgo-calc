@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased
+## v1.1.0 Position-aware Bond Optimization
 
 - Added position-aware bond optimization for starting members: frontline self-servants use a separate x1.20 position multiplier.
 - When a friend support is placed in the frontline, the support-side position bucket becomes +24% for the two frontline self-servants and +4% for all remaining self-servants; the solver compares support-front and support-back layouts automatically.
-- Added frontline locks on required servants and conflict guards against overfilling the three frontline slots when support is forced to the front.
-- Required servants now override Box auto-exclusion for capped Bond 10/15 states: they still occupy party/Cost/position slots while their own bond contribution remains zero.
-- Result cards expose recommended frontline/backline placement, support placement, per-servant position multipliers, and the total bond gained from position optimization.
+- Added a persistent `助战必须前排` switch for quests where the borrowed support must occupy a frontline slot.
+- Added frontline locks on required servants, so a required self-servant can be forced into the frontline without turning every required servant into a frontline member.
+- Added conflict guards for the three frontline slots: three locked self-servants block support-front mode, while support-front mode limits self-servant frontline locks to two.
+- Required servants now override Box auto-exclusion for capped Bond 10/15 states: they still occupy party, Cost, and position slots while their own bond contribution remains zero.
+- Result cards expose recommended frontline/backline placement, support placement, per-servant position multipliers, lock state, and the total bond gained from position optimization.
 
 ## v1.0.2 Windows Portable
 
