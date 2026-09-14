@@ -153,7 +153,15 @@ func applyPositionPlan(team *model.TeamResponse, plan positionPlan) {
 	}
 }
 
-func ApplyPositionOptimization(results []model.TeamResponse, baseBond int) []model.TeamResponse {
+func normalizeSupportPositionMode(mode string) string {
+	if mode == "front" {
+		return "front"
+	}
+	return "auto"
+}
+
+func ApplyPositionOptimization(results []model.TeamResponse, baseBond int, supportPositionMode string) []model.TeamResponse {
+	supportPositionMode = normalizeSupportPositionMode(supportPositionMode)
 	for i := range results {
 		team := &results[i]
 		if len(team.ServantBondBonuses) == 0 {
@@ -163,7 +171,9 @@ func ApplyPositionOptimization(results []model.TeamResponse, baseBond int) []mod
 		best := buildPositionPlan(*team, baseBond, false)
 		if len(team.SupportCraftEssences) > 0 {
 			frontSupport := buildPositionPlan(*team, baseBond, true)
-			if betterPositionPlan(frontSupport, best) {
+			if supportPositionMode == "front" {
+				best = frontSupport
+			} else if betterPositionPlan(frontSupport, best) {
 				best = frontSupport
 			}
 		} else {
