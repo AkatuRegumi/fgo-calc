@@ -146,6 +146,27 @@ func (h *Handler) Calculate(c *gin.Context) {
 		optimizationMode = "max"
 	}
 	supportPositionMode := normalizeSupportPositionMode(c.PostForm("supportpositionmode"))
+	includeSvt := mapStr2Int(c.PostFormArray("includesvt"))
+	frontLockedSvt := uniqueIntList(mapStr2Int(c.PostFormArray("frontlockedsvt")))
+	if len(frontLockedSvt) > 3 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "固定前排从者最多只能锁定3骑"})
+		return
+	}
+	includeSvtSet := make(map[int]bool, len(includeSvt))
+	for _, id := range includeSvt {
+		includeSvtSet[id] = true
+	}
+	for _, id := range frontLockedSvt {
+		if !includeSvtSet[id] {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "固定前排从者必须同时属于必选从者"})
+			return
+		}
+	}
+	if supportPositionMode == "front" && supportLimit > 0 && len(frontLockedSvt) > 2 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "助战必须前排时，最多只能锁定2骑自家前排从者"})
+		return
+	}
+
 	var optimizationProfiles []model.ServantOptimizationProfile
 	if raw := c.PostForm("bondprofiles"); raw != "" {
 		if err := json.Unmarshal([]byte(raw), &optimizationProfiles); err != nil {
@@ -162,7 +183,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 		includeSupportCe,
 		excludeSupportCe,
 		allowTraits,
-		mapStr2Int(c.PostFormArray("includesvt")),
+		includeSvt,
 		c.PostFormArray("includesvtdiff"),
 		mapStr2Int(c.PostFormArray("excludesvt")),
 		mapStr2Int(c.PostFormArray("includece")),
@@ -177,7 +198,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 		optimizationMode,
 		optimizationProfiles,
 	)
-	results = ApplyPositionOptimization(results, baseBond, supportPositionMode)
+	results = ApplyPositionOptimization(results, baseBond, supportPositionMode, frontLockedSvt)
 
 	c.JSON(http.StatusOK, gin.H{
 		"teams":    results,
@@ -191,6 +212,19 @@ func mapStr2Int(data []string) []int {
 		if v, err := strconv.Atoi(d); err == nil {
 			result = append(result, v)
 		}
+	}
+	return result
+}
+
+func uniqueIntList(data []int) []int {
+	seen := make(map[int]bool, len(data))
+	result := make([]int, 0, len(data))
+	for _, value := range data {
+		if seen[value] {
+			continue
+		}
+		seen[value] = true
+		result = append(result, value)
 	}
 	return result
 }

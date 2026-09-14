@@ -76,6 +76,7 @@ type TeamResultServantBond struct {
 	Position                string  `json:"position,omitempty"`
 	PositionBonusPercent    float64 `json:"positionBonusPercent,omitempty"`
 	PrePositionBond         int     `json:"prePositionBond,omitempty"`
+	FrontLocked             bool    `json:"frontLocked,omitempty"`
 }
 
 type TeamResponse struct {

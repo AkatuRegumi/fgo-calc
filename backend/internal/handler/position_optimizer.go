@@ -35,7 +35,7 @@ func weightedBondScore(bond int, weight float64) float64 {
 	return math.Round(float64(bond)*weight*1000.0) / 1000.0
 }
 
-func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool) positionPlan {
+func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool, frontLocked map[int]bool) (positionPlan, bool) {
 	count := len(team.ServantBondBonuses)
 	plan := positionPlan{
 		supportPosition: "back",
@@ -64,6 +64,7 @@ func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool)
 		servantID int
 	}
 	candidates := make([]frontCandidate, 0, count)
+	lockedFound := 0
 
 	for i, info := range team.ServantBondBonuses {
 		pre := bondWithPosition(baseBond, info, 0)
@@ -75,12 +76,21 @@ func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool)
 
 		plan.preBond[i] = pre
 		plan.preTotalBond += pre
+		if frontLocked[info.Id] {
+			plan.front[i] = true
+			lockedFound++
+			continue
+		}
 		candidates = append(candidates, frontCandidate{
 			index:     i,
 			scoreGain: frontScore - backScore,
 			bondGain:  front - back,
 			servantID: info.Id,
 		})
+	}
+
+	if lockedFound != len(frontLocked) || lockedFound > frontSlots {
+		return plan, false
 	}
 
 	sort.SliceStable(candidates, func(i, j int) bool {
@@ -95,7 +105,11 @@ func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool)
 		}
 		return candidates[i].index < candidates[j].index
 	})
-	for i := 0; i < frontSlots; i++ {
+	remainingFrontSlots := frontSlots - lockedFound
+	if remainingFrontSlots > len(candidates) {
+		remainingFrontSlots = len(candidates)
+	}
+	for i := 0; i < remainingFrontSlots; i++ {
 		plan.front[candidates[i].index] = true
 	}
 
@@ -113,7 +127,7 @@ func buildPositionPlan(team model.TeamResponse, baseBond int, supportFront bool)
 		plan.totalScore += score
 	}
 
-	return plan
+	return plan, true
 }
 
 func betterPositionPlan(candidate, current positionPlan) bool {
@@ -127,7 +141,7 @@ func betterPositionPlan(candidate, current positionPlan) bool {
 	return candidate.supportPosition == "back" && current.supportPosition == "front"
 }
 
-func applyPositionPlan(team *model.TeamResponse, plan positionPlan) {
+func applyPositionPlan(team *model.TeamResponse, plan positionPlan, frontLocked map[int]bool) {
 	team.PositionOptimized = true
 	team.SupportPosition = plan.supportPosition
 	team.PrePositionTotalBond = plan.preTotalBond
@@ -143,6 +157,7 @@ func applyPositionPlan(team *model.TeamResponse, plan positionPlan) {
 		info.PositionBonusPercent = plan.positionPercent[i]
 		info.TotalBond = plan.finalBond[i]
 		info.OptimizationScore = plan.finalScore[i]
+		info.FrontLocked = frontLocked[info.Id] && plan.front[i]
 		if plan.front[i] {
 			info.Position = "front"
 			team.FrontlineServants = append(team.FrontlineServants, info.Id)
@@ -160,36 +175,52 @@ func normalizeSupportPositionMode(mode string) string {
 	return "auto"
 }
 
-func ApplyPositionOptimization(results []model.TeamResponse, baseBond int, supportPositionMode string) []model.TeamResponse {
+func ApplyPositionOptimization(results []model.TeamResponse, baseBond int, supportPositionMode string, frontLockedServants []int) []model.TeamResponse {
 	supportPositionMode = normalizeSupportPositionMode(supportPositionMode)
+	frontLocked := make(map[int]bool, len(frontLockedServants))
+	for _, id := range frontLockedServants {
+		frontLocked[id] = true
+	}
+
+	optimized := make([]model.TeamResponse, 0, len(results))
 	for i := range results {
 		team := &results[i]
 		if len(team.ServantBondBonuses) == 0 {
 			continue
 		}
 
-		best := buildPositionPlan(*team, baseBond, false)
+		backPlan, backOK := buildPositionPlan(*team, baseBond, false, frontLocked)
+		best := backPlan
+		bestOK := backOK
+
 		if len(team.SupportCraftEssences) > 0 {
-			frontSupport := buildPositionPlan(*team, baseBond, true)
+			frontPlan, frontOK := buildPositionPlan(*team, baseBond, true, frontLocked)
 			if supportPositionMode == "front" {
-				best = frontSupport
-			} else if betterPositionPlan(frontSupport, best) {
-				best = frontSupport
+				best = frontPlan
+				bestOK = frontOK
+			} else if frontOK && (!bestOK || betterPositionPlan(frontPlan, best)) {
+				best = frontPlan
+				bestOK = true
 			}
-		} else {
+		} else if bestOK {
 			best.supportPosition = "none"
 		}
-		applyPositionPlan(team, best)
+
+		if !bestOK {
+			continue
+		}
+		applyPositionPlan(team, best, frontLocked)
+		optimized = append(optimized, *team)
 	}
 
-	sort.SliceStable(results, func(i, j int) bool {
-		if results[i].OptimizationScore != results[j].OptimizationScore {
-			return results[i].OptimizationScore > results[j].OptimizationScore
+	sort.SliceStable(optimized, func(i, j int) bool {
+		if optimized[i].OptimizationScore != optimized[j].OptimizationScore {
+			return optimized[i].OptimizationScore > optimized[j].OptimizationScore
 		}
-		if results[i].TotalBond != results[j].TotalBond {
-			return results[i].TotalBond > results[j].TotalBond
+		if optimized[i].TotalBond != optimized[j].TotalBond {
+			return optimized[i].TotalBond > optimized[j].TotalBond
 		}
-		return results[i].TotalCost > results[j].TotalCost
+		return optimized[i].TotalCost > optimized[j].TotalCost
 	})
-	return results
+	return optimized
 }
