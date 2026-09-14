@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const positionUIScript = `<script src="/static/position-ui.js?v=position-aware-v1"></script>`
+const positionUIScript = `<script src="/static/position-ui.js?v=position-aware-v2"></script>`
 
 func (h *Handler) ServeIndex(c *gin.Context) {
 	raw, err := os.ReadFile("./static/index.html")
