@@ -32,10 +32,7 @@ func NewHandler(repo *repository.Repository, service *service.CalculatorService,
 }
 
 func (h *Handler) Register(r *gin.Engine) {
-	r.NoRoute(func(c *gin.Context) {
-		c.Header("Cache-Control", "no-cache")
-		c.File("./static/index.html")
-	})
+	r.NoRoute(h.ServeIndex)
 
 	static := r.Group("/static")
 	static.Use(func(c *gin.Context) {
@@ -179,6 +176,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 		optimizationMode,
 		optimizationProfiles,
 	)
+	results = ApplyPositionOptimization(results, baseBond)
 
 	c.JSON(http.StatusOK, gin.H{
 		"teams":    results,

@@ -73,6 +73,9 @@ type TeamResultServantBond struct {
 	GuidanceReceivedPercent float64 `json:"guidanceReceivedPercent,omitempty"`
 	PreferenceWeight        float64 `json:"preferenceWeight,omitempty"`
 	OptimizationScore       float64 `json:"optimizationScore,omitempty"`
+	Position                string  `json:"position,omitempty"`
+	PositionBonusPercent    float64 `json:"positionBonusPercent,omitempty"`
+	PrePositionBond         int     `json:"prePositionBond,omitempty"`
 }
 
 type TeamResponse struct {
@@ -88,6 +91,12 @@ type TeamResponse struct {
 	OptimizationScore     float64                 `json:"OptimizationScore,omitempty"`
 	TotalCost             int                     `json:"TotalCost"`
 	TotalBond             int                     `json:"TotalBond"`
+	PositionOptimized     bool                    `json:"PositionOptimized,omitempty"`
+	SupportPosition       string                  `json:"SupportPosition,omitempty"`
+	FrontlineServants     []int                   `json:"FrontlineServants,omitempty"`
+	BacklineServants      []int                   `json:"BacklineServants,omitempty"`
+	PrePositionTotalBond  int                     `json:"PrePositionTotalBond,omitempty"`
+	PositionBondGain      int                     `json:"PositionBondGain,omitempty"`
 }
 
 type CeEffect struct {

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Added position-aware bond optimization for starting members: frontline self-servants use a separate x1.20 position multiplier.
+- When a friend support is placed in the frontline, the support-side position bucket becomes +24% for the two frontline self-servants and +4% for all remaining self-servants; the solver compares support-front and support-back layouts automatically.
+- Result cards now expose recommended frontline/backline placement, support placement, per-servant position multipliers, and the total bond gained from position optimization.
+
 ## v1.0.2 Windows Portable
 
 - Added a GitHub Actions Windows portable build using Go 1.25.1 from `backend/go.mod`.
