@@ -145,6 +145,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 	if optimizationMode == "" {
 		optimizationMode = "max"
 	}
+	supportPositionMode := normalizeSupportPositionMode(c.PostForm("supportpositionmode"))
 	var optimizationProfiles []model.ServantOptimizationProfile
 	if raw := c.PostForm("bondprofiles"); raw != "" {
 		if err := json.Unmarshal([]byte(raw), &optimizationProfiles); err != nil {
@@ -176,7 +177,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 		optimizationMode,
 		optimizationProfiles,
 	)
-	results = ApplyPositionOptimization(results, baseBond)
+	results = ApplyPositionOptimization(results, baseBond, supportPositionMode)
 
 	c.JSON(http.StatusOK, gin.H{
 		"teams":    results,
