@@ -5,6 +5,7 @@
     const FRONT_LOCKED_SERVANTS_KEY = 'fgo-calc-front-locked-servants-v1';
     const originalRenderResults = renderResults;
     const originalRenderSelectionList = typeof renderSelectionList === 'function' ? renderSelectionList : null;
+    const originalValidateOwnershipSelections = typeof validateOwnershipSelections === 'function' ? validateOwnershipSelections : null;
     const nativeFetch = window.fetch.bind(window);
     let selectionStateReady = false;
 
@@ -224,6 +225,42 @@
         });
     }
 
+    function installMandatoryCappedOverride() {
+        if (!originalValidateOwnershipSelections) return;
+        validateOwnershipSelections = function() {
+            if (typeof OWNERSHIP_CONFIG === 'undefined') {
+                return originalValidateOwnershipSelections();
+            }
+            const previousBond10 = OWNERSHIP_CONFIG.excludeBond10;
+            const previousBond15 = OWNERSHIP_CONFIG.excludeBond15;
+            try {
+                // Explicit required servants are hard constraints. Box "exclude capped"
+                // switches only control automatic selection, not required membership.
+                OWNERSHIP_CONFIG.excludeBond10 = false;
+                OWNERSHIP_CONFIG.excludeBond15 = false;
+                return originalValidateOwnershipSelections();
+            } finally {
+                OWNERSHIP_CONFIG.excludeBond10 = previousBond10;
+                OWNERSHIP_CONFIG.excludeBond15 = previousBond15;
+            }
+        };
+    }
+
+    function appendRequiredCappedBond15(body) {
+        if (typeof OWNERSHIP_CONFIG === 'undefined' || !OWNERSHIP_CONFIG.useOwnedServants) return;
+        if (typeof SELECTIONS === 'undefined' || !(SELECTIONS.includeSvt instanceof Map)) return;
+        if (!(SELECTIONS.bond15Svt instanceof Set)) return;
+        const existing = new Set(body.getAll('bond15svt').map(String));
+        for (const id of SELECTIONS.includeSvt.keys()) {
+            if (!SELECTIONS.ownedSvt.has(id) || !SELECTIONS.bond15Svt.has(id)) continue;
+            const value = String(id);
+            if (!existing.has(value)) {
+                body.append('bond15svt', value);
+                existing.add(value);
+            }
+        }
+    }
+
     window.fetch = function(input, init = {}) {
         const url = typeof input === 'string' ? input : (input?.url || '');
         if (url.includes('/api/calculate') && init?.body) {
@@ -239,6 +276,7 @@
                 Array.from(frontLockedServants)
                     .sort((a, b) => a - b)
                     .forEach(id => init.body.append('frontlockedsvt', String(id)));
+                appendRequiredCappedBond15(init.body);
             }
         }
         return nativeFetch(input, init);
@@ -284,8 +322,14 @@
                 avatar.appendChild(badge);
 
                 const contribution = avatar.querySelector('.servant-bond-bonus');
-                if (contribution && !bondInfo.bondCapped) {
-                    contribution.textContent = `${label}${multiplierText(bondInfo.positionBonusPercent)} · ${contribution.textContent}`;
+                if (contribution) {
+                    if (bondInfo.bondCapped) {
+                        const providerText = bondInfo.bond15GuidanceSource ? ' · 梦火の導き提供者' : '';
+                        contribution.textContent = `${label}${multiplierText(bondInfo.positionBonusPercent)} · 当前羁绊上限已满 · 实得0${providerText}`;
+                        contribution.title = '必选从者即使当前羁绊上限已满仍会参与编成；自身不计入总羁绊。';
+                    } else {
+                        contribution.textContent = `${label}${multiplierText(bondInfo.positionBonusPercent)} · ${contribution.textContent}`;
+                    }
                 }
             });
 
@@ -303,6 +347,7 @@
 
     ensureStyles();
     installSupportFrontControl();
+    installMandatoryCappedOverride();
 
     if (originalRenderSelectionList) {
         renderSelectionList = function(type, list) {
